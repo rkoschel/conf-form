@@ -67,7 +67,7 @@ final class CancelPageTest extends HttpTestCase
             $body = $this->get('/cancel/?t=' . $registration['cancel_token'])['body'];
 
             $this->assertStringContainsString($text, $body);
-            $this->assertStringNotContainsString('<button', $body);
+            $this->assertStringNotContainsString('Teilnahme absagen</button>', $body);
         }
     }
 
@@ -77,7 +77,7 @@ final class CancelPageTest extends HttpTestCase
             $body = $this->get($path)['body'];
 
             $this->assertStringContainsString('Dieser Link ist ungültig', $body, $path);
-            $this->assertStringNotContainsString('<button', $body, $path);
+            $this->assertStringNotContainsString('Teilnahme absagen</button>', $body, $path);
         }
     }
 }

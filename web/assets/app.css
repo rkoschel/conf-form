@@ -29,3 +29,8 @@
 .time-input {
   max-width: 6rem;
 }
+
+/* Icons im Farbschema-Umschalter */
+.theme-icon {
+  flex-shrink: 0;
+}
