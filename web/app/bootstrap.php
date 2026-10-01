@@ -6,6 +6,10 @@ define('APP_DIR', __DIR__);
 require APP_DIR . '/helpers.php';
 require APP_DIR . '/db.php';
 require APP_DIR . '/csrf.php';
+require APP_DIR . '/forms.php';
+require APP_DIR . '/settings.php';
+require APP_DIR . '/events.php';
+require APP_DIR . '/admin.php';
 
 function config(?string $key = null): mixed
 {

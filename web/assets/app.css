@@ -15,3 +15,7 @@
 .text-pre-line {
   white-space: pre-line;
 }
+
+.form-narrow {
+  max-width: 40rem;
+}

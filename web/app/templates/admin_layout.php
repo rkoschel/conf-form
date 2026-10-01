@@ -37,6 +37,12 @@ $nav = [
     </div>
   </nav>
   <main class="container py-4">
+    <?php foreach ($flashes ?? [] as $flash): ?>
+      <div class="alert alert-<?= e($flash['type']) ?> alert-dismissible fade show" role="alert">
+        <?= e($flash['message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Schließen"></button>
+      </div>
+    <?php endforeach ?>
     <?= $content ?>
   </main>
   <script src="<?= e(asset('vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>

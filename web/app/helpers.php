@@ -42,6 +42,32 @@ function now_utc(): string
     return gmdate('Y-m-d\TH:i:s\Z');
 }
 
+/** Einzeiliger Text: trim und Mehrfach-Leerzeichen zu einem zusammenfassen */
+function normalize_line(string $value): string
+{
+    return trim((string) preg_replace('/\s+/u', ' ', $value));
+}
+
+/** Mehrzeiliger Text: einheitliche Zeilenumbrüche, trim */
+function normalize_text(string $value): string
+{
+    return trim(str_replace(["\r\n", "\r"], "\n", $value));
+}
+
+/** 2027-05-01 → 01.05.2027 */
+function format_date(string $date): string
+{
+    $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+    return $parsed ? $parsed->format('d.m.Y') : $date;
+}
+
+/** 2027-04-15T23:59 → 15.04.2027, 23:59 Uhr */
+function format_local_datetime(string $value): string
+{
+    $parsed = DateTimeImmutable::createFromFormat('!Y-m-d\TH:i', $value);
+    return $parsed ? $parsed->format('d.m.Y, H:i') . ' Uhr' : $value;
+}
+
 /**
  * Rendert templates/$template.php in ein Layout.
  * Variablen aus $vars stehen im Template und im Layout zur Verfügung.

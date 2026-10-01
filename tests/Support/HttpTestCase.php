@@ -13,9 +13,12 @@ abstract class HttpTestCase extends TestCase
     private static $server = null;
     private static string $serverDir = '';
     protected static string $baseUrl = '';
+    /** @var array<string, string> Cookies wie in einem Browser (Session) */
+    private static array $cookies = [];
 
     public static function setUpBeforeClass(): void
     {
+        self::$cookies = [];
         self::$serverDir = getenv('CONF_FORM_TEST_DIR') . '/http-' . bin2hex(random_bytes(4));
         mkdir(self::$serverDir, 0700);
 
@@ -72,13 +75,40 @@ abstract class HttpTestCase extends TestCase
     }
 
     /**
+     * Holt eine Seite und liefert das CSRF-Token aus ihrem Formular
+     * (startet dabei die Session).
+     */
+    protected function csrfToken(string $path): string
+    {
+        $body = $this->get($path)['body'];
+        if (!preg_match('/name="csrf" value="([0-9a-f]+)"/', $body, $m)) {
+            $this->fail("Kein CSRF-Token auf $path");
+        }
+        return $m[1];
+    }
+
+    /** Neue "Browser-Sitzung" ohne Cookies */
+    protected function clearCookies(): void
+    {
+        self::$cookies = [];
+    }
+
+    /**
      * @return array{status: int, headers: array<string, string>, body: string}
      */
     private function request(string $method, string $path, string $body = ''): array
     {
+        $header = '';
+        if ($method === 'POST') {
+            $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
+        }
+        if (self::$cookies) {
+            $pairs = array_map(fn ($k, $v) => "$k=$v", array_keys(self::$cookies), self::$cookies);
+            $header .= 'Cookie: ' . implode('; ', $pairs) . "\r\n";
+        }
         $context = stream_context_create(['http' => [
             'method' => $method,
-            'header' => $method === 'POST' ? "Content-Type: application/x-www-form-urlencoded\r\n" : '',
+            'header' => $header,
             'content' => $body,
             'ignore_errors' => true,
             'follow_location' => 0,
@@ -92,7 +122,11 @@ abstract class HttpTestCase extends TestCase
         $headers = [];
         foreach (array_slice($rawHeaders, 1) as $line) {
             [$name, $value] = array_pad(explode(':', $line, 2), 2, '');
-            $headers[strtolower(trim($name))] = trim($value);
+            $name = strtolower(trim($name));
+            $headers[$name] = trim($value);
+            if ($name === 'set-cookie' && preg_match('/^\s*([^=;]+)=([^;]*)/', $value, $c)) {
+                self::$cookies[$c[1]] = $c[2];
+            }
         }
 
         return ['status' => (int) ($m[1] ?? 0), 'headers' => $headers, 'body' => (string) $responseBody];
