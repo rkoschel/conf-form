@@ -59,3 +59,19 @@ function flash_take(): array
     unset($_SESSION['flash']);
     return $messages;
 }
+
+/**
+ * Eingabefeld mit Label und Fehlermeldung (Bootstrap).
+ *
+ * @param array<string, mixed> $form   aktuelle Werte
+ * @param array<string, string> $errors
+ */
+function input_field(array $form, array $errors, string $name, string $label, string $type = 'text', string $attrs = ''): string
+{
+    $id = 'f-' . $name;
+    return '<label for="' . $id . '" class="form-label">' . e($label) . '</label>'
+        . '<input type="' . e($type) . '" id="' . $id . '" name="' . e($name) . '"'
+        . ' value="' . e($form[$name] ?? '') . '"'
+        . ' class="form-control' . invalid_class($errors, $name) . '" ' . $attrs . '>'
+        . field_error($errors, $name);
+}
