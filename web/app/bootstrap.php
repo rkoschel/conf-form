@@ -6,6 +6,7 @@ define('APP_DIR', __DIR__);
 require APP_DIR . '/helpers.php';
 require APP_DIR . '/db.php';
 require APP_DIR . '/csrf.php';
+require APP_DIR . '/spam.php';
 
 function config(?string $key = null): mixed
 {
