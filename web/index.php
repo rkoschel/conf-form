@@ -1,11 +1,15 @@
 <?php
 require __DIR__ . '/app/bootstrap.php';
 
-$event = db()->query('SELECT * FROM events WHERE active = 1')->fetch();
+$event = event_active();
 
-if (!$event) {
+if ($event === null) {
     render('info_inactive', ['title' => 'Konferenz', 'text' => setting_get('inactive_text')]);
     exit;
 }
 
-render('placeholder', ['title' => $event['title']]);
+render('info', [
+    'title' => $event['title'],
+    'event' => $event,
+    'registrationOpen' => event_registration_open($event),
+]);

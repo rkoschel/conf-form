@@ -19,6 +19,14 @@ final class HelpersTest extends TestCase
         $this->assertSame('', e(null));
     }
 
+    public function testFormatsDates(): void
+    {
+        $this->assertSame('01.05.2027', format_date('2027-05-01'));
+        $this->assertSame('Samstag, 01.05.2027', format_date_long('2027-05-01'));
+        $this->assertSame('15.04.2027, 23:59 Uhr', format_local_datetime('2027-04-15T23:59'));
+        $this->assertSame('kein Datum', format_date_long('kein Datum'), 'ungültige Werte unverändert');
+    }
+
     public function testUrlUsesBaseUrl(): void
     {
         // base_url ist in tests/config.test.php leer

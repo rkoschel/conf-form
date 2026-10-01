@@ -93,6 +93,23 @@ final class EventsTest extends DbTestCase
         $this->assertSame(['Soest'], $event['places'], 'Orte bleiben änderbar');
     }
 
+    public function testActiveEventIsNullWithoutActiveEvent(): void
+    {
+        event_save(null, $this->data());
+
+        $this->assertNull(event_active());
+    }
+
+    public function testActiveEventIncludesSlots(): void
+    {
+        event_save(null, $this->data());
+        $id = event_save(null, $this->data(['title' => 'Aktiv', 'active' => true]));
+
+        $event = event_active();
+        $this->assertSame($id, $event['id']);
+        $this->assertSame(['Vortrag', 'Mittag'], array_column($event['slots'], 'label'));
+    }
+
     public function testListIncludesRegistrationCount(): void
     {
         $withRegistrations = event_save(null, $this->data(['date' => '2027-06-01']));

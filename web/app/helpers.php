@@ -61,6 +61,13 @@ function format_date(string $date): string
     return $parsed ? $parsed->format('d.m.Y') : $date;
 }
 
+/** 2027-05-01 → Samstag, 01.05.2027 */
+function format_date_long(string $date): string
+{
+    $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+    return $parsed ? WEEKDAYS[(int) $parsed->format('w')] . ', ' . $parsed->format('d.m.Y') : $date;
+}
+
 /** 2027-04-15T23:59 → 15.04.2027, 23:59 Uhr */
 function format_local_datetime(string $value): string
 {

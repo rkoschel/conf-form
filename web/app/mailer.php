@@ -53,8 +53,6 @@ function mail_registration(string $type, array $registration, array $event): boo
  */
 function mail_vars(array $registration, array $event): array
 {
-    $date = DateTimeImmutable::createFromFormat('!Y-m-d', (string) $event['date']);
-
     $people = [];
     foreach (AGE_GROUPS as $column => $label) {
         $count = (int) ($registration[$column] ?? 0);
@@ -66,7 +64,7 @@ function mail_vars(array $registration, array $event): array
     return [
         'registration' => $registration,
         'event' => $event,
-        'event_date' => $date ? WEEKDAYS[(int) $date->format('w')] . ', ' . format_date((string) $event['date']) : $event['date'],
+        'event_date' => format_date_long((string) $event['date']),
         'people' => $people,
         'cancel_url' => app_url('cancel/?t=' . $registration['cancel_token']),
     ];

@@ -200,6 +200,26 @@ function event_find(int $id): ?array
     return $event;
 }
 
+/** @return array<string, mixed>|null die aktive Veranstaltung mit 'slots' und 'places' */
+function event_active(): ?array
+{
+    $id = db()->query('SELECT id FROM events WHERE active = 1')->fetchColumn();
+    return $id === false ? null : event_find((int) $id);
+}
+
+/**
+ * Ist die Anmeldefrist noch nicht abgelaufen? Ausgewertet in der Zeitzone
+ * der Veranstaltung; die Minute der Frist zählt noch mit (23:59 → bis 23:59:59).
+ *
+ * @param array<string, mixed> $event
+ */
+function event_registration_open(array $event, ?DateTimeImmutable $now = null): bool
+{
+    $now ??= new DateTimeImmutable();
+    $local = $now->setTimezone(new DateTimeZone((string) $event['timezone']))->format('Y-m-d\TH:i');
+    return $local <= $event['registration_deadline'];
+}
+
 /** @return list<array{id: int, time: string, label: string}> */
 function event_slots(int $eventId): array
 {
