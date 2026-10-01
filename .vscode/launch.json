@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "App starten (php -S localhost:8000)",
+      "type": "node-terminal",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "command": "php -S localhost:8000 -t web dev/router.php",
+      "env": {
+        "CONF_FORM_CONFIG": "${workspaceFolder}/config.local.php"
+      },
+      "serverReadyAction": {
+        "pattern": "Development Server \\((https?://\\S+)\\) started",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    }
+  ]
+}
