@@ -36,7 +36,7 @@ if (is_post()) {
         $notice = spam_message($spam);
     } else {
         csrf_check();
-        [$data, $errors] = registration_validate($_POST, $event['slots']);
+        [$data, $errors] = registration_validate($_POST, $event['slots'], (int) $event['max_participants']);
         if (!$errors) {
             $registration = registration_create($event, $data);
             mail_registration(

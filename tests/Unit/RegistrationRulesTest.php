@@ -21,28 +21,44 @@ final class RegistrationRulesTest extends TestCase
 
     public function testPreferredPlaceWithEnoughCapacityIsConfirmed(): void
     {
-        $this->assertSame('confirmed', registration_decide_status(true, 95, 5, 100));
+        $this->assertSame('confirmed', registration_decide_status(true, 95, 5, 100, 5));
     }
 
     public function testExactlyFillingTheQuotaIsConfirmed(): void
     {
-        $this->assertSame('confirmed', registration_decide_status(true, 96, 4, 100));
+        $this->assertSame('confirmed', registration_decide_status(true, 96, 4, 100, 4));
     }
 
     public function testPreferredPlaceOverQuotaGoesToWaitlist(): void
     {
-        $this->assertSame('pending', registration_decide_status(true, 97, 4, 100));
+        $this->assertSame('pending', registration_decide_status(true, 97, 4, 100, 4));
     }
 
     public function testOtherPlaceAlwaysGoesToWaitlist(): void
     {
-        $this->assertSame('pending', registration_decide_status(false, 0, 1, 100));
+        $this->assertSame('pending', registration_decide_status(false, 0, 1, 100, 1));
     }
 
     public function testOnlyBabiesDoNotUseQuota(): void
     {
         // Gruppengröße 0 (nur Kinder 0–2) passt auch bei vollem Kontingent
-        $this->assertSame('confirmed', registration_decide_status(true, 100, 0, 100));
+        $this->assertSame('confirmed', registration_decide_status(true, 100, 0, 100, 1));
+    }
+
+    public function testUpTo99PersonsAreConfirmed(): void
+    {
+        $this->assertSame('confirmed', registration_decide_status(true, 0, 99, 1000, 99));
+    }
+
+    public function testMoreThan99PersonsGoToWaitlistDespitePreferredPlaceAndCapacity(): void
+    {
+        $this->assertSame('pending', registration_decide_status(true, 0, 100, 1000, 100));
+    }
+
+    public function testKidsUnderThreeCountTowardsTheWaitlistThreshold(): void
+    {
+        // 95 im Kontingent + 5 Kinder 0–2 = 100 Personen
+        $this->assertSame('pending', registration_decide_status(true, 0, 95, 1000, 100));
     }
 
     public function testPreferredPlaceMatchesNormalizedAndCaseInsensitive(): void

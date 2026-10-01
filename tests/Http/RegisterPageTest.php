@@ -111,6 +111,16 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertSame([], $this->registrations());
     }
 
+    public function testMoreQuotaPersonsThanCapacityIsRejected(): void
+    {
+        // Kapazität der Test-Veranstaltung: 10
+        $response = $this->submit(['adults' => '11', 'kids_0_2' => '0']);
+
+        $this->assertSame(200, $response['status']);
+        $this->assertStringContainsString('is-invalid', $response['body']);
+        $this->assertSame([], $this->registrations());
+    }
+
     public function testMissingCsrfIsRejected(): void
     {
         $response = $this->submit(['csrf' => '']);

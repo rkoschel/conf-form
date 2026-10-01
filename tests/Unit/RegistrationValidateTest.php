@@ -82,13 +82,43 @@ final class RegistrationValidateTest extends TestCase
 
     public function testCountsMustBeNonNegativeIntegers(): void
     {
-        foreach (['-1', '1.5', 'zwei', '100'] as $value) {
+        foreach (['-1', '1.5', 'zwei', '1234567890'] as $value) {
             [, $errors] = $this->validate(['youth' => $value]);
             $this->assertArrayHasKey('youth', $errors, $value);
         }
         [$data, $errors] = $this->validate(['youth' => '']);
         $this->assertArrayNotHasKey('youth', $errors, 'leer = 0');
         $this->assertSame(0, $data['youth']);
+    }
+
+    public function testNoFixedLimitPerGroup(): void
+    {
+        [$data, $errors] = $this->validate(['adults' => '150']);
+
+        $this->assertSame([], $errors);
+        $this->assertSame(150, $data['adults']);
+    }
+
+    public function testQuotaPersonsMayNotExceedCapacity(): void
+    {
+        [, $errors] = registration_validate($this->input(['adults' => '8', 'youth' => '3']), self::SLOTS, 10);
+
+        $this->assertArrayHasKey('persons', $errors);
+        $this->assertStringNotContainsString('10', $errors['persons'], 'Kapazität wird nicht verraten');
+    }
+
+    public function testCapacityExactlyReachedAndBabiesNotLimited(): void
+    {
+        [, $errors] = registration_validate($this->input(['adults' => '10', 'kids_0_2' => '5']), self::SLOTS, 10);
+
+        $this->assertSame([], $errors);
+    }
+
+    public function testWithoutCapacityNoUpperLimit(): void
+    {
+        [, $errors] = registration_validate($this->input(['adults' => '5000']), self::SLOTS);
+
+        $this->assertSame([], $errors);
     }
 
     public function testGroupAttendanceCopiesGroupCounts(): void

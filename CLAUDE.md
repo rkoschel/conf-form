@@ -73,7 +73,7 @@ Dauerhaft relevante Schnittstellen werden zusätzlich unten eingetragen.
 | §5.3, §7.3, §9 | `mail_registration($type, $registration, $event)` in `web/app/mailer.php` | Mail senden und in `mail_log` protokollieren; ohne E-Mail kein Versand |
 | §8 | `AGE_GROUPS`, `STATUS_LABELS`, `MAIL_TYPES` in `web/app/labels.php` | zentrale deutsche Bezeichnungen |
 | §5.3 | `QUOTA_AGE_GROUPS` in `web/app/stats.php` | Altersgruppen, die zum Kontingent zählen (ohne 0–2) |
-| §5.1, §5.3 | `registration_validate()`, `registration_create()`, `registration_group_size()`, `registration_person_count()`, `registration_occupied()`, `registration_decide_status()` in `web/app/registrations.php` | Formular prüfen, Anmeldung mit Status-Entscheidung in `BEGIN IMMEDIATE` speichern |
+| §5.1, §5.3 | `registration_validate()`, `registration_create()`, `registration_group_size()`, `registration_person_count()`, `registration_occupied()`, `registration_decide_status()`, `AUTO_CONFIRM_MAX_PERSONS` in `web/app/registrations.php` | Formular prüfen (öffentlich mit Obergrenze = Kapazität ohne 0–2), Anmeldung mit Status-Entscheidung in `BEGIN IMMEDIATE` speichern; über 99 Personen gesamt immer Warteliste |
 | §6 | `registration_find_by_token()`, `registration_cancel()` in `web/app/registrations.php` | Absage per Link |
 | §7.2–7.4, §7.6 | `registration_list()` (Filter, Suche, `is_duplicate`, `is_preferred_place`, `person_count`), `registration_set_status()`, `registration_exceeds_quota()`, `registration_update()`, `registration_slot_counts()`, `registration_delete()`, `registration_find()` in `web/app/registrations.php` | Admin-Funktionen für Anmeldungen |
 | §7.7 | `stats_for_event($event)` in `web/app/stats.php` | Auswertung |
