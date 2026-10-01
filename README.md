@@ -18,16 +18,40 @@ first request. `dev/router.php` blocks access to `app/` locally (replacing the
 `.htaccess`, which `php -S` ignores). There is no Basic Auth for `admin/`
 locally.
 
-## Server setup (one-time, manual)
+## Deployment
+
+Deployment runs locally via `deploy.sh` (lftp over FTPS, no CI).
+Requirements: `lftp`, and `apache2-utils` for `htpasswd`.
 
 ```
-/home/www/konferenz/          ← contents of web/ (via deploy)
-/home/conf-form/config.php    ← from config.example.php, with real credentials
-/home/conf-form/.htpasswd     ← htpasswd -c -B /home/conf-form/.htpasswd admin
-/home/conf-form/data/         ← writable by PHP
+/home/www/konferenz/          ← contents of web/ (./deploy.sh)
+/home/conf-form/config.php    ← config.prod.php (./deploy.sh setup)
+/home/conf-form/.htpasswd     ← .htpasswd       (./deploy.sh setup)
+/home/conf-form/data/         ← SQLite database, must be writable by PHP
 ```
+
+One-time setup:
+
+```bash
+cp deploy.env.example deploy.env        # FTP credentials
+cp config.example.php config.prod.php   # set app_secret, SMTP credentials
+htpasswd -c -B .htpasswd admin          # admin login
+./deploy.sh setup
+```
+
+Deploy (only committed files from `web/` on `main`):
+
+```bash
+./deploy.sh --dry-run   # show what would change
+./deploy.sh
+```
+
+The script refuses to run if the target directory does not end in
+`/konferenz` (the organizer's landing page shares the web root), if the
+private directory is inside the web root, or if `web/` has uncommitted or
+ignored files (override the Git checks with `--force`).
 
 ## Secrets
 
-`config.php`, `config.local.php`, `.htpasswd` and the database are excluded
-via `.gitignore` and must never be committed.
+`config.local.php`, `config.prod.php`, `deploy.env`, `.htpasswd` and the
+database are excluded via `.gitignore` and must never be committed.

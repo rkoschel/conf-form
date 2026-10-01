@@ -3,6 +3,8 @@ SPEC.md
 # Secrets & lokale Daten – niemals committen
 config.php
 config.local.php
+config.prod.php
+deploy.env
 .htpasswd
 .env
 data/

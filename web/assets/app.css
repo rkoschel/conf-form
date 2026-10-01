@@ -10,3 +10,8 @@
   height: 1px;
   overflow: hidden;
 }
+
+/* Klartext aus der DB mit Zeilenumbrüchen anzeigen */
+.text-pre-line {
+  white-space: pre-line;
+}
