@@ -51,5 +51,8 @@ $nav = [
   </main>
   <script src="<?= e(asset('vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>
   <script src="<?= e(asset('admin.js')) ?>"></script>
+  <?php foreach ($scripts ?? [] as $script): ?>
+    <script src="<?= e(asset($script)) ?>"></script>
+  <?php endforeach ?>
 </body>
 </html>
