@@ -13,6 +13,7 @@ require APP_DIR . '/admin.php';
 require APP_DIR . '/spam.php';
 require APP_DIR . '/labels.php';
 require APP_DIR . '/mailer.php';
+require APP_DIR . '/stats.php';
 
 function config(?string $key = null): mixed
 {

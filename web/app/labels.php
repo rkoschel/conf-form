@@ -12,6 +12,14 @@ const AGE_GROUPS = [
     'kids_0_2' => 'Kinder 0–2',
 ];
 
+/** Status einer Anmeldung, in der Reihenfolge der UI (SPEC §7.2) */
+const STATUS_LABELS = [
+    'pending' => 'offen',
+    'confirmed' => 'bestätigt',
+    'cancelled' => 'storniert',
+    'rejected' => 'abgelehnt',
+];
+
 const MAIL_TYPES = [
     'received_confirmed' => 'Eingang (bestätigt)',
     'received_waitlist' => 'Eingang (Warteliste)',

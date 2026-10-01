@@ -19,3 +19,8 @@
 .form-narrow {
   max-width: 40rem;
 }
+
+/* Zahlenspalten bündig */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

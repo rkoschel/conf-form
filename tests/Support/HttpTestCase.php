@@ -87,6 +87,12 @@ abstract class HttpTestCase extends TestCase
         return $m[1];
     }
 
+    /** Direkter Zugriff auf die DB des Test-Servers (z. B. um Testdaten anzulegen) */
+    protected function serverDb(): PDO
+    {
+        return db_connect(self::$serverDir . '/test.sqlite');
+    }
+
     /** Neue "Browser-Sitzung" ohne Cookies */
     protected function clearCookies(): void
     {
