@@ -10,6 +10,9 @@ require APP_DIR . '/forms.php';
 require APP_DIR . '/settings.php';
 require APP_DIR . '/events.php';
 require APP_DIR . '/admin.php';
+require APP_DIR . '/spam.php';
+require APP_DIR . '/labels.php';
+require APP_DIR . '/mailer.php';
 
 function config(?string $key = null): mixed
 {
