@@ -11,10 +11,11 @@ final class EventValidationTest extends TestCase
     {
         return $overrides + [
             'title' => 'Konferenz 2027',
-            'date' => '2027-05-01',
+            'date' => '01.05.2027',
             'location' => 'Hamm',
             'description' => '',
-            'registration_deadline' => '2027-04-15T23:59',
+            'registration_deadline_date' => '15.04.2027',
+            'registration_deadline_time' => '23:59',
             'timezone' => 'Europe/Berlin',
             'max_participants' => '150',
             'organizer_name' => '',
@@ -30,6 +31,8 @@ final class EventValidationTest extends TestCase
         [$data, $errors] = event_validate($this->input());
 
         $this->assertSame([], $errors);
+        $this->assertSame('2027-05-01', $data['date'], 'ISO gespeichert');
+        $this->assertSame('2027-04-15T23:59', $data['registration_deadline']);
         $this->assertSame(150, $data['max_participants']);
         $this->assertFalse($data['active']);
     }
@@ -52,10 +55,9 @@ final class EventValidationTest extends TestCase
             'Titel leer' => ['title', '  '],
             'Ort leer' => ['location', ''],
             'Datum leer' => ['date', ''],
-            'Datum ungültig' => ['date', '2027-02-30'],
-            'Datum falsches Format' => ['date', '01.05.2027'],
-            'Frist ohne Uhrzeit' => ['registration_deadline', '2027-04-15'],
-            'Frist ungültig' => ['registration_deadline', '2027-04-15T25:00'],
+            'Datum ungültig' => ['date', '30.02.2027'],
+            'Datum ISO statt deutsch' => ['date', '2027-05-01'],
+            'Datum US-Format' => ['date', '05/01/2027'],
             'Zeitzone unbekannt' => ['timezone', 'Mars/Olympus'],
             'Zeitzone leer' => ['timezone', ''],
             'Teilnehmer 0' => ['max_participants', '0'],
@@ -72,6 +74,44 @@ final class EventValidationTest extends TestCase
         [, $errors] = event_validate($this->input([$field => $value]));
 
         $this->assertArrayHasKey($field, $errors);
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function invalidDeadlines(): array
+    {
+        return [
+            'Datum fehlt' => ['', '23:59'],
+            'Uhrzeit fehlt' => ['15.04.2027', ''],
+            'Uhrzeit 25 Uhr' => ['15.04.2027', '25:00'],
+            'Uhrzeit AM/PM' => ['15.04.2027', '11:59 PM'],
+            'Datum ungültig' => ['31.04.2027', '12:00'],
+        ];
+    }
+
+    #[DataProvider('invalidDeadlines')]
+    public function testRejectsInvalidDeadline(string $date, string $time): void
+    {
+        [, $errors] = event_validate($this->input([
+            'registration_deadline_date' => $date,
+            'registration_deadline_time' => $time,
+        ]));
+
+        $this->assertArrayHasKey('registration_deadline', $errors);
+    }
+
+    public function testAcceptsDatesAndTimesWithoutLeadingZeros(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'date' => '1.5.2027',
+            'registration_deadline_date' => '5.4.2027',
+            'registration_deadline_time' => '9:05',
+            'slots' => [['time' => '9:30', 'label' => 'Start']],
+        ]));
+
+        $this->assertSame([], $errors);
+        $this->assertSame('2027-05-01', $data['date']);
+        $this->assertSame('2027-04-05T09:05', $data['registration_deadline']);
+        $this->assertSame('09:30', $data['slots'][0]['time']);
     }
 
     public function testOrganizerEmailIsOptional(): void
@@ -105,10 +145,11 @@ final class EventValidationTest extends TestCase
                 ['time' => '10:00', 'label' => 'Ok'],
                 ['time' => '11:00', 'label' => ''],
                 ['time' => '9 Uhr', 'label' => 'Falsches Format'],
+                ['time' => '2:00 PM', 'label' => 'AM/PM'],
             ],
         ]));
 
-        $this->assertSame('Programmpunkt 2, 3: Uhrzeit (HH:MM) und Bezeichnung angeben.', $errors['slots']);
+        $this->assertSame('Programmpunkt 2, 3, 4: Uhrzeit (HH:MM) und Bezeichnung angeben.', $errors['slots']);
     }
 
     public function testIgnoresMalformedSlotInput(): void
@@ -133,7 +174,7 @@ final class EventValidationTest extends TestCase
     public function testDeadlineMayEqualStartOfFirstSlot(): void
     {
         [, $errors] = event_validate($this->input([
-            'registration_deadline' => '2027-05-01T09:30',
+            'registration_deadline_date' => '01.05.2027', 'registration_deadline_time' => '09:30',
             'slots' => [['time' => '14:00', 'label' => 'B'], ['time' => '09:30', 'label' => 'A']],
         ]));
 
@@ -143,7 +184,7 @@ final class EventValidationTest extends TestCase
     public function testDeadlineAfterStartOfFirstSlotIsRejected(): void
     {
         [, $errors] = event_validate($this->input([
-            'registration_deadline' => '2027-05-01T09:31',
+            'registration_deadline_date' => '01.05.2027', 'registration_deadline_time' => '09:31',
             'slots' => [['time' => '14:00', 'label' => 'B'], ['time' => '09:30', 'label' => 'A']],
         ]));
 
@@ -155,14 +196,14 @@ final class EventValidationTest extends TestCase
 
     public function testDeadlineWithoutSlotsMayBeOnEventDay(): void
     {
-        [, $errors] = event_validate($this->input(['registration_deadline' => '2027-05-01T23:59', 'slots' => []]));
+        [, $errors] = event_validate($this->input(['registration_deadline_date' => '01.05.2027', 'registration_deadline_time' => '23:59', 'slots' => []]));
 
         $this->assertArrayNotHasKey('registration_deadline', $errors);
     }
 
     public function testDeadlineWithoutSlotsAfterEventDayIsRejected(): void
     {
-        [, $errors] = event_validate($this->input(['registration_deadline' => '2027-05-02T00:00', 'slots' => []]));
+        [, $errors] = event_validate($this->input(['registration_deadline_date' => '02.05.2027', 'registration_deadline_time' => '00:00', 'slots' => []]));
 
         $this->assertStringContainsString('(Veranstaltungstag)', $errors['registration_deadline']);
     }
@@ -170,7 +211,7 @@ final class EventValidationTest extends TestCase
     public function testDeadlineRuleSkippedWhenSlotsInvalid(): void
     {
         [, $errors] = event_validate($this->input([
-            'registration_deadline' => '2027-06-01T00:00',
+            'registration_deadline_date' => '01.06.2027', 'registration_deadline_time' => '00:00',
             'slots' => [['time' => 'x', 'label' => '']],
         ]));
 
@@ -185,7 +226,7 @@ final class EventValidationTest extends TestCase
         $locked = [['time' => '08:00', 'label' => 'Frühstück']];
 
         [$data, $errors] = event_validate($this->input([
-            'registration_deadline' => '2027-05-01T09:00',
+            'registration_deadline_date' => '01.05.2027', 'registration_deadline_time' => '09:00',
             'slots' => [['time' => '10:00', 'label' => 'Manipuliert']],
         ]), $locked);
 

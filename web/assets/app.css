@@ -24,3 +24,8 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Uhrzeitfeld neben dem Datum in der Anmeldefrist */
+.time-input {
+  max-width: 6rem;
+}

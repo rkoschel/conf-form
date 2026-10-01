@@ -22,7 +22,8 @@ if (is_post()) {
         'date' => post_string('date'),
         'location' => post_string('location'),
         'description' => post_string('description'),
-        'registration_deadline' => post_string('registration_deadline'),
+        'registration_deadline_date' => post_string('registration_deadline_date'),
+        'registration_deadline_time' => post_string('registration_deadline_time'),
         'timezone' => post_string('timezone'),
         'max_participants' => post_string('max_participants'),
         'organizer_name' => post_string('organizer_name'),
@@ -38,7 +39,12 @@ if (is_post()) {
         redirect('admin/events.php');
     }
 } elseif ($event !== null) {
+    // Gespeichert wird ISO, angezeigt TT.MM.JJJJ und HH:MM
+    [$deadlineDate, $deadlineTime] = explode('T', $event['registration_deadline']);
     $form = $event;
+    $form['date'] = format_date($event['date']);
+    $form['registration_deadline_date'] = format_date($deadlineDate);
+    $form['registration_deadline_time'] = $deadlineTime;
     $form['places'] = implode("\n", $event['places']);
 } else {
     $form = ['timezone' => 'Europe/Berlin', 'active' => false, 'slots' => [], 'places' => ''];

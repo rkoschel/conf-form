@@ -9,10 +9,11 @@ final class InfoPageTest extends HttpTestCase
         $response = $this->post('/admin/event.php', $overrides + [
             'csrf' => $this->csrfToken('/admin/event.php'),
             'title' => 'Konferenz <2099>',
-            'date' => '2099-05-02',
+            'date' => '02.05.2099',
             'location' => 'Hamm, Gemeindehaus',
             'description' => "Herzliche Einladung!\nMit Mittagessen.",
-            'registration_deadline' => '2099-04-15T23:59',
+            'registration_deadline_date' => '15.04.2099',
+            'registration_deadline_time' => '23:59',
             'timezone' => 'Europe/Berlin',
             'max_participants' => '173',
             'active' => '1',
@@ -56,8 +57,9 @@ final class InfoPageTest extends HttpTestCase
     {
         $this->activeEvent([
             'title' => 'Vergangene Konferenz',
-            'date' => '2020-05-02',
-            'registration_deadline' => '2020-04-15T23:59',
+            'date' => '02.05.2020',
+            'registration_deadline_date' => '15.04.2020',
+            'registration_deadline_time' => '23:59',
         ]);
 
         $body = $this->get('/')['body'];

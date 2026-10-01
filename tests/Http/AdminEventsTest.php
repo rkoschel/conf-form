@@ -9,10 +9,11 @@ final class AdminEventsTest extends HttpTestCase
         return $overrides + [
             'csrf' => $this->csrfToken('/admin/event.php'),
             'title' => $title,
-            'date' => '2027-05-01',
+            'date' => '01.05.2027',
             'location' => 'Hamm',
             'description' => 'Beschreibung',
-            'registration_deadline' => '2027-04-15T23:59',
+            'registration_deadline_date' => '15.04.2027',
+            'registration_deadline_time' => '23:59',
             'timezone' => 'Europe/Berlin',
             'max_participants' => '120',
             'organizer_name' => 'Orga',
@@ -58,6 +59,10 @@ final class AdminEventsTest extends HttpTestCase
         $body = $this->get("/admin/event.php?id=$id")['body'];
 
         $this->assertStringContainsString('value="Bearbeiten-Test"', $body);
+        $this->assertStringContainsString('name="date" value="01.05.2027"', $body);
+        $this->assertMatchesRegularExpression('#name="registration_deadline_date"\s+value="15\.04\.2027"#', $body);
+        $this->assertStringContainsString('value="23:59"', $body);
+        $this->assertStringContainsString('value="10:00"', $body);
         $this->assertStringContainsString("Hamm\nUnna</textarea>", $body);
         $this->assertLessThan(strpos($body, 'Nachmittag'), strpos($body, 'Vormittag'), 'Ablauf nach Uhrzeit sortiert');
         $this->assertStringContainsString('data-add-slot', $body);
@@ -67,7 +72,8 @@ final class AdminEventsTest extends HttpTestCase
     {
         $response = $this->post('/admin/event.php', $this->formData('Fehler-Test', [
             'location' => '',
-            'registration_deadline' => '2027-05-01T12:00',
+            'registration_deadline_date' => '01.05.2027',
+            'registration_deadline_time' => '12:00',
         ]));
 
         $this->assertSame(200, $response['status']);

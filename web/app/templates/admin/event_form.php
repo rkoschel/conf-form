@@ -10,10 +10,21 @@
   <fieldset class="row g-3">
     <legend class="h5">Eckdaten</legend>
     <div class="col-12"><?= input_field($form, $errors, 'title', 'Titel', 'text', 'required') ?></div>
-    <div class="col-sm-6 col-lg-3"><?= input_field($form, $errors, 'date', 'Datum', 'date', 'required') ?></div>
+    <div class="col-sm-6 col-lg-3">
+      <?= input_field($form, $errors, 'date', 'Datum', 'text', 'placeholder="TT.MM.JJJJ" autocomplete="off" required') ?>
+    </div>
     <div class="col-sm-6 col-lg-9"><?= input_field($form, $errors, 'location', 'Ort', 'text', 'required') ?></div>
     <div class="col-sm-6 col-lg-3">
-      <?= input_field($form, $errors, 'registration_deadline', 'Anmeldefrist', 'datetime-local', 'required') ?>
+      <label for="f-registration_deadline_date" class="form-label">Anmeldefrist</label>
+      <div class="input-group<?= isset($errors['registration_deadline']) ? ' has-validation' : '' ?>">
+        <input type="text" id="f-registration_deadline_date" name="registration_deadline_date"
+               value="<?= e($form['registration_deadline_date'] ?? '') ?>" placeholder="TT.MM.JJJJ" autocomplete="off"
+               class="form-control<?= invalid_class($errors, 'registration_deadline') ?>" required>
+        <input type="text" name="registration_deadline_time" aria-label="Uhrzeit der Anmeldefrist"
+               value="<?= e($form['registration_deadline_time'] ?? '') ?>" placeholder="HH:MM" autocomplete="off"
+               class="form-control time-input<?= invalid_class($errors, 'registration_deadline') ?>" required>
+        <?= field_error($errors, 'registration_deadline') ?>
+      </div>
     </div>
     <div class="col-sm-6 col-lg-4">
       <label for="f-timezone" class="form-label">Zeitzone</label>

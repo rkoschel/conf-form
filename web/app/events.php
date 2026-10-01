@@ -4,10 +4,13 @@ declare(strict_types=1);
 /**
  * Prüft und normalisiert die Eingaben des Veranstaltungs-Formulars.
  *
- * $input: title, date, location, description, registration_deadline,
- * timezone, max_participants, organizer_name, organizer_email (Strings),
- * active (bool), slots (Liste von ['time' => …, 'label' => …]),
- * places (String, ein Ort pro Zeile).
+ * $input: title, date (TT.MM.JJJJ), location, description,
+ * registration_deadline_date (TT.MM.JJJJ), registration_deadline_time
+ * (HH:MM, 24 h), timezone, max_participants, organizer_name,
+ * organizer_email (Strings), active (bool), slots (Liste von
+ * ['time' => HH:MM, 'label' => …]), places (String, ein Ort pro Zeile).
+ * Die Daten werden als ISO zurückgegeben (date: Y-m-d,
+ * registration_deadline: Y-m-d\TH:i).
  *
  * Ist der Ablauf gesperrt (es gibt Anmeldungen), wird $lockedSlots
  * übergeben: Eingegebene Programmpunkte werden dann ignoriert und die
@@ -21,10 +24,9 @@ function event_validate(array $input, ?array $lockedSlots = null): array
     $errors = [];
     $data = [
         'title' => normalize_line((string) ($input['title'] ?? '')),
-        'date' => trim((string) ($input['date'] ?? '')),
+        'date' => parse_date_de((string) ($input['date'] ?? '')),
         'location' => normalize_line((string) ($input['location'] ?? '')),
         'description' => normalize_text((string) ($input['description'] ?? '')),
-        'registration_deadline' => trim((string) ($input['registration_deadline'] ?? '')),
         'timezone' => trim((string) ($input['timezone'] ?? '')),
         'max_participants' => trim((string) ($input['max_participants'] ?? '')),
         'organizer_name' => normalize_line((string) ($input['organizer_name'] ?? '')),
@@ -38,11 +40,16 @@ function event_validate(array $input, ?array $lockedSlots = null): array
         }
     }
 
-    if (!is_valid_format($data['date'], '!Y-m-d')) {
-        $errors['date'] = 'Bitte ein gültiges Datum angeben.';
+    if ($data['date'] === null) {
+        $errors['date'] = 'Bitte ein gültiges Datum im Format TT.MM.JJJJ angeben.';
     }
-    if (!is_valid_format($data['registration_deadline'], '!Y-m-d\TH:i')) {
-        $errors['registration_deadline'] = 'Bitte Datum und Uhrzeit der Anmeldefrist angeben.';
+    $deadlineDate = parse_date_de((string) ($input['registration_deadline_date'] ?? ''));
+    $deadlineTime = parse_time((string) ($input['registration_deadline_time'] ?? ''));
+    $data['registration_deadline'] = $deadlineDate !== null && $deadlineTime !== null
+        ? $deadlineDate . 'T' . $deadlineTime
+        : null;
+    if ($data['registration_deadline'] === null) {
+        $errors['registration_deadline'] = 'Bitte Datum (TT.MM.JJJJ) und Uhrzeit (HH:MM) der Anmeldefrist angeben.';
     }
     if (!in_array($data['timezone'], DateTimeZone::listIdentifiers(), true)) {
         $errors['timezone'] = 'Bitte eine Zeitzone auswählen.';
@@ -92,12 +99,13 @@ function event_parse_slots(mixed $rows): array
     $number = 0;
     foreach (is_array($rows) ? $rows : [] as $row) {
         $number++;
-        $time = trim((string) ($row['time'] ?? ''));
+        $rawTime = trim((string) ($row['time'] ?? ''));
         $label = normalize_line((string) ($row['label'] ?? ''));
-        if ($time === '' && $label === '') {
+        if ($rawTime === '' && $label === '') {
             continue;
         }
-        if (!is_valid_format($time, '!H:i') || $label === '') {
+        $time = parse_time($rawTime);
+        if ($time === null || $label === '') {
             $invalid[] = $number;
             continue;
         }
@@ -123,12 +131,6 @@ function event_parse_places(string $text): array
         }
     }
     return array_values($places);
-}
-
-function is_valid_format(string $value, string $format): bool
-{
-    $parsed = DateTimeImmutable::createFromFormat($format, $value);
-    return $parsed !== false && $parsed->format(ltrim($format, '!')) === $value;
 }
 
 /**

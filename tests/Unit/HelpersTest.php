@@ -27,6 +27,28 @@ final class HelpersTest extends TestCase
         $this->assertSame('kein Datum', format_date_long('kein Datum'), 'ungültige Werte unverändert');
     }
 
+    public function testParsesGermanDates(): void
+    {
+        $this->assertSame('2027-05-01', parse_date_de('01.05.2027'));
+        $this->assertSame('2027-05-01', parse_date_de(' 1.5.2027 '));
+        $this->assertNull(parse_date_de('29.02.2027'), 'kein Schaltjahr');
+        $this->assertSame('2028-02-29', parse_date_de('29.02.2028'));
+        $this->assertNull(parse_date_de('2027-05-01'));
+        $this->assertNull(parse_date_de('05/01/2027'));
+        $this->assertNull(parse_date_de('1.5.27'));
+    }
+
+    public function testParses24HourTimes(): void
+    {
+        $this->assertSame('09:30', parse_time('9:30'));
+        $this->assertSame('00:00', parse_time('00:00'));
+        $this->assertSame('23:59', parse_time('23:59'));
+        $this->assertNull(parse_time('24:00'));
+        $this->assertNull(parse_time('12:60'));
+        $this->assertNull(parse_time('11:59 PM'));
+        $this->assertNull(parse_time('1130'));
+    }
+
     public function testUrlUsesBaseUrl(): void
     {
         // base_url ist in tests/config.test.php leer

@@ -54,6 +54,25 @@ function normalize_text(string $value): string
     return trim(str_replace(["\r\n", "\r"], "\n", $value));
 }
 
+/** Eingabe TT.MM.JJJJ (auch 1.5.2027) → 2027-05-01, ungültig → null */
+function parse_date_de(string $value): ?string
+{
+    if (!preg_match('/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/', trim($value), $m)
+        || !checkdate((int) $m[2], (int) $m[1], (int) $m[3])) {
+        return null;
+    }
+    return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+}
+
+/** Eingabe HH:MM im 24-h-Format (auch 9:30) → 09:30, ungültig → null */
+function parse_time(string $value): ?string
+{
+    if (!preg_match('/^(\d{1,2}):(\d{2})$/', trim($value), $m) || (int) $m[1] > 23 || (int) $m[2] > 59) {
+        return null;
+    }
+    return sprintf('%02d:%02d', $m[1], $m[2]);
+}
+
 /** 2027-05-01 → 01.05.2027 */
 function format_date(string $date): string
 {
