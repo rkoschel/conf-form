@@ -1,0 +1,10 @@
+parameters:
+    level: 5
+    paths:
+        - web
+        - dev
+    excludePaths:
+        # Fremdbibliothek
+        - web/app/lib/*
+        # Templates bekommen ihre Variablen per extract() aus render()
+        - web/app/templates/*

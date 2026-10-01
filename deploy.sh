@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Deployment per lftp über FTPS (siehe SPEC §2.1).
 #
-#   ./deploy.sh              web/ nach FTP_APP_DIR spiegeln
+#   ./deploy.sh              Tests, web/ nach FTP_APP_DIR spiegeln, Smoke-Test
 #   ./deploy.sh --dry-run    nur anzeigen, was passieren würde
 #   ./deploy.sh setup        config.prod.php und .htpasswd nach FTP_PRIVATE_DIR
-#   --force                  Git-Prüfungen (Branch, sauberer Stand) überspringen
+#   --force                  Git-Prüfungen und Tests vor dem Deploy überspringen
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 die() { echo "Fehler: $*" >&2; exit 1; }
 
 usage() {
-    sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 mode=deploy
@@ -40,6 +40,7 @@ source deploy.env
 : "${FTP_APP_DIR:?FTP_APP_DIR fehlt in deploy.env}"
 : "${FTP_PRIVATE_DIR:?FTP_PRIVATE_DIR fehlt in deploy.env}"
 FTP_VERIFY_CERT="${FTP_VERIFY_CERT:-true}"
+APP_URL="${APP_URL:-}"
 
 FTP_APP_DIR="${FTP_APP_DIR%/}"
 FTP_PRIVATE_DIR="${FTP_PRIVATE_DIR%/}"
@@ -85,6 +86,10 @@ deploy() {
         dirty="$(git status --porcelain --ignored -- web/)"
         [[ -z "$dirty" ]] || die "web/ enthält nicht committete oder ignorierte Dateien; --force zum Übergehen:
 $dirty"
+        if (( ! dry_run )); then
+            ./test.sh || die "Tests fehlgeschlagen – kein Deploy (--force zum Übergehen)"
+            echo
+        fi
     fi
 
     local flags="--reverse --delete --only-newer --no-perms --parallel=4 --verbose"
@@ -93,6 +98,11 @@ $dirty"
     echo "Deploy: web/ → ftp://$FTP_HOST$FTP_APP_DIR (Commit $(git rev-parse --short HEAD))"
     (( dry_run )) && echo "(Dry-Run – es wird nichts verändert)"
     run_lftp "mirror $flags web/ \"$FTP_APP_DIR\""
+
+    if (( ! dry_run )) && [[ -n "$APP_URL" ]]; then
+        echo
+        tests/smoke.sh "$APP_URL"
+    fi
 }
 
 # --- Setup -----------------------------------------------------------------

@@ -1,14 +1,22 @@
 <?php
 declare(strict_types=1);
 
-function db(): PDO
+/**
+ * Die DB-Verbindung der App (aus config('db_path')).
+ * Tests können mit db(db_connect($pfad)) eine eigene Verbindung setzen.
+ */
+function db(?PDO $use = null): PDO
 {
     static $pdo = null;
-    if ($pdo !== null) {
-        return $pdo;
+    if ($use !== null) {
+        $pdo = $use;
     }
+    return $pdo ??= db_connect((string) config('db_path'));
+}
 
-    $path = (string) config('db_path');
+/** Öffnet eine SQLite-DB und legt bei Bedarf Verzeichnis und Schema an. */
+function db_connect(string $path): PDO
+{
     $dir = dirname($path);
     if (!is_dir($dir) && !mkdir($dir, 0700, true) && !is_dir($dir)) {
         throw new RuntimeException('DB-Verzeichnis kann nicht angelegt werden: ' . $dir);

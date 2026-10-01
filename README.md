@@ -18,10 +18,29 @@ first request. `dev/router.php` blocks access to `app/` locally (replacing the
 `.htaccess`, which `php -S` ignores). There is no Basic Auth for `admin/`
 locally.
 
+## Testing
+
+Requirements: `php-xml` (for PHPUnit). Tools are downloaded as `.phar`
+files with pinned versions and checksums (no Composer):
+
+```bash
+tools/install.sh                  # PHPUnit 11, PHPStan 2 → tools/ (gitignored)
+./test.sh                         # php -l, PHPStan, PHPUnit
+./test.sh --testsuite unit        # arguments are passed to PHPUnit
+tests/smoke.sh https://christen-in-hamm.de/konferenz   # against the server
+```
+
+Test suites: `tests/Unit` (domain logic), `tests/Integration` (real SQLite
+database per test), `tests/Http` (requests against a `php -S` instance
+started per test class). `tests/smoke.sh` checks the deployed site from the
+outside (access restrictions, headers, no repo files exposed).
+
 ## Deployment
 
 Deployment runs locally via `deploy.sh` (lftp over FTPS, no CI).
 Requirements: `lftp`, and `apache2-utils` for `htpasswd`.
+`./deploy.sh` runs `./test.sh` first and `tests/smoke.sh` against `APP_URL`
+afterwards.
 
 ```
 /home/www/konferenz/          ← contents of web/ (./deploy.sh)
@@ -49,7 +68,7 @@ Deploy (only committed files from `web/` on `main`):
 The script refuses to run if the target directory does not end in
 `/konferenz` (the organizer's landing page shares the web root), if the
 private directory is inside the web root, or if `web/` has uncommitted or
-ignored files (override the Git checks with `--force`).
+ignored files, or if the tests fail (override with `--force`).
 
 ## Secrets
 

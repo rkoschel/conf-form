@@ -13,3 +13,7 @@ data/
 *.sqlite-wal
 *.sqlite-shm
 *.log
+
+# Entwicklungs-Tools (tools/install.sh) und Caches
+tools/*.phar
+.phpunit.cache/
