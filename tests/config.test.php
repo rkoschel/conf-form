@@ -7,6 +7,7 @@ $dir = getenv('CONF_FORM_TEST_DIR') ?: sys_get_temp_dir() . '/conf-form-test';
 
 return [
     'base_url' => '',
+    'app_url' => 'https://example.org/konferenz',
     'db_path' => $dir . '/test.sqlite',
     'app_secret' => 'test-only-secret-never-use-in-production',
     'debug' => true,

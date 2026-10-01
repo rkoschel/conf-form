@@ -4,7 +4,9 @@ parameters:
         - web
         - dev
     excludePaths:
-        # Fremdbibliothek
-        - web/app/lib/*
-        # Templates bekommen ihre Variablen per extract() aus render()
-        - web/app/templates/*
+        # nur von der Analyse ausnehmen; Klassen (PHPMailer) bleiben bekannt
+        analyse:
+            # Fremdbibliothek
+            - web/app/lib/*
+            # Templates bekommen ihre Variablen per extract() aus render()
+            - web/app/templates/*

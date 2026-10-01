@@ -8,6 +8,9 @@ return [
     // URL-Präfix der App: '/konferenz' auf dem Server, '' lokal
     'base_url' => '/konferenz',
 
+    // Öffentliche Adresse der App für Links in Mails (Absage-Link)
+    'app_url' => 'https://christen-in-hamm.de/konferenz',
+
     // SQLite-Datei; Verzeichnis muss für PHP beschreibbar sein
     'db_path' => '/home/conf-form/data/conf-form.sqlite',
 

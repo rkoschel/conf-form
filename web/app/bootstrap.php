@@ -7,6 +7,8 @@ require APP_DIR . '/helpers.php';
 require APP_DIR . '/db.php';
 require APP_DIR . '/csrf.php';
 require APP_DIR . '/spam.php';
+require APP_DIR . '/labels.php';
+require APP_DIR . '/mailer.php';
 
 function config(?string $key = null): mixed
 {
