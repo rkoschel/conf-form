@@ -1,0 +1,7 @@
+# Code, Templates, Schema und Bibliotheken sind nicht direkt abrufbar
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>

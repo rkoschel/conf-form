@@ -1,0 +1,13 @@
+SPEC.md
+
+# Secrets & lokale Daten – niemals committen
+config.php
+config.local.php
+.htpasswd
+.env
+data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.log

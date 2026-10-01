@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Konferenz-Admin"
+AuthUserFile /home/conf-form/.htpasswd
+Require valid-user

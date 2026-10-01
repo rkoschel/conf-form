@@ -1,0 +1,90 @@
+-- Schema der Konferenz-Anmeldung (siehe SPEC §8).
+-- Idempotent: wird von db.php beim ersten Zugriff ausgeführt.
+
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,                       -- z. B. inactive_text
+  value TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS events (
+  id                    INTEGER PRIMARY KEY,
+  title                 TEXT NOT NULL,
+  date                  TEXT NOT NULL,          -- YYYY-MM-DD
+  location              TEXT NOT NULL,
+  description           TEXT NOT NULL DEFAULT '',
+  registration_deadline TEXT NOT NULL,          -- YYYY-MM-DDTHH:MM, lokale Zeit in `timezone`
+  timezone              TEXT NOT NULL DEFAULT 'Europe/Berlin',
+  max_participants      INTEGER NOT NULL,
+  organizer_name        TEXT NOT NULL DEFAULT '',
+  organizer_email       TEXT NOT NULL DEFAULT '',
+  active                INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS one_active_event ON events(active) WHERE active = 1;
+
+CREATE TABLE IF NOT EXISTS event_slots (
+  id       INTEGER PRIMARY KEY,
+  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  time     TEXT NOT NULL,                       -- HH:MM
+  label    TEXT NOT NULL,
+  sort     INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS preferred_places (
+  id       INTEGER PRIMARY KEY,
+  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  name     TEXT NOT NULL,
+  UNIQUE (event_id, name COLLATE NOCASE)
+);
+
+CREATE TABLE IF NOT EXISTS registrations (
+  id           INTEGER PRIMARY KEY,
+  event_id     INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  created_at   TEXT NOT NULL,                   -- UTC, ISO 8601
+  first_name   TEXT NOT NULL,
+  last_name    TEXT NOT NULL,
+  congregation TEXT NOT NULL,
+  email        TEXT,
+  phone        TEXT,
+  no_email     INTEGER NOT NULL DEFAULT 0,
+  adults       INTEGER NOT NULL DEFAULT 0,
+  youth        INTEGER NOT NULL DEFAULT 0,
+  kids_7_12    INTEGER NOT NULL DEFAULT 0,
+  kids_3_6     INTEGER NOT NULL DEFAULT 0,
+  kids_0_2     INTEGER NOT NULL DEFAULT 0,
+  custom_split INTEGER NOT NULL DEFAULT 0,
+  status       TEXT NOT NULL CHECK (status IN
+                 ('pending','confirmed','cancelled','rejected')),
+  cancel_token TEXT NOT NULL UNIQUE
+);
+CREATE INDEX IF NOT EXISTS registrations_event ON registrations(event_id);
+
+CREATE TABLE IF NOT EXISTS registration_slots (
+  registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+  slot_id         INTEGER NOT NULL REFERENCES event_slots(id) ON DELETE CASCADE,
+  adults          INTEGER NOT NULL DEFAULT 0,
+  youth           INTEGER NOT NULL DEFAULT 0,
+  kids_7_12       INTEGER NOT NULL DEFAULT 0,
+  kids_3_6        INTEGER NOT NULL DEFAULT 0,
+  kids_0_2        INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (registration_id, slot_id)
+);
+
+CREATE TABLE IF NOT EXISTS mail_log (
+  id              INTEGER PRIMARY KEY,
+  registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+  type            TEXT NOT NULL CHECK (type IN
+                    ('received_confirmed','received_waitlist',
+                     'confirmed','rejected')),
+  sent_at         TEXT NOT NULL,                -- UTC, ISO 8601
+  success         INTEGER NOT NULL,
+  error           TEXT
+);
+
+CREATE TABLE IF NOT EXISTS rate_limit (
+  ip_hash    TEXT NOT NULL,                     -- HMAC-SHA256(IP, app_secret)
+  created_at TEXT NOT NULL                      -- UTC, ISO 8601
+);
+CREATE INDEX IF NOT EXISTS rate_limit_lookup ON rate_limit(ip_hash, created_at);
+
+INSERT OR IGNORE INTO settings (key, value) VALUES
+  ('inactive_text', 'Derzeit ist keine Anmeldung möglich.');

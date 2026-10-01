@@ -1,0 +1,50 @@
+<?php
+declare(strict_types=1);
+
+function db(): PDO
+{
+    static $pdo = null;
+    if ($pdo !== null) {
+        return $pdo;
+    }
+
+    $path = (string) config('db_path');
+    $dir = dirname($path);
+    if (!is_dir($dir) && !mkdir($dir, 0770, true) && !is_dir($dir)) {
+        throw new RuntimeException('DB-Verzeichnis kann nicht angelegt werden: ' . $dir);
+    }
+
+    $pdo = new PDO('sqlite:' . $path, null, null, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+    $pdo->exec('PRAGMA foreign_keys = ON');
+    $pdo->exec('PRAGMA busy_timeout = 5000');
+
+    $hasSchema = $pdo->query("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'events'")
+        ->fetchColumn();
+    if (!$hasSchema) {
+        // schema.sql ist idempotent (IF NOT EXISTS), parallele Erstaufrufe sind harmlos
+        $pdo->exec(file_get_contents(APP_DIR . '/schema.sql'));
+    }
+
+    return $pdo;
+}
+
+/**
+ * Führt $fn in einer Transaktion mit BEGIN IMMEDIATE aus (Schreibsperre ab
+ * Beginn, verhindert Überbuchung bei gleichzeitigen Anmeldungen).
+ */
+function db_transaction(callable $fn): mixed
+{
+    $pdo = db();
+    $pdo->exec('BEGIN IMMEDIATE');
+    try {
+        $result = $fn($pdo);
+        $pdo->exec('COMMIT');
+        return $result;
+    } catch (Throwable $e) {
+        $pdo->exec('ROLLBACK');
+        throw $e;
+    }
+}
