@@ -49,6 +49,14 @@ final class HelpersTest extends TestCase
         $this->assertNull(parse_time('1130'));
     }
 
+    public function testFormatsUtcTimestampInEventTimezone(): void
+    {
+        $this->assertSame('15.04.2027, 23:59', format_utc_datetime('2027-04-15T21:59:00Z', 'Europe/Berlin'));
+        $this->assertSame('10.01.2027, 13:00', format_utc_datetime('2027-01-10T12:00:00Z', 'Europe/Berlin'));
+        $this->assertSame('15.04.2027, 17:59', format_utc_datetime('2027-04-15T21:59:00Z', 'America/New_York'));
+        $this->assertSame('kaputt', format_utc_datetime('kaputt', 'Europe/Berlin'));
+    }
+
     public function testUrlUsesBaseUrl(): void
     {
         // base_url ist in tests/config.test.php leer

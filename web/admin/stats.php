@@ -4,15 +4,7 @@ admin_init();
 
 $events = event_list();
 
-// Gewählte Veranstaltung, sonst die aktive, sonst die neueste
-if (isset($_GET['event'])) {
-    $event = event_find((int) $_GET['event']);
-    if ($event === null) {
-        abort(404, 'Veranstaltung nicht gefunden.');
-    }
-} else {
-    $event = event_active() ?? ($events ? event_find((int) $events[0]['id']) : null);
-}
+$event = admin_selected_event($events);
 
 admin_render('stats', [
     'title' => 'Auswertung',

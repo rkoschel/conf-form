@@ -87,6 +87,17 @@ function format_date_long(string $date): string
     return $parsed ? WEEKDAYS[(int) $parsed->format('w')] . ', ' . $parsed->format('d.m.Y') : $date;
 }
 
+/** UTC-Zeitstempel (2027-04-15T21:59:00Z) → „15.04.2027, 23:59“ in der angegebenen Zeitzone */
+function format_utc_datetime(string $utc, string $timezone): string
+{
+    try {
+        $time = new DateTimeImmutable($utc);
+        return $time->setTimezone(new DateTimeZone($timezone))->format('d.m.Y, H:i');
+    } catch (Exception) {
+        return $utc;
+    }
+}
+
 /** 2027-04-15T23:59 → 15.04.2027, 23:59 Uhr */
 function format_local_datetime(string $value): string
 {
