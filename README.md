@@ -1,32 +1,33 @@
 # conf-form
 
-Anmeldung zu einer Konferenz mit Infoseite, Warteliste und Admin-Oberfläche.
-Plain PHP 8.2, SQLite, Bootstrap 5.3 (selbst gehostet), PHPMailer.
+Conference registration with an info page, waiting list and admin interface.
+Plain PHP 8.2, SQLite, Bootstrap 5.3 (self-hosted), PHPMailer.
 
-## Lokale Entwicklung
+## Local development
 
-Voraussetzung: `php-cli`, `php-sqlite3`, `php-mbstring`.
+Requirements: `php-cli`, `php-sqlite3`, `php-mbstring`.
 
 ```bash
-cp config.example.php config.local.php   # base_url '', db_path, app_secret, debug anpassen
+cp config.example.php config.local.php   # adjust base_url '', db_path, app_secret, debug
 php -r 'echo bin2hex(random_bytes(32)), "\n";'   # → app_secret
 CONF_FORM_CONFIG=$PWD/config.local.php php -S localhost:8000 -t web dev/router.php
 ```
 
-Die SQLite-DB wird beim ersten Aufruf automatisch aus `web/app/schema.sql`
-angelegt. `dev/router.php` sperrt lokal `app/` (ersetzt die `.htaccess`, die
-`php -S` nicht auswertet). Lokal gibt es keine Basic Auth für `admin/`.
+The SQLite database is created automatically from `web/app/schema.sql` on the
+first request. `dev/router.php` blocks access to `app/` locally (replacing the
+`.htaccess`, which `php -S` ignores). There is no Basic Auth for `admin/`
+locally.
 
-## Server-Einrichtung (einmalig, manuell)
+## Server setup (one-time, manual)
 
 ```
-/home/www/konferenz/          ← Inhalt von web/ (per Deploy)
-/home/conf-form/config.php    ← aus config.example.php, mit echten Zugangsdaten
+/home/www/konferenz/          ← contents of web/ (via deploy)
+/home/conf-form/config.php    ← from config.example.php, with real credentials
 /home/conf-form/.htpasswd     ← htpasswd -c -B /home/conf-form/.htpasswd admin
-/home/conf-form/data/         ← für PHP beschreibbar
+/home/conf-form/data/         ← writable by PHP
 ```
 
 ## Secrets
 
-`config.php`, `config.local.php`, `.htpasswd` und die Datenbank sind per
-`.gitignore` ausgeschlossen und dürfen nie ins Repo.
+`config.php`, `config.local.php`, `.htpasswd` and the database are excluded
+via `.gitignore` and must never be committed.

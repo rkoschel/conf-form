@@ -6,7 +6,7 @@ function e(mixed $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-/** URL innerhalb der App, z. B. url('anmelden/') → /konferenz/anmelden/ */
+/** URL innerhalb der App, z. B. url('register/') → /konferenz/register/ */
 function url(string $path = ''): string
 {
     return rtrim((string) config('base_url'), '/') . '/' . ltrim($path, '/');
