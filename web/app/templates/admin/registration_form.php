@@ -36,5 +36,3 @@
     <a href="<?= e(url('admin/?event=' . (int) $event['id'])) ?>" class="btn btn-outline-secondary">Abbrechen</a>
   </div>
 </form>
-
-<script src="<?= e(asset('form.js')) ?>"></script>

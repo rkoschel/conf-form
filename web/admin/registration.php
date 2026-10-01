@@ -39,4 +39,5 @@ admin_render('registration_form', [
     'registration' => $registration,
     'form' => $form,
     'errors' => $errors,
+    'scripts' => ['form.js'],
 ]);
