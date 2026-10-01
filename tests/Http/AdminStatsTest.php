@@ -23,6 +23,10 @@ final class AdminStatsTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#<option value="' . $active . '"\s+selected>#', $body);
         $this->assertMatchesRegularExpression('#8 <span[^>]*>/ 10</span>#', $body, 'Belegung ohne Kinder 0–2');
         $this->assertStringContainsString('80 % belegt, 2 frei', $body);
+        $this->assertStringContainsString('Offen 3', $body);
+        $this->assertStringContainsString('Wenn alle offenen bestätigt würden: 11 von 10', $body);
+        $this->assertStringContainsString('Kontingent um 1 überschritten', $body);
+        $this->assertStringContainsString('quota-meter-limit', $body, 'Grenze markiert, wenn bestätigt + offen darüber liegt');
 
         $body = $this->get("/admin/stats.php?event=$other")['body'];
         $this->assertMatchesRegularExpression('#<option value="' . $other . '"\s+selected>#', $body);
@@ -39,6 +43,33 @@ final class AdminStatsTest extends HttpTestCase
 
         $this->assertStringContainsString('Kontingent um 2 überschritten', $body);
         $this->assertStringContainsString('bg-danger', $body);
+    }
+
+    public function testPendingWithinQuotaShowsPercentageWithoutLimitMarker(): void
+    {
+        $db = $this->serverDb();
+        $id = $this->event($db, 'Luft nach oben', 0, 20);
+        $this->registration($db, $id, 'confirmed', 5, 0);
+        $this->registration($db, $id, 'pending', 5, 2);
+
+        $body = $this->get("/admin/stats.php?event=$id")['body'];
+
+        $this->assertStringContainsString('Wenn alle offenen bestätigt würden: 10 von 20', $body);
+        $this->assertStringContainsString('(50 %)', $body);
+        $this->assertStringNotContainsString('quota-meter-limit', $body);
+        $this->assertStringContainsString('style="width: 25.00%"', $body, 'Segmente relativ zum Kontingent');
+    }
+
+    public function testNoPendingHidesProjection(): void
+    {
+        $db = $this->serverDb();
+        $id = $this->event($db, 'Ohne offene', 0, 20);
+        $this->registration($db, $id, 'confirmed', 5, 0);
+
+        $body = $this->get("/admin/stats.php?event=$id")['body'];
+
+        $this->assertStringNotContainsString('Wenn alle offenen', $body);
+        $this->assertStringNotContainsString('aria-label="Offen"', $body);
     }
 
     public function testUnknownEventReturns404(): void

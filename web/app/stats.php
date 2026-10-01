@@ -9,6 +9,8 @@ const QUOTA_AGE_GROUPS = ['adults', 'youth', 'kids_7_12', 'kids_3_6'];
  *
  * - by_status: je Status Anzahl Anmeldungen und Einzelpersonen (inkl. 0–2)
  * - quota_used / quota_max: bestätigte Personen ohne 0–2 / max. Teilnehmer
+ * - quota_pending: offene (unbestätigte) Personen ohne 0–2, für die Belegung
+ *   „wenn alle bestätigt würden“
  * - age_groups: bestätigte Personen je Altersgruppe
  * - slots: je Programmpunkt bestätigte Personen je Altersgruppe und Summe
  *
@@ -16,6 +18,7 @@ const QUOTA_AGE_GROUPS = ['adults', 'youth', 'kids_7_12', 'kids_3_6'];
  * @return array{
  *     by_status: array<string, array{registrations: int, people: int}>,
  *     quota_used: int,
+ *     quota_pending: int,
  *     quota_max: int,
  *     age_groups: array<string, int>,
  *     slots: list<array{time: string, label: string, groups: array<string, int>, total: int}>
@@ -36,6 +39,11 @@ function stats_for_event(array $event): array
     foreach ($stmt->fetchAll() as $row) {
         $byStatus[$row['status']] = ['registrations' => (int) $row['registrations'], 'people' => (int) $row['people']];
     }
+
+    $quotaSum = implode(' + ', QUOTA_AGE_GROUPS);
+    $stmt = db()->prepare("SELECT COALESCE(SUM($quotaSum), 0) FROM registrations WHERE event_id = ? AND status = 'pending'");
+    $stmt->execute([$eventId]);
+    $quotaPending = (int) $stmt->fetchColumn();
 
     $sums = implode(', ', array_map(fn ($c) => "COALESCE(SUM($c), 0) AS $c", $columns));
     $stmt = db()->prepare("SELECT $sums FROM registrations WHERE event_id = ? AND status = 'confirmed'");
@@ -67,6 +75,7 @@ function stats_for_event(array $event): array
     return [
         'by_status' => $byStatus,
         'quota_used' => array_sum(array_intersect_key($ageGroups, array_flip(QUOTA_AGE_GROUPS))),
+        'quota_pending' => $quotaPending,
         'quota_max' => (int) $event['max_participants'],
         'age_groups' => $ageGroups,
         'slots' => $slots,

@@ -25,6 +25,7 @@ final class StatsTest extends DbTestCase
         $this->assertSame(['registrations' => 0, 'people' => 0], $stats['by_status']['pending']);
         $this->assertSame(array_keys(STATUS_LABELS), array_keys($stats['by_status']));
         $this->assertSame(0, $stats['quota_used']);
+        $this->assertSame(0, $stats['quota_pending']);
         $this->assertSame(10, $stats['quota_max']);
         $this->assertSame(array_fill_keys(array_keys(AGE_GROUPS), 0), $stats['age_groups']);
         $this->assertSame(['Vormittag', 'Nachmittag'], array_column($stats['slots'], 'label'));
@@ -59,6 +60,20 @@ final class StatsTest extends DbTestCase
             ['adults' => 2, 'youth' => 1, 'kids_7_12' => 1, 'kids_3_6' => 1, 'kids_0_2' => 2],
             $stats['age_groups']
         );
+    }
+
+    public function testPendingQuotaCountsOnlyPendingWithoutToddlers(): void
+    {
+        $this->registration('pending', ['adults' => 2, 'kids_3_6' => 1, 'kids_0_2' => 3]);
+        $this->registration('pending', ['youth' => 1]);
+        $this->registration('confirmed', ['adults' => 5]);
+        $this->registration('cancelled', ['adults' => 4]);
+        $this->registration('rejected', ['adults' => 4]);
+
+        $stats = stats_for_event(event_find($this->eventId));
+
+        $this->assertSame(4, $stats['quota_pending']);
+        $this->assertSame(5, $stats['quota_used']);
     }
 
     public function testSlotAttendanceCountsOnlyConfirmed(): void

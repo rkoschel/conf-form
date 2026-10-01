@@ -34,3 +34,35 @@
 .theme-icon {
   flex-shrink: 0;
 }
+
+/* Belegung Kontingent: gestapelter Balken (bestätigt + offen) */
+.quota-meter {
+  position: relative;
+}
+
+.quota-meter .progress-stacked {
+  height: 1rem;
+}
+
+/* 2px Abstand zwischen den Segmenten in Flächenfarbe */
+.quota-meter .progress + .progress {
+  border-left: 2px solid var(--bs-card-bg, var(--bs-body-bg));
+}
+
+/* Grenze des Kontingents, wenn bestätigt + offen darüber hinausgeht */
+.quota-meter-limit {
+  position: absolute;
+  top: -0.25rem;
+  bottom: -0.25rem;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--bs-emphasis-color);
+}
+
+.quota-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  vertical-align: -0.1em;
+}

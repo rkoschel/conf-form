@@ -22,9 +22,13 @@
 <?php else: ?>
   <?php
   $used = $stats['quota_used'];
+  $pending = $stats['quota_pending'];
   $max = $stats['quota_max'];
+  $total = $used + $pending;
   $ratio = $max > 0 ? $used / $max : 0;
-  $level = $ratio > 1 ? 'danger' : ($ratio >= 0.9 ? 'warning' : 'primary');
+  // Skala wächst mit, wenn bestätigt + offen das Kontingent übersteigt; ein Strich markiert dann die Grenze
+  $scale = max($max, $total, 1);
+  $percent = fn (int $value): string => number_format($value / $scale * 100, 2, '.', '');
   $registrations = array_sum(array_column($stats['by_status'], 'registrations'));
   $people = array_sum(array_column($stats['by_status'], 'people'));
   $confirmedPeople = array_sum($stats['age_groups']);
@@ -36,9 +40,28 @@
         <div class="card-body">
           <div class="text-body-secondary small">Belegung Kontingent</div>
           <div class="display-6 my-1"><?= $used ?> <span class="fs-4 text-body-secondary">/ <?= $max ?></span></div>
-          <div class="progress bg-<?= $level ?>-subtle mb-2" role="progressbar" aria-label="Belegung Kontingent"
-               aria-valuenow="<?= $used ?>" aria-valuemin="0" aria-valuemax="<?= $max ?>">
-            <div class="progress-bar bg-<?= $level ?>" style="width: <?= min(100, round($ratio * 100)) ?>%"></div>
+          <div class="quota-meter mb-2">
+            <div class="progress-stacked">
+              <?php if ($used > 0): ?>
+                <div class="progress" role="progressbar" aria-label="Bestätigt" style="width: <?= $percent($used) ?>%"
+                     aria-valuenow="<?= $used ?>" aria-valuemin="0" aria-valuemax="<?= $max ?>">
+                  <div class="progress-bar <?= $used > $max ? 'bg-danger' : 'bg-primary' ?>"></div>
+                </div>
+              <?php endif ?>
+              <?php if ($pending > 0): ?>
+                <div class="progress" role="progressbar" aria-label="Offen" style="width: <?= $percent($pending) ?>%"
+                     aria-valuenow="<?= $pending ?>" aria-valuemin="0" aria-valuemax="<?= $max ?>">
+                  <div class="progress-bar progress-bar-striped bg-warning"></div>
+                </div>
+              <?php endif ?>
+            </div>
+            <?php if ($scale > $max): ?>
+              <div class="quota-meter-limit" style="left: <?= $percent($max) ?>%" title="Kontingent: <?= $max ?>"></div>
+            <?php endif ?>
+          </div>
+          <div class="d-flex flex-wrap gap-3 small mb-1">
+            <span><span class="quota-swatch <?= $used > $max ? 'bg-danger' : 'bg-primary' ?>"></span> Bestätigt <?= $used ?></span>
+            <span><span class="quota-swatch progress-bar-striped bg-warning"></span> Offen <?= $pending ?></span>
           </div>
           <div class="small">
             <?php if ($used > $max): ?>
@@ -46,8 +69,18 @@
             <?php else: ?>
               <?= round($ratio * 100) ?> % belegt, <?= $max - $used ?> frei
             <?php endif ?>
-            <span class="text-body-secondary">· bestätigte Personen ohne Kinder 0–2</span>
+            <span class="text-body-secondary">· Personen ohne Kinder 0–2</span>
           </div>
+          <?php if ($pending > 0): ?>
+            <div class="small mt-1">
+              Wenn alle offenen bestätigt würden: <?= $total ?> von <?= $max ?>
+              <?php if ($total > $max): ?>
+                – <span class="text-danger-emphasis">⚠ Kontingent um <?= $total - $max ?> überschritten</span>
+              <?php else: ?>
+                (<?= round($total / max($max, 1) * 100) ?> %)
+              <?php endif ?>
+            </div>
+          <?php endif ?>
         </div>
       </div>
     </div>
