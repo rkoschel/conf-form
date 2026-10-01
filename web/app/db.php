@@ -10,8 +10,15 @@ function db(): PDO
 
     $path = (string) config('db_path');
     $dir = dirname($path);
-    if (!is_dir($dir) && !mkdir($dir, 0770, true) && !is_dir($dir)) {
+    if (!is_dir($dir) && !mkdir($dir, 0700, true) && !is_dir($dir)) {
         throw new RuntimeException('DB-Verzeichnis kann nicht angelegt werden: ' . $dir);
+    }
+
+    // Neue DB-Datei nur für den PHP-User lesbar (SQLite übernimmt die Rechte
+    // für Journal-Dateien von der DB-Datei)
+    if (!is_file($path)) {
+        touch($path);
+        chmod($path, 0600);
     }
 
     $pdo = new PDO('sqlite:' . $path, null, null, [

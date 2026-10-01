@@ -107,15 +107,20 @@ setup() {
     echo "Setup: config.prod.php, .htpasswd → ftp://$FTP_HOST$FTP_PRIVATE_DIR"
     if (( dry_run )); then
         echo "(Dry-Run) würde ausführen:"
-        echo "  mkdir -p $FTP_PRIVATE_DIR/data"
-        echo "  put config.prod.php → $FTP_PRIVATE_DIR/config.php"
-        echo "  put .htpasswd       → $FTP_PRIVATE_DIR/.htpasswd"
+        echo "  mkdir -p $FTP_PRIVATE_DIR/data          (chmod 700)"
+        echo "  put config.prod.php → $FTP_PRIVATE_DIR/config.php  (chmod 600)"
+        echo "  put .htpasswd       → $FTP_PRIVATE_DIR/.htpasswd   (chmod 644)"
         return
     fi
-    # data/ wird nur angelegt, nie überschrieben oder gelöscht
+    # data/ wird nur angelegt, nie überschrieben oder gelöscht.
+    # PHP läuft unter dem FTP-User: config.php und data/ nur für ihn lesbar.
+    # .htpasswd bleibt 644, weil der Webserver sie ggf. als anderer User liest.
     run_lftp "mkdir -p -f \"$FTP_PRIVATE_DIR/data\"
+chmod 700 \"$FTP_PRIVATE_DIR/data\"
 put config.prod.php -o \"$FTP_PRIVATE_DIR/config.php\"
+chmod 600 \"$FTP_PRIVATE_DIR/config.php\"
 put .htpasswd -o \"$FTP_PRIVATE_DIR/.htpasswd\"
+chmod 644 \"$FTP_PRIVATE_DIR/.htpasswd\"
 cls -l \"$FTP_PRIVATE_DIR/\""
 }
 

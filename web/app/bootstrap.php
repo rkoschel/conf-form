@@ -32,6 +32,7 @@ ini_set('display_errors', config('debug') ? '1' : '0');
 date_default_timezone_set('UTC');
 
 if (PHP_SAPI !== 'cli') {
+    header_remove('X-Powered-By');
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: DENY');
     // Verhindert, dass der Absage-Token per Referer an fremde Seiten geht
