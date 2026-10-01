@@ -27,6 +27,7 @@ final class AdminStatsTest extends HttpTestCase
         $this->assertStringContainsString('Wenn alle offenen bestätigt würden: 11 von 10', $body);
         $this->assertStringContainsString('Kontingent um 1 überschritten', $body);
         $this->assertStringContainsString('quota-meter-limit', $body, 'Grenze markiert, wenn bestätigt + offen darüber liegt');
+        $this->assertMatchesRegularExpression('#Personen je Ort.*?Hamm\s*</td>\s*<td class="text-end">9</td>\s*<td class="text-end">3</td>#s', $body);
 
         $body = $this->get("/admin/stats.php?event=$other")['body'];
         $this->assertMatchesRegularExpression('#<option value="' . $other . '"\s+selected>#', $body);

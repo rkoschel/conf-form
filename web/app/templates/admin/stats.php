@@ -84,16 +84,40 @@
         </div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-sm-6 col-md-3">
       <div class="card h-100">
         <div class="card-body">
           <div class="text-body-secondary small">Anmeldungen</div>
           <div class="fs-2 my-1"><?= $registrations ?></div>
           <div class="small text-body-secondary"><?= $people ?> Personen, alle Status</div>
+          <?php if ($stats['places']): ?>
+            <table class="table table-sm small mt-2 mb-0">
+              <caption class="caption-top pb-1 pt-0">Personen je Ort</caption>
+              <thead>
+                <tr><th>Ort</th><th class="text-end">bestätigt</th><th class="text-end">offen</th></tr>
+              </thead>
+              <tbody class="tabular-nums">
+                <?php foreach ($stats['places'] as $place): ?>
+                  <tr>
+                    <td>
+                      <?php if ($place['preferred']): ?>
+                        <strong><?= e($place['name']) ?></strong><span class="visually-hidden"> (bevorzugter Ort)</span>
+                      <?php else: ?>
+                        <?= e($place['name']) ?>
+                      <?php endif ?>
+                    </td>
+                    <td class="text-end"><?= $place['confirmed'] ?></td>
+                    <td class="text-end"><?= $place['pending'] ?></td>
+                  </tr>
+                <?php endforeach ?>
+              </tbody>
+            </table>
+            <div class="small text-body-secondary mt-1">inkl. Kinder 0–2 · <strong>fett</strong> = bevorzugter Ort</div>
+          <?php endif ?>
         </div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-sm-6 col-md-3">
       <div class="card h-100">
         <div class="card-body">
           <div class="text-body-secondary small">Bestätigte Personen</div>

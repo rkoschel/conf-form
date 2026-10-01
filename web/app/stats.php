@@ -12,6 +12,9 @@ const QUOTA_AGE_GROUPS = ['adults', 'youth', 'kids_7_12', 'kids_3_6'];
  * - quota_pending: offene (unbestätigte) Personen ohne 0–2, für die Belegung
  *   „wenn alle bestätigt würden“
  * - age_groups: bestätigte Personen je Altersgruppe
+ * - places: Personen (inkl. 0–2) je Heimatversammlung, bestätigt und offen,
+ *   meiste zuerst; Schreibweisen ohne Rücksicht auf Groß-/Kleinschreibung
+ *   zusammengefasst
  * - slots: je Programmpunkt bestätigte Personen je Altersgruppe und Summe
  *
  * @param array<string, mixed> $event
@@ -21,6 +24,7 @@ const QUOTA_AGE_GROUPS = ['adults', 'youth', 'kids_7_12', 'kids_3_6'];
  *     quota_pending: int,
  *     quota_max: int,
  *     age_groups: array<string, int>,
+ *     places: list<array{name: string, confirmed: int, pending: int, preferred: bool}>,
  *     slots: list<array{time: string, label: string, groups: array<string, int>, total: int}>
  * }
  */
@@ -50,6 +54,27 @@ function stats_for_event(array $event): array
     $stmt->execute([$eventId]);
     $ageGroups = array_map('intval', $stmt->fetch());
 
+    $stmt = db()->prepare(
+        "SELECT MIN(congregation) AS name,
+                SUM(CASE WHEN status = 'confirmed' THEN $allPeople ELSE 0 END) AS confirmed,
+                SUM(CASE WHEN status = 'pending' THEN $allPeople ELSE 0 END) AS pending
+         FROM registrations
+         WHERE event_id = ? AND status IN ('confirmed', 'pending')
+         GROUP BY congregation COLLATE NOCASE
+         ORDER BY confirmed + pending DESC, name COLLATE NOCASE"
+    );
+    $stmt->execute([$eventId]);
+    $preferredPlaces = event_places($eventId);
+    $places = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $places[] = [
+            'name' => $row['name'],
+            'confirmed' => (int) $row['confirmed'],
+            'pending' => (int) $row['pending'],
+            'preferred' => registration_is_preferred_place($row['name'], $preferredPlaces),
+        ];
+    }
+
     $slotSums = implode(', ', array_map(fn ($c) => "COALESCE(SUM(c.$c), 0) AS $c", $columns));
     $stmt = db()->prepare(
         "SELECT s.time, s.label, $slotSums
@@ -78,6 +103,7 @@ function stats_for_event(array $event): array
         'quota_pending' => $quotaPending,
         'quota_max' => (int) $event['max_participants'],
         'age_groups' => $ageGroups,
+        'places' => $places,
         'slots' => $slots,
     ];
 }

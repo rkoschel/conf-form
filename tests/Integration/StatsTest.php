@@ -76,6 +76,23 @@ final class StatsTest extends DbTestCase
         $this->assertSame(5, $stats['quota_used']);
     }
 
+    public function testCountsPeoplePerPlaceForConfirmedAndPending(): void
+    {
+        db()->prepare('INSERT INTO preferred_places (event_id, name) VALUES (?, ?)')->execute([$this->eventId, 'Hamm']);
+        $this->registration('confirmed', ['adults' => 2, 'kids_0_2' => 1], congregation: 'Hamm');
+        $this->registration('pending', ['adults' => 1], congregation: 'hamm');
+        $this->registration('pending', ['adults' => 5], congregation: 'Unna');
+        $this->registration('cancelled', ['adults' => 9], congregation: 'Soest');
+        $this->registration('rejected', ['adults' => 9], congregation: 'Hamm');
+
+        $places = stats_for_event(event_find($this->eventId))['places'];
+
+        $this->assertSame([
+            ['name' => 'Unna', 'confirmed' => 0, 'pending' => 5, 'preferred' => false],
+            ['name' => 'Hamm', 'confirmed' => 3, 'pending' => 1, 'preferred' => true],
+        ], $places, 'meiste zuerst, Schreibweisen zusammengefasst, ohne storniert/abgelehnt');
+    }
+
     public function testSlotAttendanceCountsOnlyConfirmed(): void
     {
         $confirmed = $this->registration('confirmed', ['adults' => 2, 'kids_0_2' => 1]);
@@ -109,14 +126,14 @@ final class StatsTest extends DbTestCase
     }
 
     /** @param array<string, int> $people */
-    private function registration(string $status, array $people, ?int $eventId = null): int
+    private function registration(string $status, array $people, ?int $eventId = null, string $congregation = 'Hamm'): int
     {
         $fields = $people + [
             'event_id' => $eventId ?? $this->eventId,
             'created_at' => now_utc(),
             'first_name' => 'Max',
             'last_name' => 'Muster',
-            'congregation' => 'Hamm',
+            'congregation' => $congregation,
             'status' => $status,
             'cancel_token' => bin2hex(random_bytes(32)),
         ];
