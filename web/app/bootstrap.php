@@ -9,6 +9,7 @@ require APP_DIR . '/csrf.php';
 require APP_DIR . '/forms.php';
 require APP_DIR . '/settings.php';
 require APP_DIR . '/events.php';
+require APP_DIR . '/registrations.php';
 require APP_DIR . '/admin.php';
 require APP_DIR . '/spam.php';
 require APP_DIR . '/labels.php';
