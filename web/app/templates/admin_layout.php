@@ -14,6 +14,7 @@ $nav = [
   <title><?= e($title ?? 'Admin') ?> – Konferenz-Admin</title>
   <link rel="stylesheet" href="<?= e(asset('vendor/bootstrap/bootstrap.min.css')) ?>">
   <link rel="stylesheet" href="<?= e(asset('app.css')) ?>">
+  <script src="<?= e(asset('theme.js')) ?>"></script>
 </head>
 <body>
   <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
@@ -33,6 +34,9 @@ $nav = [
             </li>
           <?php endforeach ?>
         </ul>
+        <div class="ms-md-auto py-2 py-md-0">
+          <?php require __DIR__ . '/theme_toggle.php' ?>
+        </div>
       </div>
     </div>
   </nav>
@@ -47,5 +51,8 @@ $nav = [
   </main>
   <script src="<?= e(asset('vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>
   <script src="<?= e(asset('admin.js')) ?>"></script>
+  <?php foreach ($scripts ?? [] as $script): ?>
+    <script src="<?= e(asset($script)) ?>"></script>
+  <?php endforeach ?>
 </body>
 </html>

@@ -6,9 +6,13 @@
   <title><?= e($title ?? 'Konferenz') ?></title>
   <link rel="stylesheet" href="<?= e(asset('vendor/bootstrap/bootstrap.min.css')) ?>">
   <link rel="stylesheet" href="<?= e(asset('app.css')) ?>">
+  <script src="<?= e(asset('theme.js')) ?>"></script>
 </head>
 <body>
-  <main class="container py-4 page-narrow">
+  <div class="container page-narrow pt-3 d-flex justify-content-end">
+    <?php require __DIR__ . '/theme_toggle.php' ?>
+  </div>
+  <main class="container pb-4 page-narrow">
     <?= $content ?>
   </main>
   <script src="<?= e(asset('vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>
