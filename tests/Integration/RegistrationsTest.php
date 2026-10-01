@@ -48,6 +48,15 @@ final class RegistrationsTest extends DbTestCase
         $this->assertSame(10, registration_occupied($this->event['id']));
     }
 
+    public function testMoreThan99PersonsGoToWaitlist(): void
+    {
+        db()->exec('UPDATE events SET max_participants = 1000');
+        $this->event = event_find($this->event['id']);
+
+        $this->assertSame('confirmed', $this->register(['adults' => 98, 'kids_0_2' => 1])['status']);
+        $this->assertSame('pending', $this->register(['adults' => 99, 'kids_0_2' => 1])['status']);
+    }
+
     public function testOnlyConfirmedCountAsOccupied(): void
     {
         $a = $this->register(['adults' => 3]);

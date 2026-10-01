@@ -43,7 +43,7 @@ $customSplit = !empty($form['custom_split']);
     <?php foreach (AGE_GROUPS as $group => $label): ?>
       <div class="col-6 col-md">
         <?= input_field($form + [$group => '0'], $errors, $group, $label, 'number',
-            'min="0" max="' . MAX_PER_GROUP . '" step="1" inputmode="numeric" data-count="' . $group . '"') ?>
+            'min="0" step="1" inputmode="numeric" data-count="' . $group . '"') ?>
       </div>
     <?php endforeach ?>
     <?php if (isset($errors['persons'])): ?>

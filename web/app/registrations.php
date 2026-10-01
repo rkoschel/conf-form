@@ -4,8 +4,11 @@ declare(strict_types=1);
 // Anmeldungen: Validierung, Kontingent/Status, Speichern, Absage,
 // Admin-Funktionen (SPEC §5, §6, §7.2–7.4, §7.6)
 
-/** Obergrenze je Altersgruppe (Schutz vor Tippfehlern wie 1000) */
-const MAX_PER_GROUP = 99;
+/**
+ * Größere Anmeldungen (Personen gesamt inkl. 0–2) werden nie automatisch
+ * bestätigt, sondern kommen zur Prüfung auf die Warteliste.
+ */
+const AUTO_CONFIRM_MAX_PERSONS = 99;
 
 /** Personen, die zum Kontingent zählen */
 function registration_group_size(array $counts): int
@@ -28,12 +31,21 @@ function registration_person_count(array $counts): int
 }
 
 /**
- * Status einer neuen Anmeldung: bestätigt nur bei bevorzugtem Ort und
- * ausreichendem Kontingent, sonst Warteliste.
+ * Status einer neuen Anmeldung: bestätigt nur bei bevorzugtem Ort,
+ * ausreichendem Kontingent und höchstens AUTO_CONFIRM_MAX_PERSONS Personen,
+ * sonst Warteliste.
  */
-function registration_decide_status(bool $preferredPlace, int $occupied, int $groupSize, int $maxParticipants): string
-{
-    return $preferredPlace && $occupied + $groupSize <= $maxParticipants ? 'confirmed' : 'pending';
+function registration_decide_status(
+    bool $preferredPlace,
+    int $occupied,
+    int $groupSize,
+    int $maxParticipants,
+    int $personCount
+): string {
+    return $preferredPlace
+        && $personCount <= AUTO_CONFIRM_MAX_PERSONS
+        && $occupied + $groupSize <= $maxParticipants
+        ? 'confirmed' : 'pending';
 }
 
 /** @param list<string> $places */
@@ -88,10 +100,13 @@ function registration_duplicate_ids(array $rows): array
  * attend[slot_id] (Checkbox je Programmpunkt, ohne Aufteilung),
  * split[slot_id][Altersgruppe] (Anzahlen, mit Aufteilung).
  *
+ * Mit $maxParticipants (öffentliches Formular) dürfen die Personen ohne
+ * Kinder 0–2 die Kapazität nicht überschreiten; der Admin darf überbuchen.
+ *
  * @param list<array<string, mixed>> $slots Programmpunkte der Veranstaltung (mit id)
  * @return array{0: array<string, mixed>, 1: array<string, string>} [Daten, Fehler je Feld]
  */
-function registration_validate(array $input, array $slots): array
+function registration_validate(array $input, array $slots, ?int $maxParticipants = null): array
 {
     $errors = [];
     $string = fn (string $key): string => is_string($input[$key] ?? null) ? $input[$key] : '';
@@ -125,13 +140,19 @@ function registration_validate(array $input, array $slots): array
     foreach (AGE_GROUPS as $group => $label) {
         $count = registration_parse_count($input[$group] ?? '');
         if ($count === null) {
-            $errors[$group] = 'Bitte eine ganze Zahl von 0 bis ' . MAX_PER_GROUP . ' angeben.';
+            $errors[$group] = 'Bitte eine ganze Zahl ab 0 angeben.';
             $count = 0;
         }
         $data[$group] = $count;
     }
     if (registration_person_count($data) < 1) {
         $errors['persons'] = 'Bitte mindestens eine Person angeben.';
+    } elseif ($maxParticipants !== null && registration_group_size($data) > $maxParticipants) {
+        // Kapazität bewusst nicht nennen (wird öffentlich nicht angezeigt, SPEC §4)
+        $errors['persons'] = 'So viele Personen können wir leider nicht anmelden. Bitte nimm Kontakt mit uns auf.';
+        foreach (QUOTA_AGE_GROUPS as $group) {
+            $errors[$group] ??= '';
+        }
     }
 
     $attend = is_array($input['attend'] ?? null) ? $input['attend'] : [];
@@ -163,7 +184,7 @@ function registration_validate(array $input, array $slots): array
     return [$data, $errors];
 }
 
-/** '' → 0, '3' → 3, ungültig → null */
+/** '' → 0, '3' → 3, ungültig → null (höchstens 6 Stellen, Schutz vor Überlauf) */
 function registration_parse_count(mixed $value): ?int
 {
     if (!is_string($value) && !is_int($value)) {
@@ -173,7 +194,7 @@ function registration_parse_count(mixed $value): ?int
     if ($value === '') {
         return 0;
     }
-    if (!ctype_digit($value) || (int) $value > MAX_PER_GROUP) {
+    if (!ctype_digit($value) || strlen($value) > 6) {
         return null;
     }
     return (int) $value;
@@ -221,7 +242,8 @@ function registration_create(array $event, array $data): array
             registration_is_preferred_place($data['congregation'], $places),
             registration_occupied($eventId),
             registration_group_size($data),
-            (int) $event['max_participants']
+            (int) $event['max_participants'],
+            registration_person_count($data)
         );
 
         $pdo->prepare(
