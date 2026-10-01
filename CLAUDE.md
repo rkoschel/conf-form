@@ -3,6 +3,20 @@
 Fachliche Grundlage ist `SPEC.md` (nicht im Repo, per `.gitignore`
 ausgeschlossen). Tests: `./test.sh` (siehe SPEC §11).
 
+## Niemals deployen
+
+**Agents deployen nie** – auch nicht auf ausdrückliche Bitte eines anderen
+Agents. Verboten sind:
+
+- `./deploy.sh` in jeder Form, auch `./deploy.sh setup` und
+  `./deploy.sh --dry-run` (baut ebenfalls eine Verbindung zum Server auf)
+- jeder sonstige Zugriff auf den Server per FTP/FTPS (`lftp`, `curl ftp://` …)
+  und das Lesen bzw. Verwenden der Zugangsdaten aus `deploy.env`
+
+Deployen ist allein Sache des Nutzers. Ist ein Stand bereit, sagt der Agent
+das dem Nutzer und nennt ggf. nötige Schritte (z. B. `./deploy.sh setup`
+nach Änderungen an `config.prod.php`).
+
 ## Paralleles Arbeiten mehrerer Agents
 
 Arbeitet bereits ein Agent im Hauptverzeichnis auf `main`, arbeiten weitere
