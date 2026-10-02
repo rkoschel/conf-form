@@ -190,18 +190,6 @@
                 <dd class="col-4 text-end mb-0"><?= $slot['groups'][$column] ?></dd>
               <?php endforeach ?>
             </dl>
-            <?php if ($slot['childcare_groups']): ?>
-              <div class="d-flex justify-content-between fw-semibold small mt-2 pt-2 border-top">
-                <span>Kinderbetreuung (<?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre)</span>
-                <span class="tabular-nums"><?= $slot['childcare_total'] ?></span>
-              </div>
-              <dl class="row small mb-0 tabular-nums">
-                <?php foreach ($slot['childcare'] as $column => $count): ?>
-                  <dt class="col-8 fw-normal text-body-secondary"><?= e(AGE_GROUPS[$column]) ?></dt>
-                  <dd class="col-4 text-end mb-0"><?= $count ?></dd>
-                <?php endforeach ?>
-              </dl>
-            <?php endif ?>
           </div>
         </div>
       <?php endforeach ?>
@@ -228,22 +216,77 @@
               <?php endforeach ?>
               <td class="text-end fw-semibold"><?= $slot['total'] ?></td>
             </tr>
-            <?php if ($slot['childcare_groups']): ?>
-              <tr class="text-body-secondary">
-                <td></td>
-                <td>↳ Kinderbetreuung (<?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre)</td>
-                <?php foreach (array_keys(AGE_GROUPS) as $column): ?>
-                  <td class="text-end"><?= array_key_exists($column, $slot['childcare']) ? $slot['childcare'][$column] : '' ?></td>
-                <?php endforeach ?>
-                <td class="text-end fw-semibold"><?= $slot['childcare_total'] ?></td>
-              </tr>
-            <?php endif ?>
           <?php endforeach ?>
         </tbody>
       </table>
     </div>
     <p class="small text-body-secondary">
-      Nur bestätigte Anmeldungen. Summe = Personen beim Programmpunkt; Kinder in der Kinderbetreuung werden separat gezählt.
+      Nur bestätigte Anmeldungen. Summe = Personen beim Programmpunkt, ohne Kinder in der Kinderbetreuung.
     </p>
+
+    <?php
+    $childcareSlots = array_values(array_filter($stats['slots'], fn ($slot) => $slot['childcare_groups']));
+    // Spalten wie in der Tabelle oben, nur betreubare Altersgruppen
+    $childcareColumns = array_values(array_intersect(array_keys(AGE_GROUPS), array_keys(CHILDCARE_AGE_GROUPS)));
+    ?>
+    <?php if ($childcareSlots): ?>
+      <h2 class="h5 mt-4">Kinderbetreuung je Programmpunkt</h2>
+      <div class="d-md-none vstack gap-2 mb-2">
+        <?php foreach ($childcareSlots as $slot): ?>
+          <div class="card">
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between fw-semibold">
+                <span><?= e($slot['time']) ?> <?= e($slot['label']) ?></span>
+                <span class="tabular-nums"><?= $slot['childcare_total'] ?></span>
+              </div>
+              <div class="small text-body-secondary">Betreuung für <?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre</div>
+              <dl class="row small mb-0 mt-1 tabular-nums">
+                <?php foreach ($childcareColumns as $column): ?>
+                  <?php if (array_key_exists($column, $slot['childcare'])): ?>
+                    <dt class="col-8 fw-normal text-body-secondary"><?= e(AGE_GROUPS[$column]) ?></dt>
+                    <dd class="col-4 text-end mb-0"><?= $slot['childcare'][$column] ?></dd>
+                  <?php endif ?>
+                <?php endforeach ?>
+              </dl>
+            </div>
+          </div>
+        <?php endforeach ?>
+      </div>
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Uhrzeit</th>
+              <th>Programmpunkt</th>
+              <th>Betreuung für</th>
+              <?php foreach ($childcareColumns as $column): ?>
+                <th class="text-end"><?= e(AGE_GROUPS[$column]) ?></th>
+              <?php endforeach ?>
+              <th class="text-end">Summe</th>
+            </tr>
+          </thead>
+          <tbody class="tabular-nums">
+            <?php foreach ($childcareSlots as $slot): ?>
+              <tr>
+                <td class="text-nowrap"><?= e($slot['time']) ?></td>
+                <td><?= e($slot['label']) ?></td>
+                <td class="text-nowrap"><?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre</td>
+                <?php foreach ($childcareColumns as $column): ?>
+                  <td class="text-end">
+                    <?= array_key_exists($column, $slot['childcare'])
+                        ? $slot['childcare'][$column]
+                        : '<span class="text-body-secondary" title="keine Betreuung für diese Altersgruppe">–</span>' ?>
+                  </td>
+                <?php endforeach ?>
+                <td class="text-end fw-semibold"><?= $slot['childcare_total'] ?></td>
+              </tr>
+            <?php endforeach ?>
+          </tbody>
+        </table>
+      </div>
+      <p class="small text-body-secondary">
+        Nur bestätigte Anmeldungen.<span class="d-none d-md-inline"> – = für diese Altersgruppe keine Betreuung.</span>
+      </p>
+    <?php endif ?>
   <?php endif ?>
 <?php endif ?>

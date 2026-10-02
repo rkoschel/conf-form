@@ -82,8 +82,19 @@ final class AdminStatsTest extends HttpTestCase
 
         $body = $this->get("/admin/stats.php?event=$id")['body'];
 
-        $this->assertStringContainsString('↳ Kinderbetreuung (0–6 Jahre)', $body);
-        $this->assertStringContainsString('Kinderbetreuung (0–6 Jahre)</span>', $body, 'mobile Ansicht');
+        $this->assertStringContainsString('Kinderbetreuung je Programmpunkt', $body);
+        $this->assertStringContainsString('<td class="text-nowrap">0–6 Jahre</td>', $body);
+        $this->assertStringContainsString('Betreuung für 0–6 Jahre', $body, 'mobile Ansicht');
+        $this->assertStringNotContainsString('↳', $body, 'keine Zusatzzeilen mehr in der Programmpunkt-Tabelle');
+    }
+
+    public function testNoChildcareTableWithoutChildcare(): void
+    {
+        $db = $this->serverDb();
+        $id = $this->event($db, 'Ohne Betreuung', 0, 20);
+        $db->prepare("INSERT INTO event_slots (event_id, time, label) VALUES (?, '10:00', 'Vortrag')")->execute([$id]);
+
+        $this->assertStringNotContainsString('Kinderbetreuung je Programmpunkt', $this->get("/admin/stats.php?event=$id")['body']);
     }
 
     public function testUnknownEventReturns404(): void

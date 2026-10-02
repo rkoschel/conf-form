@@ -121,9 +121,9 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
                 <?php endforeach ?>
               </div>
               <?php if (!empty($slot['childcare'])): ?>
-                <div class="small text-warning-emphasis mt-2" data-childcare-split-hint hidden>
-                  ⚠ Hier eingetragene Kinder von <?= e(childcare_ages($slot['childcare'])) ?> Jahren nehmen am
-                  Programmpunkt teil und werden nicht für die Kinderbetreuung berücksichtigt.
+                <div class="small text-info-emphasis mt-2" data-childcare-split-hint hidden>
+                  Eingetragene Kinder (<?= e(childcare_ages($slot['childcare'])) ?> J.) nehmen teil,
+                  die übrigen sind in der Kinderbetreuung eingeplant.
                 </div>
               <?php endif ?>
             </div>
