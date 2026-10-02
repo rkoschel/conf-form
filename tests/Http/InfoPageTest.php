@@ -67,6 +67,31 @@ final class InfoPageTest extends HttpTestCase
         $this->assertStringNotContainsStringIgnoringCase('Plätze', $body);
     }
 
+    public function testShowsFullyBookedNoticeWhenNothingIsFree(): void
+    {
+        $this->activeEvent(['title' => 'Voll', 'max_participants' => '100']);
+        $this->registrations(['confirmed' => 90, 'pending' => 15]);
+
+        $body = $this->get('/')['body'];
+
+        $this->assertStringContainsString('Frei 0 %', $body);
+        $this->assertStringContainsString('Aktuell scheint die Veranstaltung ausgebucht zu sein.', $body);
+        $this->assertStringContainsString('um auf die Warteliste zu kommen', $body);
+        $this->assertStringContainsString('erhältst du eine Benachrichtigung', $body);
+        $this->assertStringContainsString('href="/register/"', $body, 'Anmelden bleibt möglich');
+    }
+
+    public function testNoFullyBookedNoticeWhileSomethingIsFree(): void
+    {
+        $this->activeEvent(['title' => 'Noch Platz', 'max_participants' => '100']);
+        $this->registrations(['confirmed' => 90, 'pending' => 5]);
+
+        $body = $this->get('/')['body'];
+
+        $this->assertStringContainsString('Frei 5 %', $body);
+        $this->assertStringNotContainsString('ausgebucht', $body);
+    }
+
     public function testHidesOccupancyAfterDeadline(): void
     {
         $this->activeEvent([
