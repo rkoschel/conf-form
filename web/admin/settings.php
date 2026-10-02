@@ -12,11 +12,11 @@ if (is_post()) {
             $hadKey = team_key() !== '';
             team_key_generate();
             flash('success', $hadKey ? 'Neuer Team-Link erzeugt, der alte ist ungültig.' : 'Team-Link erzeugt.');
-            redirect('admin/settings.php');
+            redirect('admin/settings.php#team');
         case 'team_disable':
             team_key_disable();
             flash('success', 'Team-Zugang deaktiviert.');
-            redirect('admin/settings.php');
+            redirect('admin/settings.php#team');
     }
 
     preferred_places_set(places_parse(post_string('preferred_places')));
@@ -24,7 +24,9 @@ if (is_post()) {
         setting_text_set($key, post_string($key));
     }
     flash('success', 'Einstellungen gespeichert.');
-    redirect('admin/settings.php');
+    // zurück in den Tab, aus dem gespeichert wurde
+    $tab = post_string('tab');
+    redirect('admin/settings.php' . (preg_match('/^[a-z0-9-]+$/', $tab) ? '#' . $tab : ''));
 }
 
 // Eigene Texte; leer = Standardtext (wird im Feld grau als placeholder gezeigt)

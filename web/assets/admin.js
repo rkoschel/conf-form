@@ -96,3 +96,22 @@ document.addEventListener('click', async (event) => {
     field.select();
   }
 });
+
+// Einstellungen: Tab aus der Adresse (#e-mails) öffnen, beim Wechsel Adresse
+// und verstecktes Feld aktualisieren (nach dem Speichern zurück in den Tab)
+const settingsTabs = document.querySelector('[data-settings-tabs]');
+if (settingsTabs && window.bootstrap) {
+  const tabInput = document.querySelector('[data-settings-tab]');
+  const fromHash = document.getElementById('tab-' + window.location.hash.slice(1));
+  if (fromHash) {
+    window.bootstrap.Tab.getOrCreateInstance(fromHash).show();
+  }
+  settingsTabs.addEventListener('shown.bs.tab', (event) => {
+    const id = event.target.id.replace(/^tab-/, '');
+    tabInput.value = id;
+    history.replaceState(null, '', '#' + id);
+  });
+  if (fromHash) {
+    tabInput.value = fromHash.id.replace(/^tab-/, '');
+  }
+}

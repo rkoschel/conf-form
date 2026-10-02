@@ -108,4 +108,31 @@ final class AdminSettingsTest extends HttpTestCase
         db($this->serverDb());
         $this->assertSame('Gemeinde', setting_text('congregation_label'), 'eigene Texte bleiben erhalten');
     }
+
+    public function testSettingsAreOrganizedInTabsAndAllFieldsBelongToTheForm(): void
+    {
+        $body = $this->get('/admin/settings.php')['body'];
+
+        foreach (['allgemein', 'anmeldeformular', 'nach-dem-absenden', 'absage', 'e-mails', 'team'] as $tab) {
+            $this->assertStringContainsString('id="tab-' . $tab . '"', $body);
+            $this->assertStringContainsString('id="pane-' . $tab . '"', $body);
+        }
+        // Felder liegen in den Tabs außerhalb des <form>-Elements: ohne form-Attribut würden sie nicht gespeichert
+        $this->assertSame(count(SETTING_TEXTS) + 1, preg_match_all('#name="[a-z_]+" form="settings-form"#', $body), 'Texte + bevorzugte Orte');
+        $textTabs = count(array_unique(array_column(SETTING_TEXTS, 'section')));
+        $this->assertSame($textTabs, substr_count($body, 'type="submit" form="settings-form"'), 'Speichern je Text-Tab');
+    }
+
+    public function testSavingReturnsToTheActiveTab(): void
+    {
+        $save = fn (string $tab) => $this->post('/admin/settings.php', [
+            'csrf' => $this->csrfToken('/admin/settings.php'), 'tab' => $tab,
+        ])['headers']['location'] ?? null;
+
+        $this->assertSame('/admin/settings.php#e-mails', $save('e-mails'));
+        $this->assertSame('/admin/settings.php', $save('"><script>'), 'ungültiger Tab wird ignoriert');
+        $this->assertSame('/admin/settings.php#team', $this->post('/admin/settings.php', [
+            'csrf' => $this->csrfToken('/admin/settings.php'), 'action' => 'team_disable',
+        ])['headers']['location'] ?? null);
+    }
 }
