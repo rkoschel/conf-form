@@ -20,7 +20,8 @@ final class AdminRegistrationsTest extends HttpTestCase
                     ->execute([self::$eventId, $time, $label]);
                 self::$slots[$label] = (int) $db->lastInsertId();
             }
-            $db->prepare('INSERT INTO preferred_places (event_id, name) VALUES (?, ?)')->execute([self::$eventId, 'Hamm']);
+            $db->exec("INSERT INTO settings (key, value) VALUES ('preferred_places', 'Hamm')
+                       ON CONFLICT (key) DO UPDATE SET value = excluded.value");
         }
         return self::$eventId;
     }

@@ -12,7 +12,7 @@ final class RegistrationsTest extends DbTestCase
         $id = $this->createEvent(['max_participants' => 10, 'active' => 1]);
         db()->exec("INSERT INTO event_slots (event_id, time, label, sort) VALUES ($id, '10:00', 'Vortrag', 0)");
         db()->exec("INSERT INTO event_slots (event_id, time, label, sort) VALUES ($id, '14:00', 'Mittag', 1)");
-        db()->exec("INSERT INTO preferred_places (event_id, name) VALUES ($id, 'Hamm')");
+        preferred_places_set(['Hamm']);
         $this->event = event_find($id);
     }
 

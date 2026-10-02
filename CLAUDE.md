@@ -61,11 +61,12 @@ Dauerhaft relevante Schnittstellen werden zusätzlich unten eingetragen.
 
 | SPEC | Funktion / Datei | Zweck |
 |---|---|---|
-| §7.1 | `event_find($id)` (inkl. `slots`, `places`), `event_slots()`, `event_places()`, `event_list()` (mit `registration_count`), `event_has_registrations()`, `event_set_active()`, `event_delete()`, `event_validate()`, `event_save()` in `web/app/events.php` | Veranstaltungen lesen, prüfen, speichern, aktivieren, löschen |
-| §4, §5 | `event_active()`, `event_registration_open($event, ?DateTimeImmutable $now)` in `web/app/events.php` | aktive Veranstaltung (mit `slots`, `places`); Frist in der Zeitzone der Veranstaltung |
+| §7.1 | `event_find($id)` (inkl. `slots`), `event_slots()`, `event_list()` (mit `registration_count`), `event_has_registrations()`, `event_set_active()`, `event_delete()`, `event_validate()`, `event_save()` in `web/app/events.php` | Veranstaltungen lesen, prüfen, speichern, aktivieren, löschen |
+| §4, §5 | `event_active()`, `event_registration_open($event, ?DateTimeImmutable $now)` in `web/app/events.php` | aktive Veranstaltung (mit `slots`); Frist in der Zeitzone der Veranstaltung |
 | §5.1, §7.1 | `normalize_line()`, `normalize_text()` in `web/app/helpers.php` | Normalisierung einzeiliger (Ortsname) bzw. mehrzeiliger Texte |
 | – | `format_date()`, `format_local_datetime()` in `web/app/helpers.php` | `Y-m-d` → `d.m.Y`; `Y-m-d\TH:i` → „d.m.Y, H:i Uhr“ |
-| §7.5 | `setting_get()`, `setting_set()` in `web/app/settings.php` | globale Einstellungen (`inactive_text`) |
+| §7.5 | `setting_get()`, `setting_set()`; `setting_text($key, $vars)`, `setting_text_set()`, `SETTING_TEXTS`, `MAIL_PLACEHOLDERS` in `web/app/settings.php` | globale Einstellungen; einstellbare Texte mit Standardtext im Code (leer = Standard). Neue nutzersichtbare Texte, die man anpassen möchte, in `SETTING_TEXTS` eintragen und per `setting_text()` ausgeben |
+| §5.1, §5.3, §7.5 | `preferred_places()`, `preferred_places_set()`, `places_parse()` in `web/app/settings.php` | bevorzugte Orte, global für alle Veranstaltungen |
 | – | `post_string()`, `post_rows()`, `invalid_class()`, `field_error()`, `input_field()`, `flash()`/`flash_take()` in `web/app/forms.php` | Formulare, Validierungsfehler, Meldungen nach Redirect |
 | §7 | `admin_init()`, `admin_render()` in `web/app/admin.php` | Admin-Seiten (`no-store`, Session, Layout) |
 | §11 | `DbTestCase::createEvent()`, `rowCount()`; `HttpTestCase` mit Cookies/Session, `csrfToken($path)`, `clearCookies()`, `serverDb()` (mit `db($this->serverDb())` als App-DB setzen) | Test-Hilfen |

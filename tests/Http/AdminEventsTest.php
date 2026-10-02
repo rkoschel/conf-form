@@ -22,7 +22,6 @@ final class AdminEventsTest extends HttpTestCase
                 ['time' => '14:00', 'label' => 'Nachmittag'],
                 ['time' => '10:00', 'label' => 'Vormittag'],
             ],
-            'places' => "Hamm\nUnna",
         ];
     }
 
@@ -63,7 +62,7 @@ final class AdminEventsTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#name="registration_deadline_date"\s+value="15\.04\.2027"#', $body);
         $this->assertStringContainsString('value="23:59"', $body);
         $this->assertStringContainsString('value="10:00"', $body);
-        $this->assertStringContainsString("Hamm\nUnna</textarea>", $body);
+        $this->assertStringNotContainsString('name="places"', $body, 'Orte werden in den Einstellungen gepflegt');
         $this->assertLessThan(strpos($body, 'Nachmittag'), strpos($body, 'Vormittag'), 'Ablauf nach Uhrzeit sortiert');
         $this->assertStringContainsString('data-add-slot', $body);
     }

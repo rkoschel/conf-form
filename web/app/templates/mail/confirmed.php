@@ -1,8 +1,7 @@
 Anmeldung bestätigt: <?= $event['title'] ?>
 
-Hallo <?= $registration['first_name'] ?>,
+<?= setting_text('mail_intro_confirmed', $placeholders) ?>
 
-gute Nachricht: Deine Teilnahme ist jetzt bestätigt.
 
 <?php require __DIR__ . '/_event.php' ?>
 

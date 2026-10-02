@@ -122,7 +122,7 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
         'custom_split' => !empty($input['custom_split']),
     ];
 
-    foreach (['first_name' => 'Vorname', 'last_name' => 'Nachname', 'congregation' => 'Heimatversammlung'] as $field => $label) {
+    foreach (['first_name' => 'Vorname', 'last_name' => 'Nachname', 'congregation' => setting_text('congregation_label')] as $field => $label) {
         if ($data[$field] === '') {
             $errors[$field] = "$label ist erforderlich.";
         }
@@ -246,7 +246,7 @@ function registration_exceeds_quota(array $event, array $registration): bool
 function registration_create(array $event, array $data): array
 {
     $eventId = (int) $event['id'];
-    $places = $event['places'] ?? event_places($eventId);
+    $places = preferred_places();
 
     $id = db_transaction(function (PDO $pdo) use ($event, $eventId, $places, $data): int {
         $status = registration_decide_status(
@@ -397,7 +397,7 @@ function registration_list(int $eventId, ?string $status = null, ?string $search
     $rows = $stmt->fetchAll();
 
     $duplicates = array_flip(registration_duplicate_ids($rows));
-    $places = event_places($eventId);
+    $places = preferred_places();
     $search = normalize_line((string) $search);
 
     $result = [];

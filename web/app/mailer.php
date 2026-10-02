@@ -61,12 +61,24 @@ function mail_vars(array $registration, array $event): array
         }
     }
 
+    $eventDate = format_date_long((string) $event['date']);
+    $organizer = trim((string) ($event['organizer_name'] ?? ''));
+
     return [
         'registration' => $registration,
         'event' => $event,
-        'event_date' => format_date_long((string) $event['date']),
+        'event_date' => $eventDate,
         'people' => $people,
         'cancel_url' => app_url('cancel/?t=' . $registration['cancel_token']),
+        // Platzhalter für die einstellbaren Texte (SETTING_TEXTS, 'mail')
+        'placeholders' => [
+            '{first_name}' => (string) $registration['first_name'],
+            '{last_name}' => (string) $registration['last_name'],
+            '{title}' => (string) $event['title'],
+            '{date}' => $eventDate,
+            '{location}' => (string) $event['location'],
+            '{organizer}' => $organizer !== '' ? $organizer : setting_text('mail_organizer_fallback'),
+        ],
     ];
 }
 

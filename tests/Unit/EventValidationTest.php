@@ -22,7 +22,6 @@ final class EventValidationTest extends TestCase
             'organizer_email' => '',
             'active' => false,
             'slots' => [['time' => '10:00', 'label' => 'Begrüßung']],
-            'places' => '',
         ];
     }
 
@@ -184,15 +183,6 @@ final class EventValidationTest extends TestCase
 
         $this->assertSame([], $data['slots']);
         $this->assertArrayNotHasKey('slots', $errors);
-    }
-
-    public function testNormalizesAndDeduplicatesPlaces(): void
-    {
-        [$data] = event_validate($this->input([
-            'places' => "Hamm\r\n  bad   Hamm \n\nHAMM\nBad Hamm\nUnna",
-        ]));
-
-        $this->assertSame(['Hamm', 'bad Hamm', 'Unna'], $data['places']);
     }
 
     // --- Frist: spätestens Beginn des ersten Programmpunkts ---------------

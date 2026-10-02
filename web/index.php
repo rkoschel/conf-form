@@ -4,7 +4,7 @@ require __DIR__ . '/app/bootstrap.php';
 $event = event_active();
 
 if ($event === null) {
-    render('info_inactive', ['title' => 'Konferenz', 'text' => setting_get('inactive_text')]);
+    render('info_inactive', ['title' => 'Konferenz', 'text' => setting_text('inactive_text')]);
     exit;
 }
 

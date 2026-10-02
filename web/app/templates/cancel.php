@@ -15,7 +15,7 @@
 
   <?php if ($done): ?>
     <div class="alert alert-success" role="status">
-      Deine Teilnahme ist abgesagt. Danke, dass du Bescheid gegeben hast.
+      <span class="text-pre-line"><?= e(setting_text('cancel_done')) ?></span>
     </div>
   <?php elseif ($registration['status'] === 'cancelled'): ?>
     <div class="alert alert-secondary" role="status">Diese Anmeldung ist bereits storniert.</div>

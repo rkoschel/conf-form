@@ -8,7 +8,7 @@ final class RegistrationChildcareStorageTest extends DbTestCase
         $eventId = event_save(null, [
             'title' => 'K', 'date' => '2099-05-01', 'location' => 'Hamm', 'description' => '',
             'registration_deadline' => '2099-04-15T23:59', 'timezone' => 'Europe/Berlin', 'max_participants' => 100,
-            'organizer_name' => '', 'organizer_email' => '', 'active' => true, 'places' => [],
+            'organizer_name' => '', 'organizer_email' => '', 'active' => true,
             'slots' => [['time' => '10:00', 'label' => 'Vortrag', 'childcare' => ['kids_3_6']]],
         ]);
         $event = event_find($eventId);

@@ -67,7 +67,7 @@ function stats_for_event(array $event): array
          ORDER BY confirmed + pending DESC, name COLLATE NOCASE"
     );
     $stmt->execute([$eventId]);
-    $preferredPlaces = event_places($eventId);
+    $preferredPlaces = preferred_places();
     $places = [];
     foreach ($stmt->fetchAll() as $row) {
         $places[] = [

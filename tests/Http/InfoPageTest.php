@@ -21,7 +21,6 @@ final class InfoPageTest extends HttpTestCase
                 ['time' => '14:00', 'label' => 'Jugendstunde'],
                 ['time' => '10:00', 'label' => 'Begrüßung'],
             ],
-            'places' => 'Hamm',
         ]);
         $this->assertSame(303, $response['status'], strip_tags($response['body']));
     }
