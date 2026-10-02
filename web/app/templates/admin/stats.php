@@ -190,6 +190,18 @@
                 <dd class="col-4 text-end mb-0"><?= $slot['groups'][$column] ?></dd>
               <?php endforeach ?>
             </dl>
+            <?php if ($slot['childcare_groups']): ?>
+              <div class="d-flex justify-content-between fw-semibold small mt-2 pt-2 border-top">
+                <span>Kinderbetreuung (<?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre)</span>
+                <span class="tabular-nums"><?= $slot['childcare_total'] ?></span>
+              </div>
+              <dl class="row small mb-0 tabular-nums">
+                <?php foreach ($slot['childcare'] as $column => $count): ?>
+                  <dt class="col-8 fw-normal text-body-secondary"><?= e(AGE_GROUPS[$column]) ?></dt>
+                  <dd class="col-4 text-end mb-0"><?= $count ?></dd>
+                <?php endforeach ?>
+              </dl>
+            <?php endif ?>
           </div>
         </div>
       <?php endforeach ?>
@@ -216,10 +228,22 @@
               <?php endforeach ?>
               <td class="text-end fw-semibold"><?= $slot['total'] ?></td>
             </tr>
+            <?php if ($slot['childcare_groups']): ?>
+              <tr class="text-body-secondary">
+                <td></td>
+                <td>↳ Kinderbetreuung (<?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre)</td>
+                <?php foreach (array_keys(AGE_GROUPS) as $column): ?>
+                  <td class="text-end"><?= array_key_exists($column, $slot['childcare']) ? $slot['childcare'][$column] : '' ?></td>
+                <?php endforeach ?>
+                <td class="text-end fw-semibold"><?= $slot['childcare_total'] ?></td>
+              </tr>
+            <?php endif ?>
           <?php endforeach ?>
         </tbody>
       </table>
     </div>
-    <p class="small text-body-secondary">Nur bestätigte Anmeldungen.</p>
+    <p class="small text-body-secondary">
+      Nur bestätigte Anmeldungen. Summe = Personen beim Programmpunkt; Kinder in der Kinderbetreuung werden separat gezählt.
+    </p>
   <?php endif ?>
 <?php endif ?>

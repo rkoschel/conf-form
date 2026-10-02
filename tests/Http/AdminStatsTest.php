@@ -73,6 +73,19 @@ final class AdminStatsTest extends HttpTestCase
         $this->assertStringNotContainsString('aria-label="Offen"', $body);
     }
 
+    public function testShowsChildcareRowPerSlot(): void
+    {
+        $db = $this->serverDb();
+        $id = $this->event($db, 'Mit Betreuung', 0, 20);
+        $db->prepare("INSERT INTO event_slots (event_id, time, label, childcare) VALUES (?, '10:00', 'Vortrag', 'kids_0_2,kids_3_6')")
+            ->execute([$id]);
+
+        $body = $this->get("/admin/stats.php?event=$id")['body'];
+
+        $this->assertStringContainsString('↳ Kinderbetreuung (0–6 Jahre)', $body);
+        $this->assertStringContainsString('Kinderbetreuung (0–6 Jahre)</span>', $body, 'mobile Ansicht');
+    }
+
     public function testUnknownEventReturns404(): void
     {
         $this->assertSame(404, $this->get('/admin/stats.php?event=99999')['status']);

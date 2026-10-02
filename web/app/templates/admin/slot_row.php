@@ -21,7 +21,8 @@
                <?= $row['childcare'] ? 'checked' : '' ?>>
         <label class="form-check-label" for="slot-<?= e($row['index']) ?>-childcare">Kinderbetreuung</label>
       </div>
-      <div class="d-flex flex-wrap column-gap-3" data-childcare-groups<?= $row['childcare'] ? '' : ' hidden' ?>>
+      <?php /* hidden am Wrapper: d-flex würde das hidden-Attribut überschreiben */ ?>
+      <div data-childcare-groups<?= $row['childcare'] ? '' : ' hidden' ?>><div class="d-flex flex-wrap column-gap-3">
         <?php foreach (array_keys(CHILDCARE_AGE_GROUPS) as $group): ?>
           <div class="form-check mb-0">
             <input class="form-check-input" type="checkbox" value="<?= e($group) ?>"
@@ -30,7 +31,7 @@
             <label class="form-check-label" for="slot-<?= e($row['index']) ?>-<?= e($group) ?>"><?= e(AGE_GROUPS[$group]) ?></label>
           </div>
         <?php endforeach ?>
-      </div>
+      </div></div>
     </div>
   </div>
 </div>

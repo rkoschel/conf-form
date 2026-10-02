@@ -114,6 +114,25 @@ final class StatsTest extends DbTestCase
         $this->assertSame(3, $slots[1]['groups']['youth']);
     }
 
+    public function testSlotStatsIncludeChildcareSeparately(): void
+    {
+        db()->prepare("UPDATE event_slots SET childcare = 'kids_3_6,kids_0_2' WHERE id = ?")
+            ->execute([$this->slotIds['Vormittag']]);
+        $confirmed = $this->registration('confirmed', ['adults' => 2, 'kids_3_6' => 2, 'kids_0_2' => 1]);
+        $this->attend($confirmed, 'Vormittag', ['adults' => 2, 'kids_3_6' => 1, 'childcare_kids_3_6' => 1, 'childcare_kids_0_2' => 1]);
+        $pending = $this->registration('pending', ['kids_3_6' => 4]);
+        $this->attend($pending, 'Vormittag', ['childcare_kids_3_6' => 4]);
+
+        $slots = stats_for_event(event_find($this->eventId))['slots'];
+
+        $this->assertSame(['kids_0_2', 'kids_3_6'], $slots[0]['childcare_groups']);
+        $this->assertSame(['kids_0_2' => 1, 'kids_3_6' => 1], $slots[0]['childcare'], 'nur bestätigte, nur betreute Gruppen');
+        $this->assertSame(2, $slots[0]['childcare_total']);
+        $this->assertSame(3, $slots[0]['total'], 'Summe ohne Kinder in der Betreuung');
+        $this->assertSame([], $slots[1]['childcare_groups']);
+        $this->assertSame(0, $slots[1]['childcare_total']);
+    }
+
     public function testIgnoresOtherEvents(): void
     {
         $other = $this->createEvent();

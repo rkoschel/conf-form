@@ -16,6 +16,8 @@ const QUOTA_AGE_GROUPS = ['adults', 'youth', 'kids_7_12', 'kids_3_6'];
  *   meiste zuerst; Schreibweisen ohne Rücksicht auf Groß-/Kleinschreibung
  *   zusammengefasst
  * - slots: je Programmpunkt bestätigte Personen je Altersgruppe und Summe
+ *   (beim Programmpunkt), dazu betreute Altersgruppen und Kinder in der
+ *   Kinderbetreuung je betreuter Gruppe (SPEC §5.4)
  *
  * @param array<string, mixed> $event
  * @return array{
@@ -25,7 +27,8 @@ const QUOTA_AGE_GROUPS = ['adults', 'youth', 'kids_7_12', 'kids_3_6'];
  *     quota_max: int,
  *     age_groups: array<string, int>,
  *     places: list<array{name: string, confirmed: int, pending: int, preferred: bool}>,
- *     slots: list<array{time: string, label: string, groups: array<string, int>, total: int}>
+ *     slots: list<array{time: string, label: string, groups: array<string, int>, total: int,
+ *         childcare_groups: list<string>, childcare: array<string, int>, childcare_total: int}>
  * }
  */
 function stats_for_event(array $event): array
@@ -75,9 +78,13 @@ function stats_for_event(array $event): array
         ];
     }
 
-    $slotSums = implode(', ', array_map(fn ($c) => "COALESCE(SUM(c.$c), 0) AS $c", $columns));
+    $childcareColumns = array_map(fn ($group) => 'childcare_' . $group, array_keys(CHILDCARE_AGE_GROUPS));
+    $slotSums = implode(', ', array_map(
+        fn ($c) => "COALESCE(SUM(c.$c), 0) AS $c",
+        array_merge($columns, $childcareColumns)
+    ));
     $stmt = db()->prepare(
-        "SELECT s.time, s.label, $slotSums
+        "SELECT s.time, s.label, s.childcare AS childcare_groups, $slotSums
          FROM event_slots s
          LEFT JOIN (
              SELECT rs.* FROM registration_slots rs
@@ -94,7 +101,20 @@ function stats_for_event(array $event): array
         foreach ($columns as $column) {
             $groups[$column] = (int) $row[$column];
         }
-        $slots[] = ['time' => $row['time'], 'label' => $row['label'], 'groups' => $groups, 'total' => array_sum($groups)];
+        $childcareGroups = childcare_parse((string) $row['childcare_groups']);
+        $childcare = [];
+        foreach ($childcareGroups as $group) {
+            $childcare[$group] = (int) $row['childcare_' . $group];
+        }
+        $slots[] = [
+            'time' => $row['time'],
+            'label' => $row['label'],
+            'groups' => $groups,
+            'total' => array_sum($groups),
+            'childcare_groups' => $childcareGroups,
+            'childcare' => $childcare,
+            'childcare_total' => array_sum($childcare),
+        ];
     }
 
     return [
