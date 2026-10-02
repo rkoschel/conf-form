@@ -77,7 +77,7 @@ final class InfoPageTest extends HttpTestCase
         $this->assertStringContainsString('Frei 0 %', $body);
         $this->assertStringContainsString('Aktuell scheint die Veranstaltung ausgebucht zu sein.', $body);
         $this->assertStringContainsString('um auf die Warteliste zu kommen', $body);
-        $this->assertStringContainsString('erhältst du eine Benachrichtigung', $body);
+        $this->assertStringContainsString('melden wir uns bei dir.', $body);
         $this->assertStringContainsString('href="/register/"', $body, 'Anmelden bleibt möglich');
     }
 

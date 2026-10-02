@@ -23,7 +23,7 @@
       <div class="alert alert-info small mt-3 mb-0" role="status">
         Aktuell scheint die Veranstaltung ausgebucht zu sein.<br>
         Eine Anmeldung lohnt sich trotzdem, um auf die Warteliste zu kommen.<br>
-        Sobald Plätze wieder frei sind (durch Absagen oder Änderungen), erhältst du eine Benachrichtigung.
+        Sobald Plätze wieder frei sind (durch Absagen oder Änderungen), melden wir uns bei dir.
       </div>
     <?php endif ?>
   </div>
