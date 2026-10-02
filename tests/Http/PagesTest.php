@@ -41,6 +41,13 @@ final class PagesTest extends HttpTestCase
         $this->assertArrayNotHasKey('set-cookie', $this->get('/')['headers']);
     }
 
+    public function testUnknownPathsReturn404LikeTheServer(): void
+    {
+        $this->assertSame(404, $this->get('/gibt-es-nicht/')['status']);
+        $this->assertSame(404, $this->get('/konferenz/team/')['status']);
+        $this->assertSame(404, $this->get('/README.md')['status']);
+    }
+
     public function testAppDirectoryIsBlocked(): void
     {
         $this->assertSame(403, $this->get('/app/schema.sql')['status']);

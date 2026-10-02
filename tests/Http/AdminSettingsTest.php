@@ -92,7 +92,7 @@ final class AdminSettingsTest extends HttpTestCase
 
         $this->assertSame(303, $team('team_generate')['status']);
         $body = $this->get('/admin/settings.php')['body'];
-        $this->assertMatchesRegularExpression('#value="https://example.org/konferenz/team/\?k=([0-9a-f]{40})"#', $body);
+        $this->assertMatchesRegularExpression('#value="' . preg_quote(self::$baseUrl, '#') . '/team/\?k=([0-9a-f]{40})"#', $body, 'Link zur aufgerufenen Adresse');
         preg_match('#team/\?k=([0-9a-f]{40})#', $body, $first);
 
         $team('team_generate');

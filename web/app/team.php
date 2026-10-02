@@ -29,9 +29,20 @@ function team_key_valid(mixed $given): bool
     return $key !== '' && is_string($given) && hash_equals($key, $given);
 }
 
-/** Vollständiger Team-Link oder null, wenn deaktiviert */
+/**
+ * Vollständiger Team-Link oder null, wenn deaktiviert. Im Browser aus der
+ * aufgerufenen Adresse gebildet (passt so lokal wie auf dem Server), sonst
+ * aus der Config app_url.
+ */
 function team_url(): ?string
 {
     $key = team_key();
-    return $key === '' ? null : app_url('team/?k=' . $key);
+    if ($key === '') {
+        return null;
+    }
+    $path = 'team/?k=' . $key;
+    if (isset($_SERVER['HTTP_HOST'])) {
+        return (is_https() ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . url($path);
+    }
+    return app_url($path);
 }
