@@ -1,4 +1,4 @@
-<?php /* Infoseite der aktiven Veranstaltung (SPEC §4); Kontingent wird bewusst nicht angezeigt */ ?>
+<?php /* Infoseite der aktiven Veranstaltung (SPEC §4); Belegung nur in Prozent, nie absolute Zahlen */ ?>
 <h1 class="mb-4"><?= e($event['title']) ?></h1>
 
 <dl class="row mb-4">
@@ -31,6 +31,10 @@
       </li>
     <?php endforeach ?>
   </ul>
+<?php endif ?>
+
+<?php if ($shares !== null): ?>
+  <?php require __DIR__ . '/quota_shares.php' ?>
 <?php endif ?>
 
 <?php if (!$registrationOpen): ?>

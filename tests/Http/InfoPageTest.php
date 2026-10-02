@@ -43,14 +43,53 @@ final class InfoPageTest extends HttpTestCase
         $this->assertStringNotContainsString('abgelaufen', $body);
     }
 
-    public function testDoesNotShowQuota(): void
+    public function testShowsOccupancyOnlyAsPercentagesAboveButton(): void
     {
-        $this->activeEvent();
+        $this->activeEvent(['max_participants' => '173']);
+        $this->registrations(['confirmed' => 52, 'pending' => 26]);
 
         $body = $this->get('/')['body'];
 
-        $this->assertStringNotContainsString('173', $body);
+        // 52/173 = 30 %, 26/173 = 15 %, frei 55 %
+        $this->assertStringContainsString('Bestätigt 30 %', $body);
+        $this->assertStringContainsString('Warteliste 15 %', $body);
+        $this->assertStringContainsString('Frei 55 %', $body);
+        $this->assertLessThan(strpos($body, 'href="/register/"'), strpos($body, 'Belegung'), 'oberhalb des Buttons');
+        $text = strip_tags($body);
+        foreach (['173', '52', '26', '78', '95'] as $absolute) {
+            $this->assertStringNotContainsString($absolute, $text, "keine absolute Zahl im Text ($absolute)");
+        }
+        // In der Kachel (auch in Attributen wie width/aria) nur die Prozentwerte
+        $start = strpos($body, '<div class="card mb-4">');
+        $card = substr($body, $start, strpos($body, 'Frei 55 %', $start) - $start);
+        preg_match_all('/\d+/', (string) preg_replace(['/class="[^"]*"/', '#</?[a-z][a-z0-9]*#i'], '', $card), $numbers);
+        $this->assertSame([], array_values(array_diff(array_unique($numbers[0]), ['0', '15', '30', '100'])));
         $this->assertStringNotContainsStringIgnoringCase('Plätze', $body);
+    }
+
+    public function testHidesOccupancyAfterDeadline(): void
+    {
+        $this->activeEvent([
+            'title' => 'Vorbei',
+            'date' => '02.05.2020',
+            'registration_deadline_date' => '15.04.2020',
+            'registration_deadline_time' => '23:59',
+        ]);
+
+        $this->assertStringNotContainsString('Belegung', $this->get('/')['body']);
+    }
+
+    /** Legt für die aktive Veranstaltung je Status eine Anmeldung mit n Erwachsenen an */
+    private function registrations(array $adultsByStatus): void
+    {
+        $db = $this->serverDb();
+        $eventId = (int) $db->query('SELECT id FROM events WHERE active = 1')->fetchColumn();
+        foreach ($adultsByStatus as $status => $adults) {
+            $db->prepare(
+                'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, adults, kids_0_2, status, cancel_token)
+                 VALUES (?, ?, ?, ?, ?, ?, 4, ?, ?)'
+            )->execute([$eventId, now_utc(), 'Max', 'Muster', 'Hamm', $adults, $status, bin2hex(random_bytes(32))]);
+        }
     }
 
     public function testShowsClosedNoticeWithoutButtonAfterDeadline(): void

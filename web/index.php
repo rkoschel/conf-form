@@ -8,8 +8,16 @@ if ($event === null) {
     exit;
 }
 
+$registrationOpen = event_registration_open($event);
+$shares = null;
+if ($registrationOpen) {
+    $stats = stats_for_event($event);
+    $shares = quota_shares($stats['quota_used'], $stats['quota_pending'], $stats['quota_max']);
+}
+
 render('info', [
     'title' => $event['title'],
     'event' => $event,
-    'registrationOpen' => event_registration_open($event),
+    'registrationOpen' => $registrationOpen,
+    'shares' => $shares,
 ]);

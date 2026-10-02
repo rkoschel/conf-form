@@ -59,7 +59,7 @@
               <div class="quota-meter-limit" style="left: <?= $percent($max) ?>%" title="Kontingent: <?= $max ?>"></div>
             <?php endif ?>
           </div>
-          <div class="d-flex flex-wrap gap-3 small mb-1">
+          <div class="d-flex flex-wrap column-gap-3 row-gap-1 small mb-1">
             <span><span class="quota-swatch <?= $used > $max ? 'bg-danger' : 'bg-primary' ?>"></span> Bestätigt <?= $used ?></span>
             <span><span class="quota-swatch progress-bar-striped bg-warning"></span> Offen <?= $pending ?></span>
           </div>

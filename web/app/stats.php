@@ -107,3 +107,26 @@ function stats_for_event(array $event): array
         'slots' => $slots,
     ];
 }
+
+/**
+ * Belegung als ganze Prozent der Kapazität für die öffentliche Anzeige
+ * (SPEC §4): bestätigt, Warteliste (offen), frei – Summe immer 100.
+ * Bestätigte über dem Kontingent werden auf 100 gekappt, die Warteliste auf
+ * den Rest. Nur ganze Prozent, damit sich keine Personenzahlen zurückrechnen
+ * lassen.
+ *
+ * @return array{confirmed: int, waitlist: int, free: int}
+ */
+function quota_shares(int $confirmed, int $pending, int $max): array
+{
+    if ($max <= 0) {
+        return ['confirmed' => 0, 'waitlist' => 0, 'free' => 100];
+    }
+    $confirmedShare = (int) round(min($confirmed, $max) / $max * 100);
+    $waitlistShare = min((int) round(max($pending, 0) / $max * 100), 100 - $confirmedShare);
+    return [
+        'confirmed' => $confirmedShare,
+        'waitlist' => $waitlistShare,
+        'free' => 100 - $confirmedShare - $waitlistShare,
+    ];
+}
