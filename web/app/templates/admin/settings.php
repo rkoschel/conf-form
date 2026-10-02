@@ -15,6 +15,35 @@ $rows = function (string $key, string $default) use ($values): int {
 ?>
 <h1 class="h3 mb-4">Einstellungen</h1>
 
+<section class="form-narrow mb-5">
+  <h2 class="h5">Team-Zugang (Auswertung)</h2>
+  <p class="form-text mt-0">
+    Mitarbeiter sehen über diesen Link die Auswertung der aktiven Veranstaltung – ohne Login, nur lesend.
+    Wer den Link hat, sieht die Zahlen. Wurde er versehentlich weitergegeben, einfach einen neuen erzeugen.
+  </p>
+  <?php if ($teamUrl === null): ?>
+    <form method="post">
+      <?= csrf_field() ?>
+      <button type="submit" name="action" value="team_generate" class="btn btn-outline-primary">Team-Link erzeugen</button>
+    </form>
+  <?php else: ?>
+    <div class="input-group mb-2">
+      <input type="text" class="form-control" id="team-url" value="<?= e($teamUrl) ?>" readonly aria-label="Team-Link">
+      <button type="button" class="btn btn-outline-secondary" data-copy="#team-url">Kopieren</button>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <form method="post" data-confirm="Neuen Link erzeugen? Der bisherige Link funktioniert dann nicht mehr.">
+        <?= csrf_field() ?>
+        <button type="submit" name="action" value="team_generate" class="btn btn-sm btn-outline-secondary">Neuen Link erzeugen</button>
+      </form>
+      <form method="post" data-confirm="Team-Zugang deaktivieren? Der Link funktioniert dann nicht mehr.">
+        <?= csrf_field() ?>
+        <button type="submit" name="action" value="team_disable" class="btn btn-sm btn-outline-danger">Deaktivieren</button>
+      </form>
+    </div>
+  <?php endif ?>
+</section>
+
 <form method="post" class="vstack gap-4 form-narrow">
   <?= csrf_field() ?>
 

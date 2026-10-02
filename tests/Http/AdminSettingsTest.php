@@ -77,4 +77,35 @@ final class AdminSettingsTest extends HttpTestCase
         $this->assertStringContainsString('>Gemeinde</label>', $form);
         $this->assertStringContainsString('Bitte &lt;ehrlich&gt; schätzen.', $form);
     }
+
+    public function testTeamLinkCanBeGeneratedRenewedAndDisabledWithoutTouchingTexts(): void
+    {
+        $this->post('/admin/settings.php', [
+            'csrf' => $this->csrfToken('/admin/settings.php'),
+            'congregation_label' => 'Gemeinde',
+        ]);
+        $this->assertStringContainsString('Team-Link erzeugen', $this->get('/admin/settings.php')['body']);
+
+        $team = fn (string $action) => $this->post('/admin/settings.php', [
+            'csrf' => $this->csrfToken('/admin/settings.php'), 'action' => $action,
+        ]);
+
+        $this->assertSame(303, $team('team_generate')['status']);
+        $body = $this->get('/admin/settings.php')['body'];
+        $this->assertMatchesRegularExpression('#value="https://example.org/konferenz/team/\?k=([0-9a-f]{40})"#', $body);
+        preg_match('#team/\?k=([0-9a-f]{40})#', $body, $first);
+
+        $team('team_generate');
+        $body = $this->get('/admin/settings.php')['body'];
+        $this->assertStringContainsString('Neuer Team-Link erzeugt, der alte ist ungültig.', $body);
+        $this->assertStringNotContainsString($first[1], $body);
+
+        $team('team_disable');
+        $body = $this->get('/admin/settings.php')['body'];
+        $this->assertStringContainsString('Team-Zugang deaktiviert.', $body);
+        $this->assertStringContainsString('Team-Link erzeugen', $body);
+
+        db($this->serverDb());
+        $this->assertSame('Gemeinde', setting_text('congregation_label'), 'eigene Texte bleiben erhalten');
+    }
 }

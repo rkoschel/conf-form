@@ -54,6 +54,10 @@ for p in /app/ /app/schema.sql /app/bootstrap.php /app/db.php /app/templates/lay
     check "$p" '403|404'
 done
 
+echo "Team-Zugang nur mit gültigem Schlüssel:"
+check /team/ 404
+check "/team/?k=0000000000000000000000000000000000000000" 404
+
 echo "Nicht deployt:"
 for p in /config.example.php /config.prod.php /config.local.php /deploy.env /deploy.sh \
          /test.sh /README.md /SPEC.md /.git/HEAD /dev/router.php /tests/smoke.sh /tools/install.sh; do

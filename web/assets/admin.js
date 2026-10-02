@@ -72,3 +72,27 @@ if (deleteRegistrationModal) {
     deleteRegistrationModal.querySelector('[data-delete-count]').textContent = data.count;
   });
 }
+
+// Formulare mit Rückfrage (data-confirm="…")
+document.addEventListener('submit', (event) => {
+  const message = event.target.dataset.confirm;
+  if (message && !window.confirm(message)) {
+    event.preventDefault();
+  }
+});
+
+// Kopieren in die Zwischenablage (data-copy="#feld")
+document.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-copy]');
+  if (!button) {
+    return;
+  }
+  const field = document.querySelector(button.dataset.copy);
+  try {
+    await navigator.clipboard.writeText(field.value);
+    button.textContent = 'Kopiert';
+  } catch {
+    // ohne Clipboard-API (z. B. ohne HTTPS): Text markieren, Strg+C bleibt
+    field.select();
+  }
+});
