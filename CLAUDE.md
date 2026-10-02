@@ -48,6 +48,12 @@ Agents **nicht** dort, sondern in einem eigenen git worktree:
    git branch -d feature/<name>
    ```
 
+## Hilfeseite mitpflegen
+
+`web/app/templates/admin/help.php` erklärt Admins die Logik (SPEC §7.9).
+Wer Verhalten ändert (Statusregeln, Zählweisen, Mails, Sperren, Texte …),
+passt dort den betroffenen Abschnitt mit an.
+
 ## Schnittstellen untereinander mitteilen
 
 Entsteht Code, den ein anderer Agent für seinen SPEC-Abschnitt nutzen soll,

@@ -1,9 +1,10 @@
 <?php
 $nav = [
-    'admin/' => 'Anfragen',
     'admin/events.php' => 'Veranstaltungen',
+    'admin/' => 'Anfragen',
     'admin/stats.php' => 'Auswertung',
     'admin/settings.php' => 'Einstellungen',
+    'admin/help.php' => 'Hilfe',
 ];
 ?>
 <!doctype html>
