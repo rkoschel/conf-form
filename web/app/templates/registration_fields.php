@@ -10,6 +10,10 @@ $attend = is_array($form['attend'] ?? null) ? $form['attend'] : [];
 $split = is_array($form['split'] ?? null) ? $form['split'] : [];
 $noEmail = !empty($form['no_email']);
 $customSplit = !empty($form['custom_split']);
+$childcareSlots = array_values(array_filter($event['slots'], fn ($slot) => !empty($slot['childcare'])));
+$hasCount = fn (string $group): bool => (int) ($form[$group] ?? 0) > 0;
+// Sichtbarkeit der Hinweise ohne JS; form.js aktualisiert sie beim Tippen
+$childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childcare'], $hasCount);
 ?>
   <fieldset class="row g-3">
     <legend class="h5">Kontakt</legend>
@@ -49,6 +53,20 @@ $customSplit = !empty($form['custom_split']);
     <?php if (isset($errors['persons'])): ?>
       <div class="col-12 text-danger small"><?= e($errors['persons']) ?></div>
     <?php endif ?>
+    <?php if ($childcareSlots): ?>
+      <div class="col-12" data-childcare-hint<?= array_filter($childcareSlots, $childcareVisible) ? '' : ' hidden' ?>>
+        <div class="alert alert-info small mb-0">
+          Kinder werden bei diesen Programmpunkten automatisch für die Kinderbetreuung berücksichtigt:
+          <ul class="mb-0">
+            <?php foreach ($childcareSlots as $slot): ?>
+              <li data-childcare-groups="<?= e(implode(' ', $slot['childcare'])) ?>"<?= $childcareVisible($slot) ? '' : ' hidden' ?>>
+                <?= e($slot['time']) ?> Uhr <?= e($slot['label']) ?>: Kinder von <?= e(childcare_ages($slot['childcare'])) ?> Jahren
+              </li>
+            <?php endforeach ?>
+          </ul>
+        </div>
+      </div>
+    <?php endif ?>
   </fieldset>
 
   <?php if ($event['slots']): ?>
@@ -69,19 +87,31 @@ $customSplit = !empty($form['custom_split']);
       <div class="vstack gap-2">
         <?php foreach ($event['slots'] as $slot): ?>
           <?php $slotId = (int) $slot['id'] ?>
-          <div class="border rounded p-3">
+          <div class="border rounded p-3" data-childcare-slot="<?= e(implode(' ', $slot['childcare'] ?? [])) ?>">
             <div class="form-check" data-attend<?= $customSplit ? ' hidden' : '' ?>>
               <input class="form-check-input" type="checkbox" id="attend-<?= $slotId ?>"
                      name="attend[<?= $slotId ?>]" value="1" <?= !empty($attend[$slotId]) ? 'checked' : '' ?>>
               <label class="form-check-label" for="attend-<?= $slotId ?>">
                 <span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?>
+                <?php if (!empty($slot['childcare'])): ?>
+                  <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'])) ?></span>
+                <?php endif ?>
               </label>
             </div>
             <div data-split<?= $customSplit ? '' : ' hidden' ?>>
-              <div class="mb-2"><span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?></div>
+              <div class="mb-2">
+                <span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?>
+                <?php if (!empty($slot['childcare'])): ?>
+                  <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'])) ?></span>
+                <?php endif ?>
+              </div>
               <div class="row g-2">
                 <?php foreach (AGE_GROUPS as $group => $label): ?>
-                  <?php $value = $split[$slotId][$group] ?? ($form[$group] ?? '0') ?>
+                  <?php
+                  // Betreute Kindergruppen sind mit 0 vorbelegt (sie sind in der Kinderbetreuung)
+                  $default = in_array($group, $slot['childcare'] ?? [], true) ? '0' : ($form[$group] ?? '0');
+                  $value = $split[$slotId][$group] ?? $default;
+                  ?>
                   <div class="col-6 col-md" data-split-group="<?= $group ?>">
                     <label class="form-label small mb-1" for="split-<?= $slotId ?>-<?= $group ?>"><?= e($label) ?></label>
                     <input type="number" class="form-control form-control-sm" min="0" step="1" inputmode="numeric"
@@ -90,6 +120,12 @@ $customSplit = !empty($form['custom_split']);
                   </div>
                 <?php endforeach ?>
               </div>
+              <?php if (!empty($slot['childcare'])): ?>
+                <div class="small text-warning-emphasis mt-2" data-childcare-split-hint hidden>
+                  ⚠ Hier eingetragene Kinder von <?= e(childcare_ages($slot['childcare'])) ?> Jahren nehmen am
+                  Programmpunkt teil und werden nicht für die Kinderbetreuung berücksichtigt.
+                </div>
+              <?php endif ?>
             </div>
           </div>
         <?php endforeach ?>

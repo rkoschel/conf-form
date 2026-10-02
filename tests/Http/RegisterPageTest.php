@@ -73,6 +73,55 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertStringContainsString('data-split-reset-confirm', $body);
     }
 
+    /** Programmpunkt „Vortrag“ bekommt Kinderbetreuung für 0–6 */
+    private function withChildcare(): void
+    {
+        db()->prepare("UPDATE event_slots SET childcare = 'kids_0_2,kids_3_6' WHERE id = ?")
+            ->execute([$this->event['slots'][0]['id']]);
+        $this->event = event_find((int) $this->event['id']);
+    }
+
+    public function testShowsChildcareNoticesAndZeroDefaultsForCoveredGroups(): void
+    {
+        $this->withChildcare();
+
+        $body = $this->get('/register/')['body'];
+        $vortrag = $this->event['slots'][0]['id'];
+        $jugend = $this->event['slots'][1]['id'];
+
+        $this->assertSame(2, substr_count($body, 'Parallel Kinderbetreuung für Kinder von 0–6 Jahren'), 'Ankreuzen und Aufteilung');
+        $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint hidden>#', $body, 'ohne Kinder kein Hinweis');
+        $this->assertStringContainsString('10:00 Uhr Vortrag: Kinder von 0–6 Jahren', $body);
+        $this->assertStringContainsString('data-childcare-split-hint hidden', $body);
+        $this->assertMatchesRegularExpression('#name="split\[' . $vortrag . '\]\[kids_3_6\]"\s+value="0"#', $body, 'betreute Gruppe mit 0 vorbelegt');
+        $this->assertMatchesRegularExpression('#data-childcare-slot=""#', $body, 'Programmpunkt ohne Betreuung');
+        $this->assertStringNotContainsString("$jugend: Kinder", $body);
+    }
+
+    public function testChildcareHintVisibleAfterValidationErrorWithChildren(): void
+    {
+        $this->withChildcare();
+
+        $response = $this->submit(['first_name' => '', 'kids_3_6' => '2']);
+
+        $this->assertSame(200, $response['status']);
+        $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint>#', $response['body']);
+    }
+
+    public function testRegistrationStoresChildrenInChildcare(): void
+    {
+        $this->withChildcare();
+        $vortrag = $this->event['slots'][0]['id'];
+
+        $this->submit(['kids_3_6' => '2', 'attend' => [$vortrag => '1']]);
+
+        $registration = $this->registrations()[0];
+        $counts = registration_slot_counts((int) $registration['id'])[$vortrag];
+        $this->assertSame([2, 0, 2, 1], [
+            $counts['adults'], $counts['kids_3_6'], $counts['childcare_kids_3_6'], $counts['childcare_kids_0_2'],
+        ]);
+    }
+
     public function testPreferredPlaceIsConfirmedWithMail(): void
     {
         $response = $this->submit();

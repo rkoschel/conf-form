@@ -44,6 +44,35 @@ if (form) {
 
   const splitGroups = () => [...form.querySelectorAll('[data-split-group]')];
 
+  // Betreute Altersgruppen eines Programmpunkts (data-childcare-slot="kids_0_2 kids_3_6")
+  const childcareOf = (el) => (el.closest('[data-childcare-slot]')?.dataset.childcareSlot || '')
+    .split(' ').filter(Boolean);
+
+  // Vorbelegung der Aufteilung: Anzahl oben, betreute Kindergruppen 0 (SPEC §5.4)
+  const splitDefault = (el) => (childcareOf(el).includes(el.dataset.splitGroup) ? 0 : count(el.dataset.splitGroup));
+
+  // Hinweise zur Kinderbetreuung: unter den Anzahlen je Programmpunkt mit
+  // passenden Kindern, in der Aufteilung bei eingetragenen betreuten Kindern
+  const updateChildcareHints = () => {
+    const hint = form.querySelector('[data-childcare-hint]');
+    if (hint) {
+      let any = false;
+      hint.querySelectorAll('[data-childcare-groups]').forEach((item) => {
+        const show = item.dataset.childcareGroups.split(' ').some((group) => count(group) > 0);
+        item.hidden = !show;
+        any = any || show;
+      });
+      hint.hidden = !any;
+    }
+    form.querySelectorAll('[data-childcare-split-hint]').forEach((splitHint) => {
+      const slot = splitHint.closest('[data-childcare-slot]');
+      splitHint.hidden = !childcareOf(splitHint).some((group) => {
+        const input = slot.querySelector(`[data-split-group="${group}"] input`);
+        return input && parseInt(input.value, 10) > 0;
+      });
+    });
+  };
+
   const checkSplitInput = (el) => checkNumber(el.querySelector('input'), count(el.dataset.splitGroup));
 
   const updateContact = () => {
@@ -64,11 +93,14 @@ if (form) {
       const input = el.querySelector('input');
       el.hidden = max === 0;
       input.max = String(max);
-      if (parseInt(input.value, 10) > max || input.value === '') {
+      if (parseInt(input.value, 10) > max) {
         input.value = String(max);
+      } else if (input.value === '') {
+        input.value = String(splitDefault(el));
       }
       checkSplitInput(el);
     });
+    updateChildcareHints();
   };
 
   // Beim Einschalten der Aufteilung mit den Gruppenzahlen vorbelegen
@@ -77,19 +109,19 @@ if (form) {
       return;
     }
     splitGroups().forEach((el) => {
-      el.querySelector('input').value = String(count(el.dataset.splitGroup));
+      el.querySelector('input').value = String(splitDefault(el));
     });
     updateSplit();
   };
 
-  // Weicht die Aufteilung von der Vorbelegung (= Anzahl oben) ab?
+  // Weicht die Aufteilung von der Vorbelegung ab?
   const splitModified = () => splitGroups().some((el) => (
-    el.querySelector('input').value.trim() !== String(count(el.dataset.splitGroup))
+    el.querySelector('input').value.trim() !== String(splitDefault(el))
   ));
 
   const resetSplit = () => {
     splitGroups().forEach((el) => {
-      el.querySelector('input').value = String(count(el.dataset.splitGroup));
+      el.querySelector('input').value = String(splitDefault(el));
     });
     customSplit.checked = false;
     updateSplit();
@@ -128,7 +160,10 @@ if (form) {
     });
   });
   splitGroups().forEach((el) => {
-    el.querySelector('input').addEventListener('input', () => checkSplitInput(el));
+    el.querySelector('input').addEventListener('input', () => {
+      checkSplitInput(el);
+      updateChildcareHints();
+    });
   });
   if (customSplit) {
     customSplit.addEventListener('change', toggleSplit);
