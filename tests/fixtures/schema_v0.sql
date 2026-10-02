@@ -1,6 +1,6 @@
+-- Schema-Stand vor Migration 1 (unverändert aus Commit 64ef6b6) für MigrationTest.
 -- Schema der Konferenz-Anmeldung (siehe SPEC §8).
--- Immer der neueste Stand; db.php legt damit neue Datenbanken an und setzt
--- PRAGMA user_version auf die höchste Migration (siehe DB_MIGRATIONS).
+-- Idempotent: wird von db.php beim ersten Zugriff ausgeführt.
 
 CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,                       -- z. B. inactive_text
@@ -27,8 +27,7 @@ CREATE TABLE IF NOT EXISTS event_slots (
   event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   time     TEXT NOT NULL,                       -- HH:MM
   label    TEXT NOT NULL,
-  sort     INTEGER NOT NULL DEFAULT 0,
-  childcare TEXT NOT NULL DEFAULT ''            -- betreute Gruppen, z. B. 'kids_3_6,kids_0_2'; '' = keine
+  sort     INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS preferred_places (
@@ -68,9 +67,6 @@ CREATE TABLE IF NOT EXISTS registration_slots (
   kids_7_12       INTEGER NOT NULL DEFAULT 0,
   kids_3_6        INTEGER NOT NULL DEFAULT 0,
   kids_0_2        INTEGER NOT NULL DEFAULT 0,
-  childcare_kids_7_12 INTEGER NOT NULL DEFAULT 0, -- Kinder in der Betreuung (SPEC §5.4)
-  childcare_kids_3_6  INTEGER NOT NULL DEFAULT 0,
-  childcare_kids_0_2  INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (registration_id, slot_id)
 );
 

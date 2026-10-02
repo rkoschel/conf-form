@@ -18,6 +18,14 @@ document.addEventListener('click', (event) => {
   }
 });
 
+// Ablauf: Altersgruppen nur bei eingeschalteter Kinderbetreuung zeigen
+document.addEventListener('change', (event) => {
+  const toggle = event.target.closest('[data-childcare-toggle]');
+  if (toggle) {
+    toggle.closest('.slot-row').querySelector('[data-childcare-groups]').hidden = !toggle.checked;
+  }
+});
+
 const deleteModal = document.getElementById('delete-modal');
 if (deleteModal) {
   deleteModal.addEventListener('show.bs.modal', (event) => {

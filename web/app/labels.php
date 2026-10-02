@@ -12,6 +12,13 @@ const AGE_GROUPS = [
     'kids_0_2' => 'Kinder 0–2',
 ];
 
+/** Altersgruppen mit möglicher Kinderbetreuung (SPEC §7.1), jüngste zuerst: Spalte → [von, bis] Jahre */
+const CHILDCARE_AGE_GROUPS = [
+    'kids_0_2' => [0, 2],
+    'kids_3_6' => [3, 6],
+    'kids_7_12' => [7, 12],
+];
+
 /** Status einer Anmeldung, in der Reihenfolge der UI (SPEC §7.2) */
 const STATUS_LABELS = [
     'pending' => 'offen',

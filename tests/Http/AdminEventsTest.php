@@ -84,6 +84,33 @@ final class AdminEventsTest extends HttpTestCase
         $this->assertStringContainsString('value="Nachmittag"', $response['body']);
     }
 
+    public function testChildcareIsSavedAndShownInEditForm(): void
+    {
+        $id = $this->createEvent('Betreuung-Test', [
+            'slots' => [
+                ['time' => '10:00', 'label' => 'Vortrag', 'childcare' => '1', 'childcare_groups' => ['kids_0_2', 'kids_3_6']],
+                ['time' => '14:00', 'label' => 'Mittag'],
+            ],
+        ]);
+
+        $body = $this->get("/admin/event.php?id=$id")['body'];
+
+        $this->assertMatchesRegularExpression('#name="slots\[0\]\[childcare\]"\s+checked#', $body);
+        $this->assertMatchesRegularExpression('#value="kids_3_6"[^>]*name="slots\[0\]\[childcare_groups\]\[\]"\s+checked#', $body);
+        $this->assertMatchesRegularExpression('#value="kids_7_12"[^>]*name="slots\[0\]\[childcare_groups\]\[\]"\s+>#', $body);
+        $this->assertMatchesRegularExpression('#name="slots\[1\]\[childcare\]"\s+>#', $body);
+    }
+
+    public function testChildcareWithoutGroupShowsError(): void
+    {
+        $response = $this->post('/admin/event.php', $this->formData('Betreuung-Fehler', [
+            'slots' => [['time' => '10:00', 'label' => 'Vortrag', 'childcare' => '1']],
+        ]));
+
+        $this->assertSame(200, $response['status']);
+        $this->assertStringContainsString('Altersgruppen für die Kinderbetreuung auswählen.', $response['body']);
+    }
+
     public function testUnknownEventReturns404(): void
     {
         $this->assertSame(404, $this->get('/admin/event.php?id=99999')['status']);

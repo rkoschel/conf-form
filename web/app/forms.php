@@ -9,12 +9,14 @@ function post_string(string $key): string
 }
 
 /**
- * POST-Werte aus Zeilen wie name[0][time], name[0][label].
+ * POST-Werte aus Zeilen wie name[0][time], name[0][label]; $listKeys sind
+ * Felder mit mehreren Werten wie name[0][groups][] (Liste von Strings).
  *
  * @param list<string> $keys
- * @return list<array<string, string>>
+ * @param list<string> $listKeys
+ * @return list<array<string, string|list<string>>>
  */
-function post_rows(string $name, array $keys): array
+function post_rows(string $name, array $keys, array $listKeys = []): array
 {
     $rows = [];
     foreach ((array) ($_POST[$name] ?? []) as $row) {
@@ -24,6 +26,9 @@ function post_rows(string $name, array $keys): array
         $clean = [];
         foreach ($keys as $key) {
             $clean[$key] = is_string($row[$key] ?? null) ? $row[$key] : '';
+        }
+        foreach ($listKeys as $key) {
+            $clean[$key] = array_values(array_filter((array) ($row[$key] ?? []), 'is_string'));
         }
         $rows[] = $clean;
     }

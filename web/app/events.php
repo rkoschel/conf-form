@@ -8,7 +8,8 @@ declare(strict_types=1);
  * registration_deadline_date (TT.MM.JJJJ), registration_deadline_time
  * (HH:MM, 24 h), timezone, max_participants, organizer_name,
  * organizer_email (Strings), active (bool), slots (Liste von
- * ['time' => HH:MM, 'label' => …]), places (String, ein Ort pro Zeile).
+ * ['time' => HH:MM, 'label' => …, 'childcare' => '1'|'', 'childcare_groups'
+ * => Liste von Altersgruppen]), places (String, ein Ort pro Zeile).
  * Die Daten werden als ISO zurückgegeben (date: Y-m-d,
  * registration_deadline: Y-m-d\TH:i).
  *
@@ -16,7 +17,7 @@ declare(strict_types=1);
  * übergeben: Eingegebene Programmpunkte werden dann ignoriert und die
  * bestehenden für die Fristprüfung verwendet.
  *
- * @param list<array{time: string, label: string}>|null $lockedSlots
+ * @param list<array{time: string, label: string, childcare: list<string>}>|null $lockedSlots
  * @return array{0: array<string, mixed>, 1: array<string, string>} [Daten, Fehler je Feld]
  */
 function event_validate(array $input, ?array $lockedSlots = null): array
@@ -90,12 +91,14 @@ function event_validate(array $input, ?array $lockedSlots = null): array
 }
 
 /**
- * @return array{0: list<array{time: string, label: string}>, 1: ?string} [Programmpunkte nach Uhrzeit, Fehler]
+ * @return array{0: list<array{time: string, label: string, childcare: list<string>}>, 1: ?string}
+ *     [Programmpunkte nach Uhrzeit, Fehler]
  */
 function event_parse_slots(mixed $rows): array
 {
     $slots = [];
     $invalid = [];
+    $withoutGroups = [];
     $number = 0;
     foreach (is_array($rows) ? $rows : [] as $row) {
         $number++;
@@ -109,15 +112,68 @@ function event_parse_slots(mixed $rows): array
             $invalid[] = $number;
             continue;
         }
-        $slots[] = ['time' => $time, 'label' => $label];
+        $childcare = [];
+        if (!empty($row['childcare'])) {
+            $childcare = childcare_parse(is_array($row['childcare_groups'] ?? null) ? $row['childcare_groups'] : []);
+            if (!$childcare) {
+                $withoutGroups[] = $number;
+            }
+        }
+        $slots[] = ['time' => $time, 'label' => $label, 'childcare' => $childcare];
     }
 
+    $messages = [];
     if ($invalid) {
-        return [$slots, 'Programmpunkt ' . implode(', ', $invalid) . ': Uhrzeit (HH:MM) und Bezeichnung angeben.'];
+        $messages[] = 'Programmpunkt ' . implode(', ', $invalid) . ': Uhrzeit (HH:MM) und Bezeichnung angeben.';
+    }
+    if ($withoutGroups) {
+        $messages[] = 'Programmpunkt ' . implode(', ', $withoutGroups) . ': Altersgruppen für die Kinderbetreuung auswählen.';
+    }
+    if ($messages) {
+        return [$slots, implode(' ', $messages)];
     }
 
     usort($slots, fn ($a, $b) => strcmp($a['time'], $b['time']));
     return [$slots, null];
+}
+
+/**
+ * Betreute Altersgruppen aus DB-Wert oder Formular, nur bekannte, jüngste zuerst.
+ * 'kids_3_6,kids_0_2' → ['kids_0_2', 'kids_3_6']
+ *
+ * @param string|list<mixed> $value
+ * @return list<string>
+ */
+function childcare_parse(string|array $value): array
+{
+    $groups = is_array($value) ? $value : explode(',', $value);
+    return array_values(array_filter(
+        array_keys(CHILDCARE_AGE_GROUPS),
+        fn ($group) => in_array($group, $groups, true)
+    ));
+}
+
+/**
+ * Altersangabe der Kinderbetreuung, aufeinanderfolgende Gruppen zusammengefasst:
+ * [0–2, 3–6] → „0–6“, [0–2, 7–12] → „0–2 und 7–12“.
+ *
+ * @param list<string> $groups
+ */
+function childcare_ages(array $groups): string
+{
+    $ranges = [];
+    foreach (childcare_parse($groups) as $group) {
+        [$from, $to] = CHILDCARE_AGE_GROUPS[$group];
+        $last = array_key_last($ranges);
+        if ($last !== null && $ranges[$last][1] + 1 === $from) {
+            $ranges[$last][1] = $to;
+        } else {
+            $ranges[] = [$from, $to];
+        }
+    }
+    $parts = array_map(fn ($range) => $range[0] . '–' . $range[1], $ranges);
+    $last = array_pop($parts);
+    return $parts ? implode(', ', $parts) . ' und ' . $last : (string) $last;
 }
 
 /** @return list<string> Orte, normalisiert und ohne Dubletten (Groß-/Kleinschreibung egal) */
@@ -172,9 +228,11 @@ function event_save(?int $id, array $data): int
 
         if (!event_has_registrations($id)) {
             $pdo->prepare('DELETE FROM event_slots WHERE event_id = ?')->execute([$id]);
-            $insert = $pdo->prepare('INSERT INTO event_slots (event_id, time, label, sort) VALUES (?, ?, ?, ?)');
+            $insert = $pdo->prepare(
+                'INSERT INTO event_slots (event_id, time, label, sort, childcare) VALUES (?, ?, ?, ?, ?)'
+            );
             foreach ($data['slots'] as $sort => $slot) {
-                $insert->execute([$id, $slot['time'], $slot['label'], $sort]);
+                $insert->execute([$id, $slot['time'], $slot['label'], $sort, implode(',', $slot['childcare'] ?? [])]);
             }
         }
 
@@ -222,12 +280,15 @@ function event_registration_open(array $event, ?DateTimeImmutable $now = null): 
     return $local <= $event['registration_deadline'];
 }
 
-/** @return list<array{id: int, time: string, label: string}> */
+/** @return list<array{id: int, time: string, label: string, childcare: list<string>}> */
 function event_slots(int $eventId): array
 {
-    $stmt = db()->prepare('SELECT id, time, label FROM event_slots WHERE event_id = ? ORDER BY sort, time');
+    $stmt = db()->prepare('SELECT id, time, label, childcare FROM event_slots WHERE event_id = ? ORDER BY sort, time');
     $stmt->execute([$eventId]);
-    return $stmt->fetchAll();
+    return array_map(
+        fn ($slot) => ['childcare' => childcare_parse((string) $slot['childcare'])] + $slot,
+        $stmt->fetchAll()
+    );
 }
 
 /** @return list<string> */

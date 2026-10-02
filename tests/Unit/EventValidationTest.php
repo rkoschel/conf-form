@@ -133,8 +133,8 @@ final class EventValidationTest extends TestCase
 
         $this->assertSame([], $errors);
         $this->assertSame([
-            ['time' => '09:30', 'label' => 'Begrüßung'],
-            ['time' => '14:00', 'label' => 'Nachmittag'],
+            ['time' => '09:30', 'label' => 'Begrüßung', 'childcare' => []],
+            ['time' => '14:00', 'label' => 'Nachmittag', 'childcare' => []],
         ], $data['slots']);
     }
 
@@ -150,6 +150,32 @@ final class EventValidationTest extends TestCase
         ]));
 
         $this->assertSame('Programmpunkt 2, 3, 4: Uhrzeit (HH:MM) und Bezeichnung angeben.', $errors['slots']);
+    }
+
+    public function testParsesChildcareGroups(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'slots' => [
+                ['time' => '10:00', 'label' => 'Mit', 'childcare' => '1', 'childcare_groups' => ['kids_3_6', 'youth', 'kids_0_2', 'x']],
+                ['time' => '14:00', 'label' => 'Aus', 'childcare' => '', 'childcare_groups' => ['kids_3_6']],
+            ],
+        ]));
+
+        $this->assertSame([], $errors);
+        $this->assertSame(['kids_0_2', 'kids_3_6'], $data['slots'][0]['childcare'], 'jüngste zuerst, Jugend/Unbekanntes verworfen');
+        $this->assertSame([], $data['slots'][1]['childcare'], 'ohne Schalter keine Betreuung');
+    }
+
+    public function testChildcareRequiresAtLeastOneGroup(): void
+    {
+        [, $errors] = event_validate($this->input([
+            'slots' => [
+                ['time' => '10:00', 'label' => 'A'],
+                ['time' => '14:00', 'label' => 'B', 'childcare' => '1', 'childcare_groups' => ['youth']],
+            ],
+        ]));
+
+        $this->assertSame('Programmpunkt 2: Altersgruppen für die Kinderbetreuung auswählen.', $errors['slots']);
     }
 
     public function testIgnoresMalformedSlotInput(): void

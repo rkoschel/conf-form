@@ -10,7 +10,7 @@ if ($id !== null && $event === null) {
 // Ablauf ist gesperrt, sobald es Anmeldungen gibt (SPEC §7.1)
 $slotsLocked = $id !== null && event_has_registrations($id);
 $lockedSlots = $slotsLocked
-    ? array_map(fn ($s) => ['time' => $s['time'], 'label' => $s['label']], $event['slots'])
+    ? array_map(fn ($s) => ['time' => $s['time'], 'label' => $s['label'], 'childcare' => $s['childcare']], $event['slots'])
     : null;
 
 $errors = [];
@@ -29,7 +29,7 @@ if (is_post()) {
         'organizer_name' => post_string('organizer_name'),
         'organizer_email' => post_string('organizer_email'),
         'active' => isset($_POST['active']),
-        'slots' => post_rows('slots', ['time', 'label']),
+        'slots' => post_rows('slots', ['time', 'label', 'childcare'], ['childcare_groups']),
         'places' => post_string('places'),
     ];
     [$data, $errors] = event_validate($form, $lockedSlots);

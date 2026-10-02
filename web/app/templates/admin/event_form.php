@@ -72,13 +72,23 @@
       </div>
       <ul class="list-group">
         <?php foreach ($form['slots'] as $slot): ?>
-          <li class="list-group-item"><strong><?= e($slot['time']) ?></strong> <?= e($slot['label']) ?></li>
+          <li class="list-group-item">
+            <strong><?= e($slot['time']) ?></strong> <?= e($slot['label']) ?>
+            <?php if ($slot['childcare']): ?>
+              <span class="text-body-secondary small">· Kinderbetreuung <?= e(childcare_ages($slot['childcare'])) ?> Jahre</span>
+            <?php endif ?>
+          </li>
         <?php endforeach ?>
       </ul>
     <?php else: ?>
       <div id="slot-rows" data-next-index="<?= count($form['slots']) ?>">
         <?php foreach (array_values($form['slots']) as $i => $slot): ?>
-          <?php $row = ['index' => $i, 'time' => $slot['time'], 'label' => $slot['label']] ?>
+          <?php
+          // Aus der DB: childcare = Liste; aus dem Formular: childcare = '1' + childcare_groups
+          $groups = is_array($slot['childcare'] ?? null) ? $slot['childcare'] : ($slot['childcare_groups'] ?? []);
+          $row = ['index' => $i, 'time' => $slot['time'], 'label' => $slot['label'],
+              'childcare' => !empty($slot['childcare']), 'groups' => $groups];
+          ?>
           <?php require __DIR__ . '/slot_row.php' ?>
         <?php endforeach ?>
       </div>
@@ -86,9 +96,12 @@
         <div class="text-danger small mb-2"><?= e($errors['slots']) ?></div>
       <?php endif ?>
       <button type="button" class="btn btn-outline-secondary btn-sm" data-add-slot>+ Programmpunkt</button>
-      <div class="form-text">Wird automatisch nach Uhrzeit sortiert. Leere Zeilen werden ignoriert.</div>
+      <div class="form-text">
+        Wird automatisch nach Uhrzeit sortiert. Leere Zeilen werden ignoriert.
+        Kinderbetreuung: Kinder der gewählten Altersgruppen werden bei der Anmeldung automatisch für die Betreuung gezählt.
+      </div>
       <template id="slot-row-template">
-        <?php $row = ['index' => '__INDEX__', 'time' => '', 'label' => ''] ?>
+        <?php $row = ['index' => '__INDEX__', 'time' => '', 'label' => '', 'childcare' => false, 'groups' => []] ?>
         <?php require __DIR__ . '/slot_row.php' ?>
       </template>
     <?php endif ?>
