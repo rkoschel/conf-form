@@ -53,7 +53,10 @@ $customSplit = !empty($form['custom_split']);
 
   <?php if ($event['slots']): ?>
     <fieldset>
-      <legend class="h5">Voraussichtliche Anwesenheit</legend>
+      <legend class="h5 mb-1">Voraussichtliche Anwesenheit</legend>
+      <p class="form-text mt-0 mb-3">
+        Deine Angaben helfen uns, die Räumlichkeiten besser zu nutzen und möglichst vielen die Teilnahme zu ermöglichen.
+      </p>
       <div class="form-check form-switch mb-3">
         <input class="form-check-input" type="checkbox" role="switch" id="f-custom_split" name="custom_split" value="1"
                <?= $checked('custom_split') ?>>
@@ -90,6 +93,24 @@ $customSplit = !empty($form['custom_split']);
             </div>
           </div>
         <?php endforeach ?>
+      </div>
+
+      <div class="modal fade" id="split-reset-modal" tabindex="-1" aria-labelledby="split-reset-title" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title h5" id="split-reset-title">Aufteilung zurücksetzen?</h2>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+              Die individuelle Aufteilung auf die Programmpunkte geht dabei verloren.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Aufteilung behalten</button>
+              <button type="button" class="btn btn-primary" data-split-reset-confirm>Zurücksetzen</button>
+            </div>
+          </div>
+        </div>
       </div>
     </fieldset>
   <?php endif ?>

@@ -82,6 +82,44 @@ if (form) {
     updateSplit();
   };
 
+  // Weicht die Aufteilung von der Vorbelegung (= Anzahl oben) ab?
+  const splitModified = () => splitGroups().some((el) => (
+    el.querySelector('input').value.trim() !== String(count(el.dataset.splitGroup))
+  ));
+
+  const resetSplit = () => {
+    splitGroups().forEach((el) => {
+      el.querySelector('input').value = String(count(el.dataset.splitGroup));
+    });
+    customSplit.checked = false;
+    updateSplit();
+  };
+
+  // Ausschalten der Aufteilung: ohne eigene Werte sofort, sonst erst nach
+  // Bestätigung im Dialog (Werte werden dann zurückgesetzt)
+  const resetModalElement = form.querySelector('#split-reset-modal');
+  const resetModal = () => (resetModalElement && window.bootstrap
+    ? window.bootstrap.Modal.getOrCreateInstance(resetModalElement)
+    : null);
+
+  const toggleSplit = () => {
+    if (customSplit.checked) {
+      prefillSplit();
+      return;
+    }
+    if (!splitModified()) {
+      updateSplit();
+      return;
+    }
+    customSplit.checked = true;
+    const modal = resetModal();
+    if (modal) {
+      modal.show();
+    } else if (window.confirm('Aufteilung zurücksetzen? Die individuelle Aufteilung geht dabei verloren.')) {
+      resetSplit();
+    }
+  };
+
   noEmail.addEventListener('change', updateContact);
   form.querySelectorAll('[data-count]').forEach((input) => {
     input.addEventListener('input', () => {
@@ -93,7 +131,11 @@ if (form) {
     el.querySelector('input').addEventListener('input', () => checkSplitInput(el));
   });
   if (customSplit) {
-    customSplit.addEventListener('change', prefillSplit);
+    customSplit.addEventListener('change', toggleSplit);
+    form.querySelector('[data-split-reset-confirm]')?.addEventListener('click', () => {
+      resetSplit();
+      resetModal()?.hide();
+    });
   }
 
   // Nicht absenden, solange eine Anzahl erkennbar falsch ist

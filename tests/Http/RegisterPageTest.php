@@ -64,6 +64,15 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertStringContainsString('Teilnahme anfragen', $body);
     }
 
+    public function testExplainsAttendanceAndOffersSplitResetDialog(): void
+    {
+        $body = $this->get('/register/')['body'];
+
+        $this->assertStringContainsString('die Räumlichkeiten besser zu nutzen und möglichst vielen die Teilnahme zu ermöglichen', $body);
+        $this->assertStringContainsString('id="split-reset-modal"', $body);
+        $this->assertStringContainsString('data-split-reset-confirm', $body);
+    }
+
     public function testPreferredPlaceIsConfirmedWithMail(): void
     {
         $response = $this->submit();
