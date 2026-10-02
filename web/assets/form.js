@@ -1,6 +1,7 @@
-// Anmeldeformular: „keine E-Mail“-Umschaltung und individuelle Aufteilung
-// auf Programmpunkte (SPEC §5.1). Ohne JS funktioniert das Formular weiter,
-// die Prüfung erfolgt immer serverseitig.
+// Anmeldeformular: „keine E-Mail“-Umschaltung, individuelle Aufteilung auf
+// Programmpunkte und Sofortprüfung der Anzahlen beim Tippen (SPEC §5.1).
+// Ohne JS funktioniert das Formular weiter, die Prüfung erfolgt immer auch
+// serverseitig.
 
 const form = document.getElementById('register-form');
 if (form) {
@@ -12,19 +13,53 @@ if (form) {
     return Number.isNaN(value) || value < 0 ? 0 : value;
   };
 
+  // Fehlermeldung direkt am Feld (Bootstrap is-invalid + invalid-feedback);
+  // eine Meldung vom Server am selben Feld wird dabei ersetzt
+  const showError = (input, message) => {
+    input.classList.toggle('is-invalid', message !== '');
+    let feedback = input.parentElement.querySelector('.invalid-feedback');
+    if (!feedback && message !== '') {
+      feedback = document.createElement('div');
+      feedback.className = 'invalid-feedback';
+      input.after(feedback);
+    }
+    if (feedback) {
+      feedback.textContent = message;
+    }
+    return message === '';
+  };
+
+  // Ganze Zahl ab 0, optional mit Obergrenze; leer zählt als 0
+  const checkNumber = (input, max = null) => {
+    const raw = input.value.trim();
+    // badInput: Zahlenfeld mit Text wie „abc“ (value ist dann leer)
+    if ((input.validity && input.validity.badInput) || (raw !== '' && !/^\d+$/.test(raw))) {
+      return showError(input, 'Bitte eine ganze Zahl ab 0 angeben.');
+    }
+    if (max !== null && parseInt(raw || '0', 10) > max) {
+      return showError(input, `Höchstens ${max} (Anzahl oben).`);
+    }
+    return showError(input, '');
+  };
+
+  const splitGroups = () => [...form.querySelectorAll('[data-split-group]')];
+
+  const checkSplitInput = (el) => checkNumber(el.querySelector('input'), count(el.dataset.splitGroup));
+
   const updateContact = () => {
     form.querySelector('[data-email-field]').hidden = noEmail.checked;
     form.querySelector('[data-phone-field]').hidden = !noEmail.checked;
   };
 
-  // Aufteilung: nur Altersgruppen mit Personen zeigen, max. = Gruppenzahl
+  // Aufteilung: nur Altersgruppen mit Personen zeigen, max. = Gruppenzahl.
+  // Sinkt die Anzahl oben, werden zu hohe Werte angepasst.
   const updateSplit = () => {
     if (!customSplit) {
       return;
     }
     form.querySelectorAll('[data-attend]').forEach((el) => { el.hidden = customSplit.checked; });
     form.querySelectorAll('[data-split]').forEach((el) => { el.hidden = !customSplit.checked; });
-    form.querySelectorAll('[data-split-group]').forEach((el) => {
+    splitGroups().forEach((el) => {
       const max = count(el.dataset.splitGroup);
       const input = el.querySelector('input');
       el.hidden = max === 0;
@@ -32,6 +67,7 @@ if (form) {
       if (parseInt(input.value, 10) > max || input.value === '') {
         input.value = String(max);
       }
+      checkSplitInput(el);
     });
   };
 
@@ -40,17 +76,38 @@ if (form) {
     if (!customSplit.checked) {
       return;
     }
-    form.querySelectorAll('[data-split-group]').forEach((el) => {
+    splitGroups().forEach((el) => {
       el.querySelector('input').value = String(count(el.dataset.splitGroup));
     });
     updateSplit();
   };
 
   noEmail.addEventListener('change', updateContact);
-  form.querySelectorAll('[data-count]').forEach((el) => el.addEventListener('input', updateSplit));
+  form.querySelectorAll('[data-count]').forEach((input) => {
+    input.addEventListener('input', () => {
+      checkNumber(input);
+      updateSplit();
+    });
+  });
+  splitGroups().forEach((el) => {
+    el.querySelector('input').addEventListener('input', () => checkSplitInput(el));
+  });
   if (customSplit) {
     customSplit.addEventListener('change', prefillSplit);
   }
+
+  // Nicht absenden, solange eine Anzahl erkennbar falsch ist
+  form.addEventListener('submit', (event) => {
+    const invalid = [...form.querySelectorAll('[data-count]')].filter((input) => !checkNumber(input));
+    if (customSplit && customSplit.checked) {
+      invalid.push(...splitGroups().filter((el) => !el.hidden && !checkSplitInput(el)).map((el) => el.querySelector('input')));
+    }
+    if (invalid.length > 0) {
+      event.preventDefault();
+      invalid[0].focus();
+    }
+  });
+
   updateContact();
   updateSplit();
 }
