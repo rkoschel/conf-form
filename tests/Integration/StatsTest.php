@@ -78,7 +78,7 @@ final class StatsTest extends DbTestCase
 
     public function testCountsPeoplePerPlaceForConfirmedAndPending(): void
     {
-        db()->prepare('INSERT INTO preferred_places (event_id, name) VALUES (?, ?)')->execute([$this->eventId, 'Hamm']);
+        preferred_places_set(['Hamm']);
         $this->registration('confirmed', ['adults' => 2, 'kids_0_2' => 1], congregation: 'Hamm');
         $this->registration('pending', ['adults' => 1], congregation: 'hamm');
         $this->registration('pending', ['adults' => 5], congregation: 'Unna');

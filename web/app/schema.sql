@@ -31,13 +31,6 @@ CREATE TABLE IF NOT EXISTS event_slots (
   childcare TEXT NOT NULL DEFAULT ''            -- betreute Gruppen, z. B. 'kids_3_6,kids_0_2'; '' = keine
 );
 
-CREATE TABLE IF NOT EXISTS preferred_places (
-  id       INTEGER PRIMARY KEY,
-  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  name     TEXT NOT NULL,
-  UNIQUE (event_id, name COLLATE NOCASE)
-);
-
 CREATE TABLE IF NOT EXISTS registrations (
   id           INTEGER PRIMARY KEY,
   event_id     INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
@@ -91,5 +84,3 @@ CREATE TABLE IF NOT EXISTS rate_limit (
 );
 CREATE INDEX IF NOT EXISTS rate_limit_lookup ON rate_limit(ip_hash, created_at);
 
-INSERT OR IGNORE INTO settings (key, value) VALUES
-  ('inactive_text', 'Derzeit ist keine Anmeldung möglich.');

@@ -21,9 +21,7 @@
     </div>
     <?php if ($shares['free'] <= 0): ?>
       <div class="alert alert-info small mt-3 mb-0" role="status">
-        Aktuell scheint die Veranstaltung ausgebucht zu sein.<br>
-        Eine Anmeldung lohnt sich trotzdem, um auf die Warteliste zu kommen.<br>
-        Sobald Plätze wieder frei sind (durch Absagen oder Änderungen), melden wir uns bei dir.
+        <span class="text-pre-line"><?= e(setting_text('fully_booked_hint')) ?></span>
       </div>
     <?php endif ?>
   </div>

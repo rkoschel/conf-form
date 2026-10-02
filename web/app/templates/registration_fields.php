@@ -2,7 +2,7 @@
 /*
  * Felder einer Anmeldung: Kontakt, Anzahl Teilnehmer, Anwesenheit/Aufteilung
  * (SPEC §5.1). Genutzt vom Anmeldeformular und vom Admin-Bearbeiten (§7.4).
- * Erwartet $form, $errors, $event (mit 'slots' und 'places'). Die ids und
+ * Erwartet $form, $errors, $event (mit 'slots'). Die ids und
  * data-Attribute nutzt assets/form.js.
  */
 $checked = fn (string $name): string => !empty($form[$name]) ? 'checked' : '';
@@ -20,9 +20,9 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
     <div class="col-sm-6"><?= input_field($form, $errors, 'first_name', 'Vorname', 'text', 'required autocomplete="given-name"') ?></div>
     <div class="col-sm-6"><?= input_field($form, $errors, 'last_name', 'Nachname', 'text', 'required autocomplete="family-name"') ?></div>
     <div class="col-12">
-      <?= input_field($form, $errors, 'congregation', 'Heimatversammlung', 'text', 'required list="places" autocomplete="off"') ?>
+      <?= input_field($form, $errors, 'congregation', setting_text('congregation_label'), 'text', 'required list="places" autocomplete="off"') ?>
       <datalist id="places">
-        <?php foreach ($event['places'] as $place): ?>
+        <?php foreach (preferred_places() as $place): ?>
           <option value="<?= e($place) ?>">
         <?php endforeach ?>
       </datalist>
@@ -73,7 +73,7 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
     <fieldset>
       <legend class="h5 mb-1">Voraussichtliche Anwesenheit</legend>
       <p class="form-text mt-0 mb-3">
-        Deine Angaben helfen uns, die Räumlichkeiten besser zu nutzen und möglichst vielen die Teilnahme zu ermöglichen.
+        <span class="text-pre-line"><?= e(setting_text('attendance_hint')) ?></span>
       </p>
       <div class="form-check form-switch mb-3">
         <input class="form-check-input" type="checkbox" role="switch" id="f-custom_split" name="custom_split" value="1"

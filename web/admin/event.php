@@ -30,7 +30,6 @@ if (is_post()) {
         'organizer_email' => post_string('organizer_email'),
         'active' => isset($_POST['active']),
         'slots' => post_rows('slots', ['time', 'label', 'childcare'], ['childcare_groups']),
-        'places' => post_string('places'),
     ];
     [$data, $errors] = event_validate($form, $lockedSlots);
     if (!$errors) {
@@ -45,9 +44,8 @@ if (is_post()) {
     $form['date'] = format_date($event['date']);
     $form['registration_deadline_date'] = format_date($deadlineDate);
     $form['registration_deadline_time'] = $deadlineTime;
-    $form['places'] = implode("\n", $event['places']);
 } else {
-    $form = ['timezone' => 'Europe/Berlin', 'active' => false, 'slots' => [], 'places' => ''];
+    $form = ['timezone' => 'Europe/Berlin', 'active' => false, 'slots' => []];
 }
 
 if ($lockedSlots !== null) {

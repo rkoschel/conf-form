@@ -14,6 +14,14 @@ const DB_MIGRATIONS = [
         'ALTER TABLE registration_slots ADD COLUMN childcare_kids_3_6 INTEGER NOT NULL DEFAULT 0',
         'ALTER TABLE registration_slots ADD COLUMN childcare_kids_0_2 INTEGER NOT NULL DEFAULT 0',
     ],
+    // Bevorzugte Orte global statt je Veranstaltung (SPEC §7.5): Orte aller
+    // Veranstaltungen zusammenführen (Dubletten ohne Groß-/Kleinschreibung)
+    2 => [
+        "INSERT OR REPLACE INTO settings (key, value)
+         SELECT 'preferred_places', COALESCE(group_concat(name, char(10)), '')
+         FROM (SELECT MIN(name) AS name FROM preferred_places GROUP BY name COLLATE NOCASE ORDER BY name COLLATE NOCASE)",
+        'DROP TABLE preferred_places',
+    ],
 ];
 
 /**

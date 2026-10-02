@@ -18,18 +18,16 @@ final class EventsTest extends DbTestCase
             'organizer_email' => '',
             'active' => false,
             'slots' => [['time' => '10:00', 'label' => 'Vortrag'], ['time' => '14:00', 'label' => 'Mittag']],
-            'places' => ['Hamm', 'Unna'],
         ];
     }
 
-    public function testSavesNewEventWithSlotsAndPlaces(): void
+    public function testSavesNewEventWithSlots(): void
     {
         $id = event_save(null, $this->data());
 
         $event = event_find($id);
         $this->assertSame('Konferenz', $event['title']);
         $this->assertSame(['10:00', '14:00'], array_column($event['slots'], 'time'));
-        $this->assertSame(['Hamm', 'Unna'], $event['places']);
     }
 
     public function testSavesAndLoadsChildcarePerSlot(): void
@@ -45,20 +43,18 @@ final class EventsTest extends DbTestCase
         $this->assertSame([], $slots[1]['childcare']);
     }
 
-    public function testUpdateReplacesFieldsSlotsAndPlaces(): void
+    public function testUpdateReplacesFieldsAndSlots(): void
     {
         $id = event_save(null, $this->data());
 
         event_save($id, $this->data([
             'title' => 'Neu',
             'slots' => [['time' => '09:00', 'label' => 'Start']],
-            'places' => ['Soest'],
         ]));
 
         $event = event_find($id);
         $this->assertSame('Neu', $event['title']);
         $this->assertSame(['Start'], array_column($event['slots'], 'label'));
-        $this->assertSame(['Soest'], $event['places']);
         $this->assertSame(1, $this->rowCount('events'));
     }
 
@@ -97,13 +93,11 @@ final class EventsTest extends DbTestCase
         event_save($id, $this->data([
             'title' => 'Geändert',
             'slots' => [['time' => '08:00', 'label' => 'Manipuliert']],
-            'places' => ['Soest'],
         ]));
 
         $event = event_find($id);
         $this->assertSame('Geändert', $event['title'], 'Eckdaten bleiben änderbar');
         $this->assertSame(['Vortrag', 'Mittag'], array_column($event['slots'], 'label'), 'Ablauf bleibt unverändert');
-        $this->assertSame(['Soest'], $event['places'], 'Orte bleiben änderbar');
     }
 
     public function testActiveEventIsNullWithoutActiveEvent(): void
@@ -146,7 +140,6 @@ final class EventsTest extends DbTestCase
         $this->assertNull(event_find($id));
         $this->assertSame(0, $this->rowCount('registrations'));
         $this->assertSame(0, $this->rowCount('event_slots'));
-        $this->assertSame(0, $this->rowCount('preferred_places'));
     }
 
     private function insertRegistration(int $eventId): void

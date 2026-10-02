@@ -24,7 +24,7 @@ final class RegisterPageTest extends HttpTestCase
         $id = (int) db()->lastInsertId();
         db()->exec("INSERT INTO event_slots (event_id, time, label, sort) VALUES ($id, '10:00', 'Vortrag', 0)");
         db()->exec("INSERT INTO event_slots (event_id, time, label, sort) VALUES ($id, '14:00', 'Jugendstunde', 1)");
-        db()->exec("INSERT INTO preferred_places (event_id, name) VALUES ($id, 'Hamm')");
+        preferred_places_set(['Hamm']);
         return event_find($id);
     }
 

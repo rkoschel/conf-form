@@ -9,7 +9,7 @@ final class SchemaTest extends DbTestCase
             ->fetchAll(PDO::FETCH_COLUMN);
 
         $this->assertSame([
-            'event_slots', 'events', 'mail_log', 'preferred_places', 'rate_limit',
+            'event_slots', 'events', 'mail_log', 'rate_limit',
             'registration_slots', 'registrations', 'settings',
         ], $tables);
     }
@@ -19,10 +19,9 @@ final class SchemaTest extends DbTestCase
         $this->assertSame(1, (int) db()->query('PRAGMA foreign_keys')->fetchColumn());
     }
 
-    public function testSeedsInactiveText(): void
+    public function testInactiveTextHasDefault(): void
     {
-        $text = db()->query("SELECT value FROM settings WHERE key = 'inactive_text'")->fetchColumn();
-        $this->assertNotEmpty($text);
+        $this->assertSame('Derzeit ist keine Anmeldung möglich.', setting_text('inactive_text'));
     }
 
     public function testOnlyOneEventCanBeActive(): void
@@ -49,7 +48,6 @@ final class SchemaTest extends DbTestCase
 
         db()->exec("INSERT INTO event_slots (event_id, time, label) VALUES ($eventId, '10:00', 'Vortrag')");
         $slotId = (int) db()->lastInsertId();
-        db()->exec("INSERT INTO preferred_places (event_id, name) VALUES ($eventId, 'Hamm')");
         $registrationId = $this->insertRegistration($eventId, 'confirmed');
         db()->exec("INSERT INTO registration_slots (registration_id, slot_id, adults) VALUES ($registrationId, $slotId, 2)");
         db()->exec("INSERT INTO mail_log (registration_id, type, sent_at, success)
@@ -60,7 +58,6 @@ final class SchemaTest extends DbTestCase
 
         $this->assertSame(1, $this->rowCount('events'));
         $this->assertSame(0, $this->rowCount('event_slots'));
-        $this->assertSame(0, $this->rowCount('preferred_places'));
         $this->assertSame(1, $this->rowCount('registrations'), 'Anmeldung der anderen Veranstaltung bleibt');
         $this->assertSame(0, $this->rowCount('registration_slots'));
         $this->assertSame(0, $this->rowCount('mail_log'));

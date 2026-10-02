@@ -9,7 +9,7 @@ declare(strict_types=1);
  * (HH:MM, 24 h), timezone, max_participants, organizer_name,
  * organizer_email (Strings), active (bool), slots (Liste von
  * ['time' => HH:MM, 'label' => …, 'childcare' => '1'|'', 'childcare_groups'
- * => Liste von Altersgruppen]), places (String, ein Ort pro Zeile).
+ * => Liste von Altersgruppen]). Bevorzugte Orte sind global (preferred_places()).
  * Die Daten werden als ISO zurückgegeben (date: Y-m-d,
  * registration_deadline: Y-m-d\TH:i).
  *
@@ -72,8 +72,6 @@ function event_validate(array $input, ?array $lockedSlots = null): array
             $errors['slots'] = $slotError;
         }
     }
-
-    $data['places'] = event_parse_places((string) ($input['places'] ?? ''));
 
     // Frist spätestens zum Beginn des ersten Programmpunkts (ohne Ablauf:
     // am Veranstaltungstag 23:59). Gleiche Zeitzone → Textvergleich genügt.
@@ -182,21 +180,8 @@ function childcare_notice(array $groups): string
     return 'Parallel Kinderbetreuung für Kinder von ' . childcare_ages($groups) . ' Jahren';
 }
 
-/** @return list<string> Orte, normalisiert und ohne Dubletten (Groß-/Kleinschreibung egal) */
-function event_parse_places(string $text): array
-{
-    $places = [];
-    foreach (explode("\n", normalize_text($text)) as $line) {
-        $place = normalize_line($line);
-        if ($place !== '') {
-            $places[mb_strtolower($place)] ??= $place;
-        }
-    }
-    return array_values($places);
-}
-
 /**
- * Speichert eine Veranstaltung samt Ablauf und bevorzugten Orten.
+ * Speichert eine Veranstaltung samt Ablauf.
  * Der Ablauf wird nur geändert, solange es keine Anmeldungen gibt.
  *
  * @param array<string, mixed> $data Ergebnis von event_validate()
@@ -242,17 +227,11 @@ function event_save(?int $id, array $data): int
             }
         }
 
-        $pdo->prepare('DELETE FROM preferred_places WHERE event_id = ?')->execute([$id]);
-        $insert = $pdo->prepare('INSERT INTO preferred_places (event_id, name) VALUES (?, ?)');
-        foreach ($data['places'] as $place) {
-            $insert->execute([$id, $place]);
-        }
-
         return $id;
     });
 }
 
-/** @return array<string, mixed>|null Veranstaltung mit 'slots' und 'places' */
+/** @return array<string, mixed>|null Veranstaltung mit 'slots' */
 function event_find(int $id): ?array
 {
     $stmt = db()->prepare('SELECT * FROM events WHERE id = ?');
@@ -262,11 +241,10 @@ function event_find(int $id): ?array
         return null;
     }
     $event['slots'] = event_slots($id);
-    $event['places'] = event_places($id);
     return $event;
 }
 
-/** @return array<string, mixed>|null die aktive Veranstaltung mit 'slots' und 'places' */
+/** @return array<string, mixed>|null die aktive Veranstaltung mit 'slots' */
 function event_active(): ?array
 {
     $id = db()->query('SELECT id FROM events WHERE active = 1')->fetchColumn();
@@ -295,14 +273,6 @@ function event_slots(int $eventId): array
         fn ($slot) => ['childcare' => childcare_parse((string) $slot['childcare'])] + $slot,
         $stmt->fetchAll()
     );
-}
-
-/** @return list<string> */
-function event_places(int $eventId): array
-{
-    $stmt = db()->prepare('SELECT name FROM preferred_places WHERE event_id = ? ORDER BY name COLLATE NOCASE');
-    $stmt->execute([$eventId]);
-    return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
 /** @return list<array<string, mixed>> alle Veranstaltungen, neueste zuerst, mit registration_count */

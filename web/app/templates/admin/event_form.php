@@ -107,15 +107,10 @@
     <?php endif ?>
   </fieldset>
 
-  <fieldset>
-    <legend class="h5">Bevorzugte Orte</legend>
-    <label for="f-places" class="form-label visually-hidden">Bevorzugte Orte</label>
-    <textarea id="f-places" name="places" rows="6" class="form-control"><?= e($form['places'] ?? '') ?></textarea>
-    <div class="form-text">
-      Ein Ort pro Zeile. Anmeldungen aus diesen Orten werden automatisch bestätigt, solange das
-      Kontingent reicht; die Orte erscheinen als Vorschläge im Anmeldeformular.
-    </div>
-  </fieldset>
+  <p class="form-text mb-0">
+    Die bevorzugten Orte gelten für alle Veranstaltungen und werden in den
+    <a href="<?= e(url('admin/settings.php')) ?>">Einstellungen</a> gepflegt.
+  </p>
 
   <div class="d-flex gap-2">
     <button type="submit" class="btn btn-primary">Speichern</button>

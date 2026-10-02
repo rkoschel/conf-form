@@ -1,4 +1,3 @@
-<?php /* Grußformel */ ?>
-Viele Grüße
-<?= $event['organizer_name'] !== '' ? $event['organizer_name'] : 'Das Vorbereitungsteam' ?>
+<?php /* Grußformel (einstellbar) */ ?>
+<?= setting_text('mail_signature', $placeholders) ?>
 

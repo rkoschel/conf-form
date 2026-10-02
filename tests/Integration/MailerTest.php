@@ -51,6 +51,20 @@ final class MailerTest extends DbTestCase
         }
     }
 
+    public function testUsesOwnTextsWithPlaceholders(): void
+    {
+        [$registration, $event] = $this->fixture([], ['organizer_name' => '']);
+        setting_text_set('mail_intro_received_confirmed', "Moin {first_name} {last_name}!\nWir sehen uns am {date} in {location} zu „{title}“.");
+        setting_text_set('mail_cancel_hint', 'Absagen hier:');
+        setting_text_set('mail_organizer_fallback', 'Team Hamm');
+
+        $body = mail_render('received_confirmed', mail_vars($registration, $event))['body'];
+
+        $this->assertStringStartsWith("Moin Anna Muster!\nWir sehen uns am Samstag, 01.05.2027 in Hamm zu „Testkonferenz“.", $body);
+        $this->assertStringContainsString("Absagen hier:\nhttps://example.org/konferenz/cancel/", $body);
+        $this->assertStringEndsWith("Viele Grüße\nTeam Hamm\n", $body);
+    }
+
     public function testRejectionHasNoCancelLink(): void
     {
         [$registration, $event] = $this->fixture();

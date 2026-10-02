@@ -49,11 +49,42 @@ final class MigrationTest extends TestCase
 
         $pdo = db_connect($this->path);
 
-        $this->assertSame(1, db_version($pdo));
+        $this->assertSame(max(array_keys(DB_MIGRATIONS)), db_version($pdo));
         $slot = $pdo->query('SELECT * FROM event_slots')->fetch();
         $this->assertSame(['Vortrag', ''], [$slot['label'], $slot['childcare']]);
         $attendance = $pdo->query('SELECT * FROM registration_slots')->fetch();
         $this->assertSame([2, 0], [(int) $attendance['adults'], (int) $attendance['childcare_kids_3_6']]);
+    }
+
+    public function testPreferredPlacesOfAllEventsBecomeGlobal(): void
+    {
+        $old = new PDO('sqlite:' . $this->path);
+        $old->exec(file_get_contents(ROOT_DIR . '/tests/fixtures/schema_v0.sql'));
+        foreach ([1 => ['Unna', 'Hamm'], 2 => ['hamm', 'Soest']] as $eventId => $places) {
+            $old->exec("INSERT INTO events (id, title, date, location, registration_deadline, max_participants)
+                        VALUES ($eventId, 'Alt', '2027-05-01', 'Hamm', '2027-04-15T23:59', 10)");
+            foreach ($places as $place) {
+                $old->prepare('INSERT INTO preferred_places (event_id, name) VALUES (?, ?)')->execute([$eventId, $place]);
+            }
+        }
+        $old = null;
+
+        db(db_connect($this->path));
+
+        $this->assertSame(['Hamm', 'Soest', 'Unna'], preferred_places(), 'vereinigt, ohne Dubletten (Groß-/Kleinschreibung)');
+        $tables = db()->query("SELECT name FROM sqlite_master WHERE type = 'table'")->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertNotContains('preferred_places', $tables);
+    }
+
+    public function testMigrationWithoutPlacesStoresEmptyList(): void
+    {
+        $old = new PDO('sqlite:' . $this->path);
+        $old->exec(file_get_contents(ROOT_DIR . '/tests/fixtures/schema_v0.sql'));
+        $old = null;
+
+        db(db_connect($this->path));
+
+        $this->assertSame([], preferred_places());
     }
 
     public function testMigrationRunsOnlyOnce(): void
@@ -61,7 +92,7 @@ final class MigrationTest extends TestCase
         db_connect($this->path);
         $pdo = db_connect($this->path);
 
-        $this->assertSame(1, db_version($pdo));
+        $this->assertSame(max(array_keys(DB_MIGRATIONS)), db_version($pdo));
         $this->assertSame(1, count(array_keys($this->columns($pdo, 'event_slots'), 'childcare')));
     }
 }

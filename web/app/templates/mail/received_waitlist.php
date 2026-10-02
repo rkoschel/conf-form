@@ -1,16 +1,13 @@
 Warteliste: <?= $event['title'] ?>
 
-Hallo <?= $registration['first_name'] ?>,
+<?= setting_text('mail_intro_received_waitlist', $placeholders) ?>
 
-vielen Dank für deine Anmeldung. Du stehst zurzeit auf der Warteliste.
-Sobald ein Platz für dich frei ist, melden wir uns bei dir.
 
 <?php require __DIR__ . '/_event.php' ?>
 
 <?php require __DIR__ . '/_people.php' ?>
 
-Falls du deine Anfrage zurückziehen möchtest, nutze bitte diesen Link:
-<?= $cancel_url ?>
-
+<?php $cancel_hint = 'mail_cancel_hint_waitlist' ?>
+<?php require __DIR__ . '/_cancel.php' ?>
 
 <?php require __DIR__ . '/_signature.php' ?>
