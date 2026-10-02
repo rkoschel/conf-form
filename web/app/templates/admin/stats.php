@@ -1,5 +1,5 @@
 <div class="d-flex flex-wrap gap-3 justify-content-between align-items-end mb-4">
-  <h1 class="h3 mb-0">Auswertung</h1>
+  <h1 class="h3 mb-0">Auswertungen</h1>
   <?php if ($events): ?>
     <form method="get" class="d-flex gap-2 align-items-end">
       <div>

@@ -8,7 +8,7 @@ final class AdminHelpTest extends HttpTestCase
         $body = $this->get('/admin/help.php')['body'];
 
         preg_match_all('#class="nav-link[^"]*"\s+(?:aria-current="page"\s+)?href="[^"]*">([^<]+)</a>#', $body, $m);
-        $this->assertSame(['Veranstaltungen', 'Anfragen', 'Auswertung', 'Einstellungen', 'Hilfe'], $m[1]);
+        $this->assertSame(['Veranstaltungen', 'Anfragen', 'Auswertungen', 'Einstellungen', 'Hilfe'], $m[1]);
         $this->assertMatchesRegularExpression('#nav-link active"\s+aria-current="page"\s+href="/admin/help.php">Hilfe#', $body);
     }
 

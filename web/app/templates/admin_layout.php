@@ -2,7 +2,7 @@
 $nav = [
     'admin/events.php' => 'Veranstaltungen',
     'admin/' => 'Anfragen',
-    'admin/stats.php' => 'Auswertung',
+    'admin/stats.php' => 'Auswertungen',
     'admin/settings.php' => 'Einstellungen',
     'admin/help.php' => 'Hilfe',
 ];

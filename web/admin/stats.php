@@ -7,7 +7,7 @@ $events = event_list();
 $event = admin_selected_event($events);
 
 admin_render('stats', [
-    'title' => 'Auswertung',
+    'title' => 'Auswertungen',
     'active' => 'admin/stats.php',
     'events' => $events,
     'event' => $event,
