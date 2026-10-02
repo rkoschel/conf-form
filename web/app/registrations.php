@@ -161,6 +161,8 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
     $splitInvalid = false;
     foreach ($slots as $slot) {
         $slotId = (int) $slot['id'];
+        $childcare = $slot['childcare'] ?? [];
+        $attending = !$data['custom_split'] && !empty($attend[$slotId]);
         $counts = [];
         foreach (array_keys(AGE_GROUPS) as $group) {
             if ($data['custom_split']) {
@@ -171,9 +173,18 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
                     $count = 0;
                 }
             } else {
-                $count = !empty($attend[$slotId]) ? $data[$group] : 0;
+                // Standard: Kinder betreuter Gruppen sind in der Kinderbetreuung (SPEC §5.4)
+                $count = $attending && !in_array($group, $childcare, true) ? $data[$group] : 0;
             }
             $counts[$group] = $count;
+        }
+        // Kinderbetreuung je betreuter Gruppe: alle nicht beim Programmpunkt, sofern
+        // jemand der Anmeldung den Programmpunkt besucht (SPEC §5.4)
+        $present = $attending || array_sum($counts) > 0;
+        foreach (array_keys(CHILDCARE_AGE_GROUPS) as $group) {
+            $counts['childcare_' . $group] = $present && in_array($group, $childcare, true)
+                ? max($data[$group] - $counts[$group], 0)
+                : 0;
         }
         $data['slots'][$slotId] = $counts;
     }
@@ -292,14 +303,16 @@ function registration_update(int $id, array $data, string $status): void
 function registration_save_slots(PDO $pdo, int $registrationId, array $slots): void
 {
     $stmt = $pdo->prepare(
-        'INSERT INTO registration_slots (registration_id, slot_id, adults, youth, kids_7_12, kids_3_6, kids_0_2)
-         VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO registration_slots (registration_id, slot_id, adults, youth, kids_7_12, kids_3_6, kids_0_2,
+            childcare_kids_7_12, childcare_kids_3_6, childcare_kids_0_2)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     foreach ($slots as $slotId => $counts) {
         $stmt->execute([
             $registrationId, $slotId,
             $counts['adults'] ?? 0, $counts['youth'] ?? 0, $counts['kids_7_12'] ?? 0,
             $counts['kids_3_6'] ?? 0, $counts['kids_0_2'] ?? 0,
+            $counts['childcare_kids_7_12'] ?? 0, $counts['childcare_kids_3_6'] ?? 0, $counts['childcare_kids_0_2'] ?? 0,
         ]);
     }
 }
@@ -323,11 +336,13 @@ function registration_find_by_token(string $token): ?array
     return $stmt->fetch() ?: null;
 }
 
-/** @return array<int, array<string, int>> slot_id → Anzahl je Altersgruppe */
+/** @return array<int, array<string, int>> slot_id → Anzahl je Altersgruppe beim Programmpunkt und childcare_* (Kinderbetreuung) */
 function registration_slot_counts(int $registrationId): array
 {
     $stmt = db()->prepare(
-        'SELECT slot_id, adults, youth, kids_7_12, kids_3_6, kids_0_2 FROM registration_slots WHERE registration_id = ?'
+        'SELECT slot_id, adults, youth, kids_7_12, kids_3_6, kids_0_2,
+                childcare_kids_7_12, childcare_kids_3_6, childcare_kids_0_2
+         FROM registration_slots WHERE registration_id = ?'
     );
     $stmt->execute([$registrationId]);
     $slots = [];

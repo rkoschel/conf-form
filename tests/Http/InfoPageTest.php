@@ -134,6 +134,22 @@ final class InfoPageTest extends HttpTestCase
         $this->assertStringContainsString('href="https://example.org/info/"', $body);
     }
 
+    public function testShowsChildcareNoticeForSlots(): void
+    {
+        $this->activeEvent([
+            'title' => 'Mit Betreuung',
+            'slots' => [
+                ['time' => '10:00', 'label' => 'Begrüßung', 'childcare' => '1', 'childcare_groups' => ['kids_0_2', 'kids_3_6']],
+                ['time' => '14:00', 'label' => 'Jugendstunde'],
+            ],
+        ]);
+
+        $body = $this->get('/')['body'];
+
+        $this->assertSame(1, substr_count($body, 'Parallel Kinderbetreuung für Kinder von 0–6 Jahren'));
+        $this->assertLessThan(strpos($body, 'Jugendstunde'), strpos($body, 'Kinderbetreuung'), 'beim richtigen Programmpunkt');
+    }
+
     public function testShowsTimezoneOutsideBerlin(): void
     {
         $this->activeEvent(['timezone' => 'Europe/Lisbon']);

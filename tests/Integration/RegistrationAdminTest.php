@@ -33,6 +33,7 @@ final class RegistrationAdminTest extends DbTestCase
         $slotCounts = [
             7 => ['adults' => 2, 'youth' => 1, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 1],
             8 => ['adults' => 0, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0],
+            9 => ['adults' => 0, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0, 'childcare_kids_0_2' => 1],
         ];
 
         $form = registration_form_values($registration, $slotCounts);
@@ -40,8 +41,9 @@ final class RegistrationAdminTest extends DbTestCase
         $this->assertSame('', $form['email']);
         $this->assertTrue($form['no_email']);
         $this->assertSame('2', $form['adults']);
-        $this->assertSame([7 => '1'], $form['attend'], 'nur Programmpunkte mit Personen angekreuzt');
+        $this->assertSame([7 => '1', 9 => '1'], $form['attend'], 'nur Programmpunkte mit Personen (auch in Betreuung) angekreuzt');
         $this->assertSame('1', $form['split'][7]['youth']);
+        $this->assertArrayNotHasKey('childcare_kids_0_2', $form['split'][7], 'Aufteilung ohne Betreuungszahlen');
         $this->assertSame('0', $form['split'][8]['adults']);
     }
 

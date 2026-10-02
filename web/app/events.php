@@ -176,6 +176,12 @@ function childcare_ages(array $groups): string
     return $parts ? implode(', ', $parts) . ' und ' . $last : (string) $last;
 }
 
+/** Hinweis zu einem Programmpunkt mit Kinderbetreuung (SPEC §4, §5.1) */
+function childcare_notice(array $groups): string
+{
+    return 'Parallel Kinderbetreuung für Kinder von ' . childcare_ages($groups) . ' Jahren';
+}
+
 /** @return list<string> Orte, normalisiert und ohne Dubletten (Groß-/Kleinschreibung egal) */
 function event_parse_places(string $text): array
 {

@@ -132,9 +132,10 @@ final class RegistrationValidateTest extends TestCase
         $this->assertFalse($data['custom_split']);
         $this->assertSame(
             ['adults' => 2, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 1],
-            $data['slots'][10]
+            array_intersect_key($data['slots'][10], AGE_GROUPS)
         );
-        $this->assertSame(array_fill_keys(array_keys(AGE_GROUPS), 0), $data['slots'][11]);
+        $this->assertSame(0, $data['slots'][10]['childcare_kids_0_2'], 'ohne Betreuungsangebot keine Betreuung');
+        $this->assertSame(array_fill_keys(array_keys(AGE_GROUPS), 0), array_intersect_key($data['slots'][11], AGE_GROUPS));
     }
 
     public function testCustomSplitPerSlotAndGroup(): void

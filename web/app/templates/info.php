@@ -27,7 +27,12 @@
     <?php foreach ($event['slots'] as $slot): ?>
       <li class="list-group-item d-flex gap-3">
         <span class="fw-semibold text-nowrap"><?= e($slot['time']) ?> Uhr</span>
-        <span><?= e($slot['label']) ?></span>
+        <span>
+          <?= e($slot['label']) ?>
+          <?php if ($slot['childcare']): ?>
+            <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'])) ?></span>
+          <?php endif ?>
+        </span>
       </li>
     <?php endforeach ?>
   </ul>

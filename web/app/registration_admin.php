@@ -52,10 +52,12 @@ function registration_form_values(array $registration, array $slotCounts): array
         $form[$group] = (string) $registration[$group];
     }
     foreach ($slotCounts as $slotId => $counts) {
+        // Teilnahme auch, wenn nur Kinder in der Betreuung sind
         if (array_sum($counts) > 0) {
             $form['attend'][$slotId] = '1';
         }
-        $form['split'][$slotId] = array_map('strval', $counts);
+        // Aufteilung = Personen beim Programmpunkt (ohne childcare_*)
+        $form['split'][$slotId] = array_map('strval', array_intersect_key($counts, AGE_GROUPS));
     }
     return $form;
 }
