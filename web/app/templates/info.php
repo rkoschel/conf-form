@@ -1,54 +1,60 @@
-<?php /* Infoseite der aktiven Veranstaltung (SPEC §4); Belegung nur in Prozent, nie absolute Zahlen */ ?>
-<h1 class="mb-4"><?= e($event['title']) ?></h1>
+<?php /* Infoseite der aktiven Veranstaltung (SPEC §4) als „Einladungskarte“; Belegung nur in Prozent, nie absolute Zahlen */ ?>
+<article class="invitation">
+  <header class="invitation-header">
+    <h1 class="invitation-title"><?= e($event['title']) ?></h1>
+    <p class="invitation-meta mb-1">
+      <span class="text-nowrap"><?= e(format_date_long($event['date'])) ?></span>
+      <span aria-hidden="true">·</span>
+      <span><?= e($event['location']) ?></span>
+    </p>
+    <p class="invitation-meta small mb-0">
+      Anmeldung bis <?= e(format_local_datetime($event['registration_deadline'])) ?>
+      <?php if ($event['timezone'] !== 'Europe/Berlin'): ?>
+        (<?= e($event['timezone']) ?>)
+      <?php endif ?>
+    </p>
+  </header>
 
-<dl class="row mb-4">
-  <dt class="col-sm-4">Datum</dt>
-  <dd class="col-sm-8"><?= e(format_date_long($event['date'])) ?></dd>
-
-  <dt class="col-sm-4">Ort</dt>
-  <dd class="col-sm-8"><?= e($event['location']) ?></dd>
-
-  <dt class="col-sm-4">Anmeldefrist</dt>
-  <dd class="col-sm-8">
-    <?= e(format_local_datetime($event['registration_deadline'])) ?>
-    <?php if ($event['timezone'] !== 'Europe/Berlin'): ?>
-      <span class="text-body-secondary">(<?= e($event['timezone']) ?>)</span>
-    <?php endif ?>
-  </dd>
-</dl>
-
-<?php if ($event['description'] !== ''): ?>
-  <p class="text-pre-line mb-4"><?= e($event['description']) ?></p>
-<?php endif ?>
-
-<?php if ($event['slots']): ?>
-  <h2 class="h4">Ablauf</h2>
-  <ul class="list-group mb-4">
-    <?php foreach ($event['slots'] as $slot): ?>
-      <li class="list-group-item d-flex gap-3">
-        <span class="fw-semibold text-nowrap"><?= e($slot['time']) ?> Uhr</span>
-        <span>
-          <?= e($slot['label']) ?>
-          <?php if ($slot['childcare']): ?>
-            <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], event_groups($event))) ?></span>
-          <?php endif ?>
-        </span>
-      </li>
-    <?php endforeach ?>
-  </ul>
-<?php endif ?>
-
-<?php if ($shares !== null): ?>
-  <?php require __DIR__ . '/quota_shares.php' ?>
-<?php endif ?>
-
-<?php if (!$registrationOpen): ?>
-  <div class="alert alert-secondary" role="status">Der Anmeldezeitraum ist abgelaufen.</div>
-<?php endif ?>
-
-<div class="d-flex flex-wrap gap-2 align-items-center">
-  <?php if ($registrationOpen): ?>
-    <a href="<?= e(url('register/')) ?>" class="btn btn-primary btn-lg">Anmelden</a>
+  <?php if ($event['description'] !== ''): ?>
+    <div class="invitation-description text-pre-line"><?= e($event['description']) ?></div>
   <?php endif ?>
-  <a href="<?= e(config('info_url')) ?>" class="btn btn-link">Weitere Informationen</a>
-</div>
+
+  <?php if ($event['slots']): ?>
+    <section class="invitation-section">
+      <h2 class="invitation-heading">Ablauf</h2>
+      <ol class="invitation-schedule">
+        <?php foreach ($event['slots'] as $slot): ?>
+          <li>
+            <span class="invitation-time"><?= e($slot['time']) ?> Uhr</span>
+            <span>
+              <?= e($slot['label']) ?>
+              <?php if ($slot['childcare']): ?>
+                <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], event_groups($event))) ?></span>
+              <?php endif ?>
+            </span>
+          </li>
+        <?php endforeach ?>
+      </ol>
+    </section>
+  <?php endif ?>
+
+  <footer class="invitation-footer">
+    <?php if ($shares !== null): ?>
+      <?php require __DIR__ . '/quota_shares.php' ?>
+    <?php endif ?>
+
+    <?php if (!$registrationOpen): ?>
+      <div class="alert alert-secondary" role="status">Der Anmeldezeitraum ist abgelaufen.</div>
+    <?php endif ?>
+
+    <?php if ($registrationOpen): ?>
+      <div class="text-center">
+        <a href="<?= e(url('register/')) ?>" class="btn btn-primary btn-lg px-5">Anmelden</a>
+      </div>
+    <?php endif ?>
+  </footer>
+</article>
+
+<p class="text-center mt-4 mb-0">
+  <a href="<?= e(config('info_url')) ?>" class="link-secondary">Weitere Informationen</a>
+</p>
