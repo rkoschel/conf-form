@@ -152,10 +152,36 @@ if (form) {
     }
   };
 
+  // Erhöht man oben eine Anzahl, wachsen Aufteilungsfelder dieser Gruppe mit,
+  // die auf dem bisherigen Maximum standen („alle“). Bewusst kleinere Werte
+  // und betreute Kindergruppen auf 0 (= in der Kinderbetreuung) bleiben.
+  // Beim Verringern kappt updateSplit() zu hohe Werte.
+  const growSplit = (group, previous, current) => {
+    if (current <= previous) {
+      return;
+    }
+    splitGroups().filter((el) => el.dataset.splitGroup === group).forEach((el) => {
+      const input = el.querySelector('input');
+      const value = parseInt(input.value, 10);
+      const inChildcare = childcareOf(el).includes(group) && value === 0;
+      if (value === previous && !inChildcare) {
+        input.value = String(current);
+      }
+    });
+  };
+
   noEmail.addEventListener('change', updateContact);
   form.querySelectorAll('[data-count]').forEach((input) => {
+    input.dataset.previous = String(count(input.dataset.count));
     input.addEventListener('input', () => {
       checkNumber(input);
+      // Leeres Feld = wird gerade neu getippt: Aufteilung noch nicht anfassen
+      if (input.value.trim() === '') {
+        return;
+      }
+      const current = count(input.dataset.count);
+      growSplit(input.dataset.count, parseInt(input.dataset.previous, 10), current);
+      input.dataset.previous = String(current);
       updateSplit();
     });
   });

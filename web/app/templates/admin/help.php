@@ -141,7 +141,7 @@ $sections = [
     <h2 class="h4">Programmpunkte und Kinderbetreuung</h2>
     <dl>
       <dt>Voraussichtliche Anwesenheit</dt>
-      <dd>Standard: je Programmpunkt ein Häkchen, das für die ganze Gruppe gilt. Mit „Anzahl individuell aufteilen“ geben Teilnehmer je Programmpunkt die Anzahl pro Personengruppe an (höchstens die oben angegebene Anzahl). Gespeichert wird immer die Anzahl je Programmpunkt und Personengruppe.</dd>
+      <dd>Standard: je Programmpunkt ein Häkchen, das für die ganze Gruppe gilt. Mit „Anzahl individuell aufteilen“ geben Teilnehmer je Programmpunkt die Anzahl pro Personengruppe an (höchstens die oben angegebene Anzahl). Ändert man oben eine Anzahl, passt sich die Aufteilung an: Beim Verringern werden zu hohe Werte gekappt, beim Erhöhen wachsen Felder mit, die auf dem bisherigen Maximum standen; bewusst kleinere Werte und Kinder in der Betreuung (0) bleiben. Gespeichert wird immer die Anzahl je Programmpunkt und Personengruppe.</dd>
 
       <dt>Kinderbetreuung</dt>
       <dd>Je Programmpunkt einstellbar mit den betreuten Kindergruppen der Veranstaltung. Infoseite und Formular zeigen dann „Parallel Kinderbetreuung für …“ mit den Namen dieser Gruppen.</dd>
