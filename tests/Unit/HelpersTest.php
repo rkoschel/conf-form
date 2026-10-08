@@ -57,15 +57,28 @@ final class HelpersTest extends TestCase
         $this->assertSame('kaputt', format_utc_datetime('kaputt', 'Europe/Berlin'));
     }
 
-    public function testFormatsChildcareAges(): void
+    public function testParsesPersonGroups(): void
     {
-        $this->assertSame('0–2', childcare_ages(['group_5']));
-        $this->assertSame('0–6', childcare_ages(['group_4', 'group_5']));
-        $this->assertSame('3–12', childcare_ages(['group_3', 'group_4']));
-        $this->assertSame('0–12', childcare_ages(['group_5', 'group_4', 'group_3']));
-        $this->assertSame('0–2 und 7–12', childcare_ages(['group_3', 'group_5']));
-        $this->assertSame('', childcare_ages([]));
-        $this->assertSame(['group_5', 'group_3'], childcare_parse('group_3,group_2,group_5'));
+        $this->assertSame(person_groups_default(), person_groups_parse(''), 'leer = alle mit Standardnamen');
+        $this->assertSame(person_groups_default(), person_groups_parse('kaputt'));
+        $this->assertSame(
+            ['group_1' => 'Eltern', 'group_4' => 'Kindergruppe 2'],
+            person_groups_parse('{"group_4":"","group_1":"Eltern","x":"y"}'),
+            'feste Reihenfolge, leerer Name = Standardname, Unbekanntes verworfen'
+        );
+        $this->assertSame(['group_2' => 'Teens'], event_groups(['person_groups' => '{"group_2":"Teens"}']));
+    }
+
+    public function testChildcareOnlyForKidsGroupsWithNames(): void
+    {
+        $this->assertSame(['group_3', 'group_5'], childcare_parse('group_5,group_2,group_3,x'));
+        $this->assertSame(['group_4'], kids_groups(['group_1' => 'A', 'group_4' => 'B']));
+        $groups = ['group_3' => 'Kinder 7–12', 'group_4' => 'Kinder 3–6', 'group_5' => 'Kinder 0–2'];
+        $this->assertSame('Kinder 0–2', childcare_names(['group_5'], $groups));
+        $this->assertSame('Kinder 3–6 und Kinder 0–2', childcare_names(['group_4', 'group_5'], $groups));
+        $this->assertSame('Kinder 7–12, Kinder 3–6 und Kinder 0–2', childcare_names(['group_3', 'group_4', 'group_5'], $groups));
+        $this->assertSame('Parallel Kinderbetreuung für Kinder 0–2', childcare_notice(['group_5'], $groups));
+        $this->assertSame('', childcare_names([], $groups));
     }
 
     public function testUrlUsesBaseUrl(): void

@@ -2,9 +2,11 @@
 /*
  * Felder einer Anmeldung: Kontakt, Anzahl Teilnehmer, Anwesenheit/Aufteilung
  * (SPEC §5.1). Genutzt vom Anmeldeformular und vom Admin-Bearbeiten (§7.4).
- * Erwartet $form, $errors, $event (mit 'slots'). Die ids und
- * data-Attribute nutzt assets/form.js.
+ * Erwartet $form, $errors, $event (mit 'slots'). Zeigt nur die
+ * Personengruppen der Veranstaltung. Die ids und data-Attribute nutzt
+ * assets/form.js.
  */
+$groups = event_groups($event);
 $checked = fn (string $name): string => !empty($form[$name]) ? 'checked' : '';
 $attend = is_array($form['attend'] ?? null) ? $form['attend'] : [];
 $split = is_array($form['split'] ?? null) ? $form['split'] : [];
@@ -44,7 +46,7 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
 
   <fieldset class="row g-3">
     <legend class="h5 mb-0">Anzahl Teilnehmer</legend>
-    <?php foreach (AGE_GROUPS as $group => $label): ?>
+    <?php foreach ($groups as $group => $label): ?>
       <div class="col-6 col-md">
         <?= input_field($form + [$group => '0'], $errors, $group, $label, 'number',
             'min="0" step="1" inputmode="numeric" data-count="' . $group . '"') ?>
@@ -60,7 +62,7 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
           <ul class="mb-0">
             <?php foreach ($childcareSlots as $slot): ?>
               <li data-childcare-groups="<?= e(implode(' ', $slot['childcare'])) ?>"<?= $childcareVisible($slot) ? '' : ' hidden' ?>>
-                <?= e($slot['time']) ?> Uhr <?= e($slot['label']) ?>: Kinder von <?= e(childcare_ages($slot['childcare'])) ?> Jahren
+                <?= e($slot['time']) ?> Uhr <?= e($slot['label']) ?>: <?= e(childcare_names($slot['childcare'], $groups)) ?>
               </li>
             <?php endforeach ?>
           </ul>
@@ -94,7 +96,7 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
               <label class="form-check-label" for="attend-<?= $slotId ?>">
                 <span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?>
                 <?php if (!empty($slot['childcare'])): ?>
-                  <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'])) ?></span>
+                  <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], $groups)) ?></span>
                 <?php endif ?>
               </label>
             </div>
@@ -102,11 +104,11 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
               <div class="mb-2">
                 <span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?>
                 <?php if (!empty($slot['childcare'])): ?>
-                  <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'])) ?></span>
+                  <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], $groups)) ?></span>
                 <?php endif ?>
               </div>
               <div class="row g-2">
-                <?php foreach (AGE_GROUPS as $group => $label): ?>
+                <?php foreach ($groups as $group => $label): ?>
                   <?php
                   // Betreute Kindergruppen sind mit 0 vorbelegt (sie sind in der Kinderbetreuung)
                   $default = in_array($group, $slot['childcare'] ?? [], true) ? '0' : ($form[$group] ?? '0');
@@ -122,7 +124,7 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
               </div>
               <?php if (!empty($slot['childcare'])): ?>
                 <div class="small text-info-emphasis mt-2" data-childcare-split-hint hidden>
-                  Eingetragene Kinder (<?= e(childcare_ages($slot['childcare'])) ?> J.) nehmen teil,
+                  Eingetragene Kinder (<?= e(childcare_names($slot['childcare'], $groups)) ?>) nehmen teil,
                   die übrigen sind in der Kinderbetreuung eingeplant.
                 </div>
               <?php endif ?>

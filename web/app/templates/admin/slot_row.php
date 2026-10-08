@@ -1,4 +1,11 @@
-<?php /** Eine Zeile im Ablauf; erwartet $row = [index, time, label, childcare (bool), groups (Liste)] */ ?>
+<?php
+/**
+ * Eine Zeile im Ablauf; erwartet $row = [index, time, label, childcare (bool),
+ * groups (Liste)] sowie $selectedGroups und $groupNames aus event_form.php.
+ * Zur Kinderbetreuung stehen nur Kindergruppen; nicht gewählte sind
+ * ausgeblendet (admin.js gleicht Auswahl und Namen beim Ändern ab).
+ */
+?>
 <div class="row g-2 mb-2 slot-row">
   <div class="col-4 col-sm-3 col-lg-2">
     <label class="visually-hidden" for="slot-<?= e($row['index']) ?>-time">Uhrzeit</label>
@@ -23,12 +30,12 @@
       </div>
       <?php /* hidden am Wrapper: d-flex würde das hidden-Attribut überschreiben */ ?>
       <div data-childcare-groups<?= $row['childcare'] ? '' : ' hidden' ?>><div class="d-flex flex-wrap column-gap-3">
-        <?php foreach (array_keys(CHILDCARE_AGE_GROUPS) as $group): ?>
-          <div class="form-check mb-0">
+        <?php foreach (kids_groups(array_keys(PERSON_GROUPS)) as $group): ?>
+          <div class="form-check mb-0" data-childcare-option="<?= e($group) ?>"<?= in_array($group, $selectedGroups, true) ? '' : ' hidden' ?>>
             <input class="form-check-input" type="checkbox" value="<?= e($group) ?>"
                    id="slot-<?= e($row['index']) ?>-<?= e($group) ?>" name="slots[<?= e($row['index']) ?>][childcare_groups][]"
                    <?= in_array($group, $row['groups'], true) ? 'checked' : '' ?>>
-            <label class="form-check-label" for="slot-<?= e($row['index']) ?>-<?= e($group) ?>"><?= e(AGE_GROUPS[$group]) ?></label>
+            <label class="form-check-label" for="slot-<?= e($row['index']) ?>-<?= e($group) ?>"><span data-childcare-label="<?= e($group) ?>"><?= e($groupNames[$group]) ?></span></label>
           </div>
         <?php endforeach ?>
       </div></div>

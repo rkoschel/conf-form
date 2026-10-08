@@ -48,7 +48,7 @@ function registration_form_values(array $registration, array $slotCounts): array
         'attend' => [],
         'split' => [],
     ];
-    foreach (array_keys(AGE_GROUPS) as $group) {
+    foreach (array_keys(PERSON_GROUPS) as $group) {
         $form[$group] = (string) $registration[$group];
     }
     foreach ($slotCounts as $slotId => $counts) {
@@ -57,7 +57,7 @@ function registration_form_values(array $registration, array $slotCounts): array
             $form['attend'][$slotId] = '1';
         }
         // Aufteilung = Personen beim Programmpunkt (ohne childcare_*)
-        $form['split'][$slotId] = array_map('strval', array_intersect_key($counts, AGE_GROUPS));
+        $form['split'][$slotId] = array_map('strval', array_intersect_key($counts, PERSON_GROUPS));
     }
     return $form;
 }

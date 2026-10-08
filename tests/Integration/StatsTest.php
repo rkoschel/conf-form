@@ -27,7 +27,8 @@ final class StatsTest extends DbTestCase
         $this->assertSame(0, $stats['quota_used']);
         $this->assertSame(0, $stats['quota_pending']);
         $this->assertSame(10, $stats['quota_max']);
-        $this->assertSame(array_fill_keys(array_keys(AGE_GROUPS), 0), $stats['age_groups']);
+        $this->assertSame(array_keys(PERSON_GROUPS), array_keys($stats['groups']), 'ohne Auswahl: alle Gruppen');
+        $this->assertSame(['name' => 'Erwachsene', 'confirmed' => 0, 'pending' => 0], $stats['groups']['group_1']);
         $this->assertSame(['Vormittag', 'Nachmittag'], array_column($stats['slots'], 'label'));
         $this->assertSame([0, 0], array_column($stats['slots'], 'total'));
     }
@@ -47,7 +48,7 @@ final class StatsTest extends DbTestCase
         $this->assertSame(['registrations' => 0, 'people' => 0], $byStatus['rejected']);
     }
 
-    public function testQuotaCountsOnlyConfirmedWithoutToddlers(): void
+    public function testQuotaCountsAllGroupsOfConfirmed(): void
     {
         $this->registration('confirmed', ['group_1' => 2, 'group_2' => 1, 'group_3' => 1, 'group_4' => 1, 'group_5' => 2]);
         $this->registration('pending', ['group_1' => 4]);
@@ -55,14 +56,28 @@ final class StatsTest extends DbTestCase
 
         $stats = stats_for_event(event_find($this->eventId));
 
-        $this->assertSame(5, $stats['quota_used']);
-        $this->assertSame(
-            ['group_1' => 2, 'group_2' => 1, 'group_3' => 1, 'group_4' => 1, 'group_5' => 2],
-            $stats['age_groups']
-        );
+        $this->assertSame(7, $stats['quota_used']);
+        $this->assertSame(['name' => 'Kindergruppe 1', 'confirmed' => 2, 'pending' => 0], $stats['groups']['group_5']);
+        $this->assertSame(['name' => 'Erwachsene', 'confirmed' => 2, 'pending' => 4], $stats['groups']['group_1']);
     }
 
-    public function testPendingQuotaCountsOnlyPendingWithoutToddlers(): void
+    public function testGroupsFollowEventSelectionAndNames(): void
+    {
+        db()->prepare('UPDATE events SET person_groups = ? WHERE id = ?')
+            ->execute(['{"group_1":"Eltern","group_4":"Kinder 3–6"}', $this->eventId]);
+        $this->registration('confirmed', ['group_1' => 2, 'group_4' => 1]);
+        $this->registration('pending', ['group_4' => 3]);
+
+        $stats = stats_for_event(event_find($this->eventId));
+
+        $this->assertSame([
+            'group_1' => ['name' => 'Eltern', 'confirmed' => 2, 'pending' => 0],
+            'group_4' => ['name' => 'Kinder 3–6', 'confirmed' => 1, 'pending' => 3],
+        ], $stats['groups']);
+        $this->assertSame(['group_1', 'group_4'], array_keys($stats['slots'][0]['groups']), 'Programmpunkte nur mit gewählten Gruppen');
+    }
+
+    public function testPendingQuotaCountsAllGroupsOfPending(): void
     {
         $this->registration('pending', ['group_1' => 2, 'group_4' => 1, 'group_5' => 3]);
         $this->registration('pending', ['group_2' => 1]);
@@ -72,7 +87,7 @@ final class StatsTest extends DbTestCase
 
         $stats = stats_for_event(event_find($this->eventId));
 
-        $this->assertSame(4, $stats['quota_pending']);
+        $this->assertSame(7, $stats['quota_pending']);
         $this->assertSame(5, $stats['quota_used']);
     }
 
@@ -125,8 +140,8 @@ final class StatsTest extends DbTestCase
 
         $slots = stats_for_event(event_find($this->eventId))['slots'];
 
-        $this->assertSame(['group_5', 'group_4'], $slots[0]['childcare_groups']);
-        $this->assertSame(['group_5' => 1, 'group_4' => 1], $slots[0]['childcare'], 'nur bestätigte, nur betreute Gruppen');
+        $this->assertSame(['group_4', 'group_5'], $slots[0]['childcare_groups']);
+        $this->assertSame(['group_4' => 1, 'group_5' => 1], $slots[0]['childcare'], 'nur bestätigte, nur betreute Gruppen');
         $this->assertSame(2, $slots[0]['childcare_total']);
         $this->assertSame(3, $slots[0]['total'], 'Summe ohne Kinder in der Betreuung');
         $this->assertSame([], $slots[1]['childcare_groups']);

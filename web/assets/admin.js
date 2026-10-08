@@ -8,6 +8,7 @@ document.addEventListener('click', (event) => {
     const index = Number(rows.dataset.nextIndex);
     rows.dataset.nextIndex = String(index + 1);
     rows.insertAdjacentHTML('beforeend', template.innerHTML.replaceAll('__INDEX__', String(index)));
+    syncChildcareOptions();
     rows.lastElementChild.querySelector('input').focus();
     return;
   }
@@ -18,7 +19,35 @@ document.addEventListener('click', (event) => {
   }
 });
 
-// Ablauf: Altersgruppen nur bei eingeschalteter Kinderbetreuung zeigen
+// Personengruppen der Veranstaltung: In der Kinderbetreuung nur gewählte
+// Kindergruppen anbieten, mit ihren aktuellen Namen
+function syncChildcareOptions() {
+  document.querySelectorAll('[data-person-group]').forEach((checkbox) => {
+    const key = checkbox.dataset.personGroup;
+    const name = document.querySelector(`[data-group-name="${key}"]`)?.value.trim() || key;
+    document.querySelectorAll(`[data-childcare-option="${key}"]`).forEach((option) => {
+      option.hidden = !checkbox.checked;
+      if (!checkbox.checked) {
+        option.querySelector('input').checked = false;
+      }
+    });
+    document.querySelectorAll(`[data-childcare-label="${key}"]`).forEach((label) => {
+      label.textContent = name;
+    });
+  });
+}
+document.addEventListener('change', (event) => {
+  if (event.target.closest('[data-person-group]')) {
+    syncChildcareOptions();
+  }
+});
+document.addEventListener('input', (event) => {
+  if (event.target.closest('[data-group-name]')) {
+    syncChildcareOptions();
+  }
+});
+
+// Ablauf: Kindergruppen nur bei eingeschalteter Kinderbetreuung zeigen
 document.addEventListener('change', (event) => {
   const toggle = event.target.closest('[data-childcare-toggle]');
   if (toggle) {

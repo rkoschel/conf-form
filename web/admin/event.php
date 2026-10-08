@@ -7,8 +7,9 @@ $event = $id !== null ? event_find($id) : null;
 if ($id !== null && $event === null) {
     abort(404, 'Veranstaltung nicht gefunden.');
 }
-// Ablauf ist gesperrt, sobald es Anmeldungen gibt (SPEC §7.1)
+// Ablauf und Auswahl der Personengruppen sind gesperrt, sobald es Anmeldungen gibt (SPEC §7.1)
 $slotsLocked = $id !== null && event_has_registrations($id);
+$lockedGroups = $slotsLocked ? $event['groups'] : null;
 $lockedSlots = $slotsLocked
     ? array_map(fn ($s) => ['time' => $s['time'], 'label' => $s['label'], 'childcare' => $s['childcare']], $event['slots'])
     : null;
@@ -30,8 +31,10 @@ if (is_post()) {
         'organizer_email' => post_string('organizer_email'),
         'active' => isset($_POST['active']),
         'slots' => post_rows('slots', ['time', 'label', 'childcare'], ['childcare_groups']),
+        'person_groups' => array_values(array_filter((array) ($_POST['person_groups'] ?? []), 'is_string')),
+        'group_names' => array_filter((array) ($_POST['group_names'] ?? []), 'is_string'),
     ];
-    [$data, $errors] = event_validate($form, $lockedSlots);
+    [$data, $errors] = event_validate($form, $lockedSlots, $lockedGroups);
     if (!$errors) {
         event_save($id, $data);
         flash('success', $id === null ? 'Veranstaltung angelegt.' : 'Veranstaltung gespeichert.');
@@ -44,8 +47,21 @@ if (is_post()) {
     $form['date'] = format_date($event['date']);
     $form['registration_deadline_date'] = format_date($deadlineDate);
     $form['registration_deadline_time'] = $deadlineTime;
+    $form['person_groups'] = array_keys($event['groups']);
+    $form['group_names'] = $event['groups'] + person_groups_default();
 } else {
-    $form = ['timezone' => 'Europe/Berlin', 'active' => false, 'slots' => []];
+    // Neue Veranstaltung: Personengruppen der zuletzt angelegten übernehmen
+    $lastGroups = event_last_groups();
+    $form = [
+        'timezone' => 'Europe/Berlin',
+        'active' => false,
+        'slots' => [],
+        'person_groups' => array_keys($lastGroups),
+        'group_names' => $lastGroups + person_groups_default(),
+    ];
+}
+if ($lockedGroups !== null) {
+    $form['person_groups'] = array_keys($lockedGroups);
 }
 
 if ($lockedSlots !== null) {

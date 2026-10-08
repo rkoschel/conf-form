@@ -25,7 +25,7 @@ final class MailerTest extends DbTestCase
         $this->assertStringContainsString('Hallo Anna,', $log);
         $this->assertStringContainsString('Datum: Samstag, 01.05.2027', $log);
         $this->assertStringContainsString('Erwachsene: 2', $log);
-        $this->assertStringContainsString('Kinder 0–2: 1', $log);
+        $this->assertStringContainsString('Kindergruppe 1: 1', $log, 'Standardname der Gruppe 5');
         $this->assertStringNotContainsString('Jugendliche', $log, 'Altersgruppen mit 0 entfallen');
         $this->assertStringContainsString(
             'https://example.org/konferenz/cancel/?t=' . $registration['cancel_token'],

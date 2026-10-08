@@ -6,11 +6,11 @@ use PHPUnit\Framework\TestCase;
 /** Fachregeln ohne DB: Kontingent, Status, Dubletten (SPEC §5.3, §7.2) */
 final class RegistrationRulesTest extends TestCase
 {
-    public function testGroupSizeExcludesKidsUnderThree(): void
+    public function testGroupSizeCountsAllGroups(): void
     {
         $counts = ['group_1' => 2, 'group_2' => 1, 'group_3' => 1, 'group_4' => 1, 'group_5' => 3];
 
-        $this->assertSame(5, registration_group_size($counts));
+        $this->assertSame(8, registration_group_size($counts), 'alle Personengruppen zählen zum Kontingent');
         $this->assertSame(8, registration_person_count($counts));
     }
 

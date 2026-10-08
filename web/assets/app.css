@@ -92,3 +92,8 @@
     columns: 1;
   }
 }
+
+/* Balken je Personengruppe: schmaler als die Gesamtbelegung */
+.quota-meter-sm .progress-stacked {
+  height: 0.6rem;
+}

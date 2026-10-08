@@ -21,11 +21,14 @@ final class AdminStatsTest extends HttpTestCase
 
         $body = $this->get('/admin/stats.php')['body'];
         $this->assertMatchesRegularExpression('#<option value="' . $active . '"\s+selected>#', $body);
-        $this->assertMatchesRegularExpression('#8 <span[^>]*>/ 10</span>#', $body, 'Belegung ohne Kinder 0–2');
-        $this->assertStringContainsString('80 % belegt, 2 frei', $body);
+        $this->assertMatchesRegularExpression('#9 <span[^>]*>/ 10</span>#', $body, 'Belegung mit allen Gruppen');
+        $this->assertStringContainsString('90 % belegt, 1 frei', $body);
         $this->assertStringContainsString('Offen 3', $body);
-        $this->assertStringContainsString('Wenn alle offenen bestätigt würden: 11 von 10', $body);
-        $this->assertStringContainsString('Kontingent um 1 überschritten', $body);
+        $this->assertStringContainsString('Wenn alle offenen bestätigt würden: 12 von 10', $body);
+        $this->assertStringContainsString('Kontingent um 2 überschritten', $body);
+        $this->assertMatchesRegularExpression('#Je Personengruppe.*?Erwachsene</span>\s*<span[^>]*>8 bestätigt · 3 offen#s', $body);
+        $this->assertMatchesRegularExpression('#Kindergruppe 1</span>\s*<span[^>]*>1 bestätigt · 0 offen#s', $body);
+        $this->assertStringNotContainsString('nach Altersgruppe', $body, 'alte Tabelle entfernt');
         $this->assertStringContainsString('quota-meter-limit', $body, 'Grenze markiert, wenn bestätigt + offen darüber liegt');
         $this->assertMatchesRegularExpression('#Personen je Ort.*?Hamm\s*</td>\s*<td class="text-end">9</td>\s*<td class="text-end">3</td>#s', $body);
 
@@ -55,8 +58,8 @@ final class AdminStatsTest extends HttpTestCase
 
         $body = $this->get("/admin/stats.php?event=$id")['body'];
 
-        $this->assertStringContainsString('Wenn alle offenen bestätigt würden: 10 von 20', $body);
-        $this->assertStringContainsString('(50 %)', $body);
+        $this->assertStringContainsString('Wenn alle offenen bestätigt würden: 12 von 20', $body);
+        $this->assertStringContainsString('(60 %)', $body);
         $this->assertStringNotContainsString('quota-meter-limit', $body);
         $this->assertStringContainsString('style="width: 25.00%"', $body, 'Segmente relativ zum Kontingent');
     }
@@ -83,8 +86,8 @@ final class AdminStatsTest extends HttpTestCase
         $body = $this->get("/admin/stats.php?event=$id")['body'];
 
         $this->assertStringContainsString('Kinderbetreuung je Programmpunkt', $body);
-        $this->assertStringContainsString('<td class="text-nowrap">0–6 Jahre</td>', $body);
-        $this->assertStringContainsString('Betreuung für 0–6 Jahre', $body, 'mobile Ansicht');
+        $this->assertStringContainsString('<td>Kindergruppe 2 und Kindergruppe 1</td>', $body);
+        $this->assertStringContainsString('Betreuung für Kindergruppe 2 und Kindergruppe 1', $body, 'mobile Ansicht');
         $this->assertStringNotContainsString('↳', $body, 'keine Zusatzzeilen mehr in der Programmpunkt-Tabelle');
     }
 

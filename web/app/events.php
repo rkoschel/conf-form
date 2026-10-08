@@ -9,18 +9,21 @@ declare(strict_types=1);
  * (HH:MM, 24 h), timezone, max_participants, organizer_name,
  * organizer_email (Strings), active (bool), slots (Liste von
  * ['time' => HH:MM, 'label' => …, 'childcare' => '1'|'', 'childcare_groups'
- * => Liste von Altersgruppen]). Bevorzugte Orte sind global (preferred_places()).
+ * => Liste von Kindergruppen]), person_groups (Liste gewählter group_x),
+ * group_names (group_x → Name). Bevorzugte Orte sind global (preferred_places()).
  * Die Daten werden als ISO zurückgegeben (date: Y-m-d,
  * registration_deadline: Y-m-d\TH:i).
  *
  * Ist der Ablauf gesperrt (es gibt Anmeldungen), wird $lockedSlots
  * übergeben: Eingegebene Programmpunkte werden dann ignoriert und die
- * bestehenden für die Fristprüfung verwendet.
+ * bestehenden für die Fristprüfung verwendet. Ebenso $lockedGroups: Die
+ * Auswahl der Personengruppen bleibt dann fest, nur die Namen sind änderbar.
  *
  * @param list<array{time: string, label: string, childcare: list<string>}>|null $lockedSlots
+ * @param array<string, string>|null $lockedGroups group_x → Name
  * @return array{0: array<string, mixed>, 1: array<string, string>} [Daten, Fehler je Feld]
  */
-function event_validate(array $input, ?array $lockedSlots = null): array
+function event_validate(array $input, ?array $lockedSlots = null, ?array $lockedGroups = null): array
 {
     $errors = [];
     $data = [
@@ -64,10 +67,18 @@ function event_validate(array $input, ?array $lockedSlots = null): array
         $errors['organizer_email'] = 'Bitte eine gültige E-Mail-Adresse angeben.';
     }
 
+    [$data['person_groups'], $groupError] = event_parse_groups(
+        $lockedGroups !== null ? array_keys($lockedGroups) : ($input['person_groups'] ?? []),
+        $input['group_names'] ?? []
+    );
+    if ($groupError !== null) {
+        $errors['person_groups'] = $groupError;
+    }
+
     if ($lockedSlots !== null) {
         $data['slots'] = $lockedSlots;
     } else {
-        [$data['slots'], $slotError] = event_parse_slots($input['slots'] ?? []);
+        [$data['slots'], $slotError] = event_parse_slots($input['slots'] ?? [], kids_groups($data['person_groups']));
         if ($slotError !== null) {
             $errors['slots'] = $slotError;
         }
@@ -89,10 +100,37 @@ function event_validate(array $input, ?array $lockedSlots = null): array
 }
 
 /**
+ * Gewählte Personengruppen mit Namen; mindestens eine, jede mit Namen.
+ *
+ * @return array{0: array<string, string>, 1: ?string} [group_x → Name, Fehler]
+ */
+function event_parse_groups(mixed $selected, mixed $names): array
+{
+    $selected = is_array($selected) ? $selected : [];
+    $names = is_array($names) ? $names : [];
+    $groups = [];
+    $unnamed = false;
+    foreach (array_keys(PERSON_GROUPS) as $key) {
+        if (in_array($key, $selected, true)) {
+            $groups[$key] = normalize_line(is_string($names[$key] ?? null) ? $names[$key] : '');
+            $unnamed = $unnamed || $groups[$key] === '';
+        }
+    }
+    if (!$groups) {
+        return [$groups, 'Bitte mindestens eine Personengruppe auswählen.'];
+    }
+    if ($unnamed) {
+        return [$groups, 'Bitte für jede gewählte Personengruppe einen Namen angeben.'];
+    }
+    return [$groups, null];
+}
+
+/**
+ * @param list<string>|null $allowedChildcare wählbare Kindergruppen (null = alle)
  * @return array{0: list<array{time: string, label: string, childcare: list<string>}>, 1: ?string}
  *     [Programmpunkte nach Uhrzeit, Fehler]
  */
-function event_parse_slots(mixed $rows): array
+function event_parse_slots(mixed $rows, ?array $allowedChildcare = null): array
 {
     $slots = [];
     $invalid = [];
@@ -113,6 +151,9 @@ function event_parse_slots(mixed $rows): array
         $childcare = [];
         if (!empty($row['childcare'])) {
             $childcare = childcare_parse(is_array($row['childcare_groups'] ?? null) ? $row['childcare_groups'] : []);
+            if ($allowedChildcare !== null) {
+                $childcare = array_values(array_intersect($childcare, $allowedChildcare));
+            }
             if (!$childcare) {
                 $withoutGroups[] = $number;
             }
@@ -125,7 +166,7 @@ function event_parse_slots(mixed $rows): array
         $messages[] = 'Programmpunkt ' . implode(', ', $invalid) . ': Uhrzeit (HH:MM) und Bezeichnung angeben.';
     }
     if ($withoutGroups) {
-        $messages[] = 'Programmpunkt ' . implode(', ', $withoutGroups) . ': Altersgruppen für die Kinderbetreuung auswählen.';
+        $messages[] = 'Programmpunkt ' . implode(', ', $withoutGroups) . ': Kindergruppen für die Kinderbetreuung auswählen.';
     }
     if ($messages) {
         return [$slots, implode(' ', $messages)];
@@ -135,9 +176,76 @@ function event_parse_slots(mixed $rows): array
     return [$slots, null];
 }
 
+/** @return array<string, string> alle Personengruppen mit Standardnamen */
+function person_groups_default(): array
+{
+    return array_map(fn ($group) => $group['default'], PERSON_GROUPS);
+}
+
 /**
- * Betreute Altersgruppen aus DB-Wert oder Formular, nur bekannte, jüngste zuerst.
- * 'group_4,group_5' → ['group_5', 'group_4']
+ * Gewählte Personengruppen mit Namen aus events.person_groups (JSON), in
+ * fester Reihenfolge. '' oder ungültig = alle Gruppen mit Standardnamen.
+ *
+ * @return array<string, string> group_x → Name
+ */
+function person_groups_parse(string $json): array
+{
+    $stored = $json === '' ? null : json_decode($json, true);
+    if (!is_array($stored)) {
+        return person_groups_default();
+    }
+    $groups = [];
+    foreach (PERSON_GROUPS as $key => $group) {
+        if (isset($stored[$key])) {
+            $name = normalize_line((string) $stored[$key]);
+            $groups[$key] = $name !== '' ? $name : $group['default'];
+        }
+    }
+    return $groups ?: person_groups_default();
+}
+
+/**
+ * Personengruppen einer Veranstaltung (SPEC §5.1).
+ *
+ * @param array<string, mixed> $event
+ * @return array<string, string> group_x → Name
+ */
+function event_groups(array $event): array
+{
+    return $event['groups'] ?? person_groups_parse((string) ($event['person_groups'] ?? ''));
+}
+
+/**
+ * Vorbelegung für eine neue Veranstaltung: Gruppen der zuletzt angelegten,
+ * sonst alle mit Standardnamen.
+ *
+ * @return array<string, string>
+ */
+function event_last_groups(): array
+{
+    $json = db()->query('SELECT person_groups FROM events ORDER BY id DESC LIMIT 1')->fetchColumn();
+    return person_groups_parse($json === false ? '' : (string) $json);
+}
+
+/**
+ * Kindergruppen unter den übergebenen Gruppen (nur diese sind für die
+ * Kinderbetreuung wählbar).
+ *
+ * @param array<string, string>|list<string> $groups group_x → Name oder Liste von group_x
+ * @return list<string>
+ */
+function kids_groups(array $groups): array
+{
+    $keys = array_is_list($groups) ? $groups : array_keys($groups);
+    return array_values(array_filter(
+        array_keys(PERSON_GROUPS),
+        fn ($key) => PERSON_GROUPS[$key]['type'] === 'kids' && in_array($key, $keys, true)
+    ));
+}
+
+/**
+ * Betreute Gruppen aus DB-Wert oder Formular: nur Kindergruppen, feste
+ * Reihenfolge. 'group_5,group_1,x' → ['group_5']
  *
  * @param string|list<mixed> $value
  * @return list<string>
@@ -145,39 +253,34 @@ function event_parse_slots(mixed $rows): array
 function childcare_parse(string|array $value): array
 {
     $groups = is_array($value) ? $value : explode(',', $value);
-    return array_values(array_filter(
-        array_keys(CHILDCARE_AGE_GROUPS),
-        fn ($group) => in_array($group, $groups, true)
-    ));
+    return kids_groups(array_values(array_filter($groups, 'is_string')));
 }
 
 /**
- * Altersangabe der Kinderbetreuung, aufeinanderfolgende Gruppen zusammengefasst:
- * [0–2, 3–6] → „0–6“, [0–2, 7–12] → „0–2 und 7–12“.
+ * Namen der betreuten Gruppen als Text: „A“, „A und B“, „A, B und C“.
  *
- * @param list<string> $groups
+ * @param list<string> $childcare
+ * @param array<string, string> $eventGroups group_x → Name
  */
-function childcare_ages(array $groups): string
+function childcare_names(array $childcare, array $eventGroups): string
 {
-    $ranges = [];
-    foreach (childcare_parse($groups) as $group) {
-        [$from, $to] = CHILDCARE_AGE_GROUPS[$group];
-        $last = array_key_last($ranges);
-        if ($last !== null && $ranges[$last][1] + 1 === $from) {
-            $ranges[$last][1] = $to;
-        } else {
-            $ranges[] = [$from, $to];
-        }
+    $names = [];
+    foreach ($childcare as $key) {
+        $names[] = $eventGroups[$key] ?? PERSON_GROUPS[$key]['default'] ?? $key;
     }
-    $parts = array_map(fn ($range) => $range[0] . '–' . $range[1], $ranges);
-    $last = array_pop($parts);
-    return $parts ? implode(', ', $parts) . ' und ' . $last : (string) $last;
+    $last = array_pop($names);
+    return $names ? implode(', ', $names) . ' und ' . $last : (string) $last;
 }
 
-/** Hinweis zu einem Programmpunkt mit Kinderbetreuung (SPEC §4, §5.1) */
-function childcare_notice(array $groups): string
+/**
+ * Hinweis zu einem Programmpunkt mit Kinderbetreuung (SPEC §4, §5.1)
+ *
+ * @param list<string> $childcare
+ * @param array<string, string> $eventGroups
+ */
+function childcare_notice(array $childcare, array $eventGroups): string
 {
-    return 'Parallel Kinderbetreuung für Kinder von ' . childcare_ages($groups) . ' Jahren';
+    return 'Parallel Kinderbetreuung für ' . childcare_names($childcare, $eventGroups);
 }
 
 /**
@@ -199,6 +302,7 @@ function event_save(?int $id, array $data): int
             'max_participants' => $data['max_participants'],
             'organizer_name' => $data['organizer_name'],
             'organizer_email' => $data['organizer_email'],
+            'person_groups' => json_encode($data['person_groups'] ?? person_groups_default(), JSON_UNESCAPED_UNICODE),
             'active' => $data['active'] ? 1 : 0,
         ];
 
@@ -241,10 +345,11 @@ function event_find(int $id): ?array
         return null;
     }
     $event['slots'] = event_slots($id);
+    $event['groups'] = person_groups_parse((string) $event['person_groups']);
     return $event;
 }
 
-/** @return array<string, mixed>|null die aktive Veranstaltung mit 'slots' */
+/** @return array<string, mixed>|null die aktive Veranstaltung mit 'slots' und 'groups' */
 function event_active(): ?array
 {
     $id = db()->query('SELECT id FROM events WHERE active = 1')->fetchColumn();

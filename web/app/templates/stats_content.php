@@ -19,29 +19,28 @@
   $percent = fn (int $value): string => number_format($value / $scale * 100, 2, '.', '');
   $registrations = array_sum(array_column($stats['by_status'], 'registrations'));
   $people = array_sum(array_column($stats['by_status'], 'people'));
-  $confirmedPeople = array_sum($stats['age_groups']);
+  $groupNames = array_column($stats['groups'], 'name');
+  // Balkensegment im gemeinsamen Maßstab (Kapazität bzw. mehr bei Überbuchung)
+  $segment = function (int $value, string $label, string $class) use ($percent, $max): string {
+      if ($value <= 0) {
+          return '';
+      }
+      return '<div class="progress" role="progressbar" aria-label="' . e($label) . '" style="width: ' . $percent($value) . '%"'
+          . ' aria-valuenow="' . $value . '" aria-valuemin="0" aria-valuemax="' . $max . '">'
+          . '<div class="progress-bar ' . $class . '"></div></div>';
+  };
   ?>
 
   <div class="row g-3 mb-4">
-    <div class="col-md-6">
+    <div class="col-lg-8">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-body-secondary small">Belegung Kontingent</div>
+          <div class="text-body-secondary small">Gesamtbelegung</div>
           <div class="display-6 my-1"><?= $used ?> <span class="fs-4 text-body-secondary">/ <?= $max ?></span></div>
           <div class="quota-meter mb-2">
             <div class="progress-stacked">
-              <?php if ($used > 0): ?>
-                <div class="progress" role="progressbar" aria-label="Bestätigt" style="width: <?= $percent($used) ?>%"
-                     aria-valuenow="<?= $used ?>" aria-valuemin="0" aria-valuemax="<?= $max ?>">
-                  <div class="progress-bar <?= $used > $max ? 'bg-danger' : 'bg-primary' ?>"></div>
-                </div>
-              <?php endif ?>
-              <?php if ($pending > 0): ?>
-                <div class="progress" role="progressbar" aria-label="Offen" style="width: <?= $percent($pending) ?>%"
-                     aria-valuenow="<?= $pending ?>" aria-valuemin="0" aria-valuemax="<?= $max ?>">
-                  <div class="progress-bar progress-bar-striped bg-warning"></div>
-                </div>
-              <?php endif ?>
+              <?= $segment($used, 'Bestätigt', $used > $max ? 'bg-danger' : 'bg-primary') ?>
+              <?= $segment($pending, 'Offen', 'progress-bar-striped bg-warning') ?>
             </div>
             <?php if ($scale > $max): ?>
               <div class="quota-meter-limit" style="left: <?= $percent($max) ?>%" title="Kontingent: <?= $max ?>"></div>
@@ -57,7 +56,7 @@
             <?php else: ?>
               <?= round($ratio * 100) ?> % belegt, <?= $max - $used ?> frei
             <?php endif ?>
-            <span class="text-body-secondary">· Personen ohne Kinder 0–2</span>
+            <span class="text-body-secondary">· alle Personengruppen</span>
           </div>
           <?php if ($pending > 0): ?>
             <div class="small mt-1">
@@ -69,10 +68,27 @@
               <?php endif ?>
             </div>
           <?php endif ?>
+
+          <h3 class="h6 mt-4 mb-2">Je Personengruppe</h3>
+          <?php foreach ($stats['groups'] as $group): ?>
+            <div class="mb-2">
+              <div class="d-flex flex-wrap justify-content-between column-gap-3 small">
+                <span><?= e($group['name']) ?></span>
+                <span class="tabular-nums text-body-secondary"><?= $group['confirmed'] ?> bestätigt · <?= $group['pending'] ?> offen</span>
+              </div>
+              <div class="quota-meter quota-meter-sm">
+                <div class="progress-stacked">
+                  <?= $segment($group['confirmed'], $group['name'] . ' bestätigt', 'bg-primary') ?>
+                  <?= $segment($group['pending'], $group['name'] . ' offen', 'progress-bar-striped bg-warning') ?>
+                </div>
+              </div>
+            </div>
+          <?php endforeach ?>
+          <div class="small text-body-secondary">Alle Balken im selben Maßstab wie die Gesamtbelegung (Kapazität).</div>
         </div>
       </div>
     </div>
-    <div class="col-sm-6 col-md-3">
+    <div class="col-lg-4">
       <div class="card h-100">
         <div class="card-body">
           <div class="text-body-secondary small">Anmeldungen</div>
@@ -100,17 +116,8 @@
                 <?php endforeach ?>
               </tbody>
             </table>
-            <div class="small text-body-secondary mt-1">inkl. Kinder 0–2 · <strong>fett</strong> = bevorzugter Ort</div>
+            <div class="small text-body-secondary mt-1"><strong>fett</strong> = bevorzugter Ort</div>
           <?php endif ?>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-md-3">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="text-body-secondary small">Bestätigte Personen</div>
-          <div class="fs-2 my-1"><?= $confirmedPeople ?></div>
-          <div class="small text-body-secondary">inkl. Kinder 0–2</div>
         </div>
       </div>
     </div>
@@ -136,28 +143,9 @@
           <tr><td>Gesamt</td><td class="text-end"><?= $registrations ?></td><td class="text-end"><?= $people ?></td></tr>
         </tfoot>
       </table>
-      <p class="small text-body-secondary">Personen = Einzelpersonen inkl. Kinder 0–2.</p>
+      <p class="small text-body-secondary">Personen = Einzelpersonen aller Personengruppen.</p>
     </div>
 
-    <div class="col-lg-6">
-      <h2 class="h5">Bestätigte Personen nach Altersgruppe</h2>
-      <table class="table table-sm">
-        <thead>
-          <tr><th>Altersgruppe</th><th class="text-end">Personen</th></tr>
-        </thead>
-        <tbody class="tabular-nums">
-          <?php foreach (AGE_GROUPS as $column => $label): ?>
-            <tr>
-              <td><?= e($label) ?><?= in_array($column, QUOTA_AGE_GROUPS, true) ? '' : ' <span class="text-body-secondary small">(nicht im Kontingent)</span>' ?></td>
-              <td class="text-end"><?= $stats['age_groups'][$column] ?></td>
-            </tr>
-          <?php endforeach ?>
-        </tbody>
-        <tfoot class="tabular-nums fw-semibold">
-          <tr><td>Gesamt</td><td class="text-end"><?= $confirmedPeople ?></td></tr>
-        </tfoot>
-      </table>
-    </div>
   </div>
 
   <h2 class="h5">Voraussichtliche Anwesenheit je Programmpunkt</h2>
@@ -173,9 +161,9 @@
               <span class="tabular-nums"><?= $slot['total'] ?></span>
             </div>
             <dl class="row small mb-0 mt-1 tabular-nums">
-              <?php foreach (AGE_GROUPS as $column => $label): ?>
-                <dt class="col-8 fw-normal text-body-secondary"><?= e($label) ?></dt>
-                <dd class="col-4 text-end mb-0"><?= $slot['groups'][$column] ?></dd>
+              <?php foreach ($slot['groups'] as $column => $count): ?>
+                <dt class="col-8 fw-normal text-body-secondary"><?= e($stats['groups'][$column]['name']) ?></dt>
+                <dd class="col-4 text-end mb-0"><?= $count ?></dd>
               <?php endforeach ?>
             </dl>
           </div>
@@ -188,7 +176,7 @@
           <tr>
             <th>Uhrzeit</th>
             <th>Programmpunkt</th>
-            <?php foreach (AGE_GROUPS as $label): ?>
+            <?php foreach ($groupNames as $label): ?>
               <th class="text-end"><?= e($label) ?></th>
             <?php endforeach ?>
             <th class="text-end">Summe</th>
@@ -214,8 +202,9 @@
 
     <?php
     $childcareSlots = array_values(array_filter($stats['slots'], fn ($slot) => $slot['childcare_groups']));
-    // Spalten wie in der Tabelle oben, nur betreubare Altersgruppen
-    $childcareColumns = array_values(array_intersect(array_keys(AGE_GROUPS), array_keys(CHILDCARE_AGE_GROUPS)));
+    // Spalten: Kindergruppen der Veranstaltung (nur diese sind betreubar)
+    $childcareColumns = kids_groups(array_keys($stats['groups']));
+    $groupLabels = array_map(fn ($group) => $group['name'], $stats['groups']);
     ?>
     <?php if ($childcareSlots): ?>
       <h2 class="h5 mt-4">Kinderbetreuung je Programmpunkt</h2>
@@ -227,11 +216,11 @@
                 <span><?= e($slot['time']) ?> <?= e($slot['label']) ?></span>
                 <span class="tabular-nums"><?= $slot['childcare_total'] ?></span>
               </div>
-              <div class="small text-body-secondary">Betreuung für <?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre</div>
+              <div class="small text-body-secondary">Betreuung für <?= e(childcare_names($slot['childcare_groups'], $groupLabels)) ?></div>
               <dl class="row small mb-0 mt-1 tabular-nums">
                 <?php foreach ($childcareColumns as $column): ?>
                   <?php if (array_key_exists($column, $slot['childcare'])): ?>
-                    <dt class="col-8 fw-normal text-body-secondary"><?= e(AGE_GROUPS[$column]) ?></dt>
+                    <dt class="col-8 fw-normal text-body-secondary"><?= e($groupLabels[$column]) ?></dt>
                     <dd class="col-4 text-end mb-0"><?= $slot['childcare'][$column] ?></dd>
                   <?php endif ?>
                 <?php endforeach ?>
@@ -248,7 +237,7 @@
               <th>Programmpunkt</th>
               <th>Betreuung für</th>
               <?php foreach ($childcareColumns as $column): ?>
-                <th class="text-end"><?= e(AGE_GROUPS[$column]) ?></th>
+                <th class="text-end"><?= e($groupLabels[$column]) ?></th>
               <?php endforeach ?>
               <th class="text-end">Summe</th>
             </tr>
@@ -258,12 +247,12 @@
               <tr>
                 <td class="text-nowrap"><?= e($slot['time']) ?></td>
                 <td><?= e($slot['label']) ?></td>
-                <td class="text-nowrap"><?= e(childcare_ages($slot['childcare_groups'])) ?> Jahre</td>
+                <td><?= e(childcare_names($slot['childcare_groups'], $groupLabels)) ?></td>
                 <?php foreach ($childcareColumns as $column): ?>
                   <td class="text-end">
                     <?= array_key_exists($column, $slot['childcare'])
                         ? $slot['childcare'][$column]
-                        : '<span class="text-body-secondary" title="keine Betreuung für diese Altersgruppe">–</span>' ?>
+                        : '<span class="text-body-secondary" title="keine Betreuung für diese Gruppe">–</span>' ?>
                   </td>
                 <?php endforeach ?>
                 <td class="text-end fw-semibold"><?= $slot['childcare_total'] ?></td>
@@ -273,7 +262,7 @@
         </table>
       </div>
       <p class="small text-body-secondary">
-        Nur bestätigte Anmeldungen.<span class="d-none d-md-inline"> – = für diese Altersgruppe keine Betreuung.</span>
+        Nur bestätigte Anmeldungen.<span class="d-none d-md-inline"> – = für diese Gruppe keine Betreuung.</span>
       </p>
     <?php endif ?>
   <?php endif ?>

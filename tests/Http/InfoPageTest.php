@@ -8,6 +8,8 @@ final class InfoPageTest extends HttpTestCase
     {
         $response = $this->post('/admin/event.php', $overrides + [
             'csrf' => $this->csrfToken('/admin/event.php'),
+            'person_groups' => array_keys(PERSON_GROUPS),
+            'group_names' => person_groups_default(),
             'title' => 'Konferenz <2099>',
             'date' => '02.05.2099',
             'location' => 'Hamm, Gemeindehaus',
@@ -111,7 +113,7 @@ final class InfoPageTest extends HttpTestCase
         foreach ($adultsByStatus as $status => $group_1) {
             $db->prepare(
                 'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, group_1, group_5, status, cancel_token)
-                 VALUES (?, ?, ?, ?, ?, ?, 4, ?, ?)'
+                 VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)'
             )->execute([$eventId, now_utc(), 'Max', 'Muster', 'Hamm', $group_1, $status, bin2hex(random_bytes(32))]);
         }
     }
@@ -145,7 +147,7 @@ final class InfoPageTest extends HttpTestCase
 
         $body = $this->get('/')['body'];
 
-        $this->assertSame(1, substr_count($body, 'Parallel Kinderbetreuung für Kinder von 0–6 Jahren'));
+        $this->assertSame(1, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 1'));
         $this->assertLessThan(strpos($body, 'Jugendstunde'), strpos($body, 'Kinderbetreuung'), 'beim richtigen Programmpunkt');
     }
 

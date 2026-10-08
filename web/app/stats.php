@@ -1,22 +1,19 @@
 <?php
 declare(strict_types=1);
 
-/** Altersgruppen, die zum Kontingent zählen (SPEC §5.3: Kinder 0–2 nicht) */
-const QUOTA_AGE_GROUPS = ['group_1', 'group_2', 'group_3', 'group_4'];
-
 /**
  * Auswertung einer Veranstaltung (SPEC §7.7).
  *
- * - by_status: je Status Anzahl Anmeldungen und Einzelpersonen (inkl. 0–2)
- * - quota_used / quota_max: bestätigte Personen ohne 0–2 / max. Teilnehmer
- * - quota_pending: offene (unbestätigte) Personen ohne 0–2, für die Belegung
+ * - by_status: je Status Anzahl Anmeldungen und Personen
+ * - quota_used / quota_max: bestätigte Personen (alle Gruppen) / max. Teilnehmer
+ * - quota_pending: offene (unbestätigte) Personen, für die Belegung
  *   „wenn alle bestätigt würden“
- * - age_groups: bestätigte Personen je Altersgruppe
- * - places: Personen (inkl. 0–2) je Heimatversammlung, bestätigt und offen,
+ * - groups: je Personengruppe der Veranstaltung Name, bestätigte und offene Personen
+ * - places: Personen je Heimatversammlung, bestätigt und offen,
  *   meiste zuerst; Schreibweisen ohne Rücksicht auf Groß-/Kleinschreibung
  *   zusammengefasst
- * - slots: je Programmpunkt bestätigte Personen je Altersgruppe und Summe
- *   (beim Programmpunkt), dazu betreute Altersgruppen und Kinder in der
+ * - slots: je Programmpunkt bestätigte Personen je Personengruppe und Summe
+ *   (beim Programmpunkt), dazu betreute Kindergruppen und Kinder in der
  *   Kinderbetreuung je betreuter Gruppe (SPEC §5.4)
  *
  * @param array<string, mixed> $event
@@ -25,7 +22,7 @@ const QUOTA_AGE_GROUPS = ['group_1', 'group_2', 'group_3', 'group_4'];
  *     quota_used: int,
  *     quota_pending: int,
  *     quota_max: int,
- *     age_groups: array<string, int>,
+ *     groups: array<string, array{name: string, confirmed: int, pending: int}>,
  *     places: list<array{name: string, confirmed: int, pending: int, preferred: bool}>,
  *     slots: list<array{time: string, label: string, groups: array<string, int>, total: int,
  *         childcare_groups: list<string>, childcare: array<string, int>, childcare_total: int}>
@@ -34,7 +31,8 @@ const QUOTA_AGE_GROUPS = ['group_1', 'group_2', 'group_3', 'group_4'];
 function stats_for_event(array $event): array
 {
     $eventId = (int) $event['id'];
-    $columns = array_keys(AGE_GROUPS);
+    $eventGroups = event_groups($event);
+    $columns = array_keys(PERSON_GROUPS);
     $allPeople = implode(' + ', $columns);
 
     $byStatus = array_fill_keys(array_keys(STATUS_LABELS), ['registrations' => 0, 'people' => 0]);
@@ -47,15 +45,23 @@ function stats_for_event(array $event): array
         $byStatus[$row['status']] = ['registrations' => (int) $row['registrations'], 'people' => (int) $row['people']];
     }
 
-    $quotaSum = implode(' + ', QUOTA_AGE_GROUPS);
-    $stmt = db()->prepare("SELECT COALESCE(SUM($quotaSum), 0) FROM registrations WHERE event_id = ? AND status = 'pending'");
-    $stmt->execute([$eventId]);
-    $quotaPending = (int) $stmt->fetchColumn();
-
+    // Personen je Gruppe, bestätigt und offen
     $sums = implode(', ', array_map(fn ($c) => "COALESCE(SUM($c), 0) AS $c", $columns));
-    $stmt = db()->prepare("SELECT $sums FROM registrations WHERE event_id = ? AND status = 'confirmed'");
+    $stmt = db()->prepare(
+        "SELECT status, $sums FROM registrations
+         WHERE event_id = ? AND status IN ('confirmed', 'pending') GROUP BY status"
+    );
     $stmt->execute([$eventId]);
-    $ageGroups = array_map('intval', $stmt->fetch());
+    $byGroup = ['confirmed' => array_fill_keys($columns, 0), 'pending' => array_fill_keys($columns, 0)];
+    foreach ($stmt->fetchAll() as $row) {
+        foreach ($columns as $column) {
+            $byGroup[$row['status']][$column] = (int) $row[$column];
+        }
+    }
+    $groups = [];
+    foreach ($eventGroups as $key => $name) {
+        $groups[$key] = ['name' => $name, 'confirmed' => $byGroup['confirmed'][$key], 'pending' => $byGroup['pending'][$key]];
+    }
 
     $stmt = db()->prepare(
         "SELECT MIN(congregation) AS name,
@@ -78,7 +84,7 @@ function stats_for_event(array $event): array
         ];
     }
 
-    $childcareColumns = array_map(fn ($group) => 'childcare_' . $group, array_keys(CHILDCARE_AGE_GROUPS));
+    $childcareColumns = array_map(fn ($group) => 'childcare_' . $group, kids_groups($columns));
     $slotSums = implode(', ', array_map(
         fn ($c) => "COALESCE(SUM(c.$c), 0) AS $c",
         array_merge($columns, $childcareColumns)
@@ -97,11 +103,11 @@ function stats_for_event(array $event): array
     $stmt->execute([$eventId]);
     $slots = [];
     foreach ($stmt->fetchAll() as $row) {
-        $groups = [];
-        foreach ($columns as $column) {
-            $groups[$column] = (int) $row[$column];
+        $slotGroups = [];
+        foreach (array_keys($eventGroups) as $column) {
+            $slotGroups[$column] = (int) $row[$column];
         }
-        $childcareGroups = childcare_parse((string) $row['childcare_groups']);
+        $childcareGroups = array_values(array_intersect(childcare_parse((string) $row['childcare_groups']), array_keys($eventGroups)));
         $childcare = [];
         foreach ($childcareGroups as $group) {
             $childcare[$group] = (int) $row['childcare_' . $group];
@@ -109,8 +115,8 @@ function stats_for_event(array $event): array
         $slots[] = [
             'time' => $row['time'],
             'label' => $row['label'],
-            'groups' => $groups,
-            'total' => array_sum($groups),
+            'groups' => $slotGroups,
+            'total' => array_sum($slotGroups),
             'childcare_groups' => $childcareGroups,
             'childcare' => $childcare,
             'childcare_total' => array_sum($childcare),
@@ -119,10 +125,10 @@ function stats_for_event(array $event): array
 
     return [
         'by_status' => $byStatus,
-        'quota_used' => array_sum(array_intersect_key($ageGroups, array_flip(QUOTA_AGE_GROUPS))),
-        'quota_pending' => $quotaPending,
+        'quota_used' => array_sum($byGroup['confirmed']),
+        'quota_pending' => array_sum($byGroup['pending']),
         'quota_max' => (int) $event['max_participants'],
-        'age_groups' => $ageGroups,
+        'groups' => $groups,
         'places' => $places,
         'slots' => $slots,
     ];

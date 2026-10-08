@@ -44,7 +44,7 @@ if (form) {
 
   const splitGroups = () => [...form.querySelectorAll('[data-split-group]')];
 
-  // Betreute Altersgruppen eines Programmpunkts (data-childcare-slot="group_5 group_4")
+  // Betreute Kindergruppen eines Programmpunkts (data-childcare-slot="group_4 group_5")
   const childcareOf = (el) => (el.closest('[data-childcare-slot]')?.dataset.childcareSlot || '')
     .split(' ').filter(Boolean);
 
@@ -80,7 +80,7 @@ if (form) {
     form.querySelector('[data-phone-field]').hidden = !noEmail.checked;
   };
 
-  // Aufteilung: nur Altersgruppen mit Personen zeigen, max. = Gruppenzahl.
+  // Aufteilung: nur Personengruppen mit Personen zeigen, max. = Gruppenzahl.
   // Sinkt die Anzahl oben, werden zu hohe Werte angepasst.
   const updateSplit = () => {
     if (!customSplit) {

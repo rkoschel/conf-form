@@ -39,7 +39,7 @@ final class EventsTest extends DbTestCase
 
         $slots = event_find($id)['slots'];
 
-        $this->assertSame(['group_5', 'group_4'], $slots[0]['childcare']);
+        $this->assertSame(['group_4', 'group_5'], $slots[0]['childcare']);
         $this->assertSame([], $slots[1]['childcare']);
     }
 
@@ -56,6 +56,23 @@ final class EventsTest extends DbTestCase
         $this->assertSame('Neu', $event['title']);
         $this->assertSame(['Start'], array_column($event['slots'], 'label'));
         $this->assertSame(1, $this->rowCount('events'));
+    }
+
+    public function testSavesAndLoadsPersonGroups(): void
+    {
+        $id = event_save(null, $this->data(['person_groups' => ['group_1' => 'Eltern', 'group_5' => 'Babys']]));
+
+        $this->assertSame(['group_1' => 'Eltern', 'group_5' => 'Babys'], event_find($id)['groups']);
+    }
+
+    public function testNewEventTakesGroupsOfLastCreatedEvent(): void
+    {
+        $this->assertSame(person_groups_default(), event_last_groups(), 'ohne Veranstaltung: Standard');
+
+        event_save(null, $this->data(['person_groups' => ['group_1' => 'Erste']]));
+        event_save(null, $this->data(['person_groups' => ['group_2' => 'Zweite', 'group_3' => 'Kinder']]));
+
+        $this->assertSame(['group_2' => 'Zweite', 'group_3' => 'Kinder'], event_last_groups());
     }
 
     public function testSavingActiveEventDeactivatesOthers(): void

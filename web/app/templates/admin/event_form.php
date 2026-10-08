@@ -45,7 +45,7 @@
     <div class="col-12">
       <div class="form-text mt-0">
         Die Anmeldefrist liegt spätestens zum Beginn des ersten Programmpunkts.
-        Kinder von 0–2 Jahren zählen nicht zum Kontingent.
+        Alle Personengruppen zählen zum Kontingent.
       </div>
     </div>
     <div class="col-12">
@@ -64,6 +64,49 @@
     </div>
   </fieldset>
 
+  <?php
+  // Personengruppen: Auswahl und Namen; Namen der Kindergruppen auch für die Kinderbetreuung im Ablauf
+  $selectedGroups = (array) ($form['person_groups'] ?? []);
+  $groupNames = (array) ($form['group_names'] ?? []) + person_groups_default();
+  ?>
+  <fieldset>
+    <legend class="h5">Personengruppen</legend>
+    <?php if ($slotsLocked): ?>
+      <div class="alert alert-info small">
+        Es gibt bereits Anmeldungen – die Auswahl der Personengruppen kann nicht mehr geändert werden, die Namen schon.
+      </div>
+    <?php endif ?>
+    <div class="vstack gap-2 form-narrow">
+      <?php foreach (PERSON_GROUPS as $key => $group): ?>
+        <?php $number = substr($key, -1) ?>
+        <div class="row g-2 align-items-center">
+          <div class="col-auto">
+            <input class="form-check-input" type="checkbox" name="person_groups[]" value="<?= e($key) ?>"
+                   id="g-<?= e($key) ?>" data-person-group="<?= e($key) ?>"
+                   <?= in_array($key, $selectedGroups, true) ? 'checked' : '' ?><?= $slotsLocked ? ' disabled' : '' ?>>
+          </div>
+          <div class="col-5 col-sm-4">
+            <label class="form-check-label small" for="g-<?= e($key) ?>">
+              Gruppe <?= e($number) ?> <span class="text-body-secondary">· <?= e(PERSON_GROUP_TYPES[$group['type']]) ?></span>
+            </label>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control form-control-sm" name="group_names[<?= e($key) ?>]"
+                   value="<?= e($groupNames[$key]) ?>" data-group-name="<?= e($key) ?>"
+                   aria-label="Name von Gruppe <?= e($number) ?>">
+          </div>
+        </div>
+      <?php endforeach ?>
+    </div>
+    <?php if (isset($errors['person_groups'])): ?>
+      <div class="text-danger small mt-2"><?= e($errors['person_groups']) ?></div>
+    <?php endif ?>
+    <div class="form-text">
+      Nur die gewählten Gruppen erscheinen im Anmeldeformular, in Mails und in der Auswertung, mit diesen Namen.
+      Alle Gruppen zählen zur Belegung. Für die Kinderbetreuung sind nur Kindergruppen wählbar.
+    </div>
+  </fieldset>
+
   <fieldset>
     <legend class="h5">Ablauf</legend>
     <?php if ($slotsLocked): ?>
@@ -75,7 +118,7 @@
           <li class="list-group-item">
             <strong><?= e($slot['time']) ?></strong> <?= e($slot['label']) ?>
             <?php if ($slot['childcare']): ?>
-              <span class="text-body-secondary small">· Kinderbetreuung <?= e(childcare_ages($slot['childcare'])) ?> Jahre</span>
+              <span class="text-body-secondary small">· Kinderbetreuung für <?= e(childcare_names($slot['childcare'], $groupNames)) ?></span>
             <?php endif ?>
           </li>
         <?php endforeach ?>
@@ -98,7 +141,7 @@
       <button type="button" class="btn btn-outline-secondary btn-sm" data-add-slot>+ Programmpunkt</button>
       <div class="form-text">
         Wird automatisch nach Uhrzeit sortiert. Leere Zeilen werden ignoriert.
-        Kinderbetreuung: Kinder der gewählten Altersgruppen werden bei der Anmeldung automatisch für die Betreuung gezählt.
+        Kinderbetreuung: Kinder der gewählten Kindergruppen werden bei der Anmeldung automatisch für die Betreuung gezählt.
       </div>
       <template id="slot-row-template">
         <?php $row = ['index' => '__INDEX__', 'time' => '', 'label' => '', 'childcare' => false, 'groups' => []] ?>

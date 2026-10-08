@@ -15,7 +15,7 @@ $errors = [];
 if (is_post()) {
     csrf_check();
     $form = $_POST;
-    [$data, $errors] = registration_validate($_POST, $event['slots']);
+    [$data, $errors] = registration_validate($_POST, $event['slots'], null, array_keys($event['groups']));
     $status = post_string('status');
     if (!isset(STATUS_LABELS[$status])) {
         $errors['status'] = 'Bitte einen Status auswählen.';

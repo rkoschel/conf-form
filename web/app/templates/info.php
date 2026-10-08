@@ -30,7 +30,7 @@
         <span>
           <?= e($slot['label']) ?>
           <?php if ($slot['childcare']): ?>
-            <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'])) ?></span>
+            <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], event_groups($event))) ?></span>
           <?php endif ?>
         </span>
       </li>

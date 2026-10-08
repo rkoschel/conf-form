@@ -22,6 +22,8 @@ final class EventValidationTest extends TestCase
             'organizer_email' => '',
             'active' => false,
             'slots' => [['time' => '10:00', 'label' => 'Begrüßung']],
+            'person_groups' => array_keys(PERSON_GROUPS),
+            'group_names' => person_groups_default(),
         ];
     }
 
@@ -161,7 +163,7 @@ final class EventValidationTest extends TestCase
         ]));
 
         $this->assertSame([], $errors);
-        $this->assertSame(['group_5', 'group_4'], $data['slots'][0]['childcare'], 'jüngste zuerst, Jugend/Unbekanntes verworfen');
+        $this->assertSame(['group_4', 'group_5'], $data['slots'][0]['childcare'], 'feste Reihenfolge, Jugend/Unbekanntes verworfen');
         $this->assertSame([], $data['slots'][1]['childcare'], 'ohne Schalter keine Betreuung');
     }
 
@@ -174,7 +176,52 @@ final class EventValidationTest extends TestCase
             ],
         ]));
 
-        $this->assertSame('Programmpunkt 2: Altersgruppen für die Kinderbetreuung auswählen.', $errors['slots']);
+        $this->assertSame('Programmpunkt 2: Kindergruppen für die Kinderbetreuung auswählen.', $errors['slots']);
+    }
+
+    public function testParsesSelectedGroupsWithNames(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'person_groups' => ['group_3', 'group_1', 'x'],
+            'group_names' => ['group_1' => '  Erwachsene  ', 'group_3' => 'Kinder 0–11', 'group_2' => 'nicht gewählt'],
+        ]));
+
+        $this->assertSame([], $errors);
+        $this->assertSame(['group_1' => 'Erwachsene', 'group_3' => 'Kinder 0–11'], $data['person_groups']);
+    }
+
+    public function testRequiresAtLeastOneGroupAndNames(): void
+    {
+        [, $errors] = event_validate($this->input(['person_groups' => []]));
+        $this->assertSame('Bitte mindestens eine Personengruppe auswählen.', $errors['person_groups']);
+
+        [, $errors] = event_validate($this->input(['person_groups' => ['group_1'], 'group_names' => ['group_1' => ' ']]));
+        $this->assertSame('Bitte für jede gewählte Personengruppe einen Namen angeben.', $errors['person_groups']);
+    }
+
+    public function testChildcareOnlyForSelectedKidsGroups(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'person_groups' => ['group_1', 'group_4'],
+            'slots' => [
+                ['time' => '10:00', 'label' => 'A', 'childcare' => '1', 'childcare_groups' => ['group_4', 'group_5']],
+                ['time' => '14:00', 'label' => 'B', 'childcare' => '1', 'childcare_groups' => ['group_5']],
+            ],
+        ]));
+
+        $this->assertSame(['group_4'], $data['slots'][0]['childcare'], 'nicht gewählte Kindergruppe verworfen');
+        $this->assertSame('Programmpunkt 2: Kindergruppen für die Kinderbetreuung auswählen.', $errors['slots']);
+    }
+
+    public function testLockedGroupsKeepSelectionButAllowRenaming(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'person_groups' => ['group_1', 'group_2'],
+            'group_names' => ['group_1' => 'Eltern', 'group_2' => 'Teens'],
+        ]), null, ['group_1' => 'Erwachsene']);
+
+        $this->assertSame([], $errors);
+        $this->assertSame(['group_1' => 'Eltern'], $data['person_groups']);
     }
 
     public function testIgnoresMalformedSlotInput(): void

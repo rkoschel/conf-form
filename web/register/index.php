@@ -18,7 +18,8 @@ if ($event === null || !event_registration_open($event)) {
     exit;
 }
 
-$form = ['group_1' => '1', 'attend' => array_fill_keys(array_column($event['slots'], 'id'), '1')];
+// Vorbelegung: eine Person in der ersten Gruppe der Veranstaltung
+$form = [array_key_first($event['groups']) => '1', 'attend' => array_fill_keys(array_column($event['slots'], 'id'), '1')];
 $errors = [];
 $notice = null;
 
@@ -36,7 +37,12 @@ if (is_post()) {
         $notice = spam_message($spam);
     } else {
         csrf_check();
-        [$data, $errors] = registration_validate($_POST, $event['slots'], (int) $event['max_participants']);
+        [$data, $errors] = registration_validate(
+            $_POST,
+            $event['slots'],
+            (int) $event['max_participants'],
+            array_keys($event['groups'])
+        );
         if (!$errors) {
             $registration = registration_create($event, $data);
             mail_registration(

@@ -8,6 +8,8 @@ final class AdminEventsTest extends HttpTestCase
     {
         return $overrides + [
             'csrf' => $this->csrfToken('/admin/event.php'),
+            'person_groups' => array_keys(PERSON_GROUPS),
+            'group_names' => person_groups_default(),
             'title' => $title,
             'date' => '01.05.2027',
             'location' => 'Hamm',
@@ -107,7 +109,61 @@ final class AdminEventsTest extends HttpTestCase
         ]));
 
         $this->assertSame(200, $response['status']);
-        $this->assertStringContainsString('Altersgruppen für die Kinderbetreuung auswählen.', $response['body']);
+        $this->assertStringContainsString('Kindergruppen für die Kinderbetreuung auswählen.', $response['body']);
+    }
+
+    public function testPersonGroupsAreSavedAndPrefilledForNewEvents(): void
+    {
+        $id = $this->createEvent('Gruppen-Test', [
+            'person_groups' => ['group_1', 'group_4'],
+            'group_names' => ['group_1' => 'Eltern', 'group_4' => 'Kinder 3–6', 'group_2' => 'egal'],
+        ]);
+
+        $edit = $this->get("/admin/event.php?id=$id")['body'];
+        $this->assertMatchesRegularExpression('#value="group_1"\s+id="g-group_1" data-person-group="group_1"\s+checked#', $edit);
+        $this->assertMatchesRegularExpression('#value="group_2"\s+id="g-group_2" data-person-group="group_2"\s+>#', $edit, 'nicht gewählt');
+        $this->assertStringContainsString('name="group_names[group_1]"' . "\n" . '                   value="Eltern"', $edit);
+
+        $new = $this->get('/admin/event.php')['body'];
+        $this->assertMatchesRegularExpression('#data-person-group="group_4"\s+checked#', $new, 'neue Veranstaltung übernimmt die zuletzt angelegte');
+        $this->assertStringContainsString('value="Kinder 3–6"', $new);
+        $this->assertMatchesRegularExpression('#data-childcare-option="group_5" hidden#', $new, 'nicht gewählte Kindergruppe in der Betreuung ausgeblendet');
+        $this->assertStringNotContainsString('data-childcare-option="group_2"', $new, 'Jugendliche nicht betreubar');
+    }
+
+    public function testGroupSelectionIsLockedOnceRegistrationsExistButNamesStayEditable(): void
+    {
+        $id = $this->createEvent('Gesperrt-Test', [
+            'person_groups' => ['group_1', 'group_2'],
+            'group_names' => ['group_1' => 'Erwachsene', 'group_2' => 'Jugendliche'],
+        ]);
+        $this->serverDb()->prepare(
+            "INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, group_1, status, cancel_token)
+             VALUES (?, ?, 'A', 'B', 'Hamm', 1, 'pending', ?)"
+        )->execute([$id, now_utc(), bin2hex(random_bytes(32))]);
+
+        $edit = $this->get("/admin/event.php?id=$id")['body'];
+        $this->assertStringContainsString('die Auswahl der Personengruppen kann nicht mehr geändert werden', $edit);
+        $this->assertMatchesRegularExpression('#data-person-group="group_3"\s+disabled#', $edit);
+
+        $response = $this->post("/admin/event.php?id=$id", $this->formData('Gesperrt-Test', [
+            'csrf' => $this->csrfToken("/admin/event.php?id=$id"),
+            'person_groups' => ['group_3'],
+            'group_names' => ['group_1' => 'Eltern', 'group_2' => 'Teens', 'group_3' => 'Kinder'],
+        ]));
+
+        $this->assertSame(303, $response['status']);
+        $stmt = $this->serverDb()->prepare('SELECT person_groups FROM events WHERE id = ?');
+        $stmt->execute([$id]);
+        $this->assertSame(['group_1' => 'Eltern', 'group_2' => 'Teens'], json_decode((string) $stmt->fetchColumn(), true));
+    }
+
+    public function testNoGroupSelectedShowsError(): void
+    {
+        $response = $this->post('/admin/event.php', $this->formData('Ohne Gruppe', ['person_groups' => []]));
+
+        $this->assertSame(200, $response['status']);
+        $this->assertStringContainsString('Bitte mindestens eine Personengruppe auswählen.', $response['body']);
     }
 
     public function testUnknownEventReturns404(): void

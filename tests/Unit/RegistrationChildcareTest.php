@@ -28,7 +28,7 @@ final class RegistrationChildcareTest extends TestCase
 
         $this->assertSame(
             ['group_1' => 2, 'group_2' => 0, 'group_3' => 1, 'group_4' => 0, 'group_5' => 0,
-             'childcare_group_5' => 1, 'childcare_group_4' => 2, 'childcare_group_3' => 0],
+             'childcare_group_3' => 0, 'childcare_group_4' => 2, 'childcare_group_5' => 1],
             $slots[1],
             'betreute Gruppen in der Betreuung, 7–12 (nicht betreut) beim Programmpunkt'
         );
@@ -71,7 +71,7 @@ final class RegistrationChildcareTest extends TestCase
     {
         $slots = $this->validate(['group_1' => '0', 'group_3' => '0', 'attend' => ['1' => '1']]);
 
-        $this->assertSame(0, array_sum(array_intersect_key($slots[1], AGE_GROUPS)));
+        $this->assertSame(0, array_sum(array_intersect_key($slots[1], PERSON_GROUPS)));
         $this->assertSame(2, $slots[1]['childcare_group_4']);
     }
 }

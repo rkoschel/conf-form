@@ -55,7 +55,7 @@ final class TeamPageTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#<h1[^>]*>Frühjahrskonferenz &lt;2099&gt;</h1>#', $body);
         $this->assertStringContainsString('Samstag, 02.05.2099', $body);
         $this->assertStringContainsString('Stand', $body);
-        $this->assertStringContainsString('Belegung Kontingent', $body);
+        $this->assertStringContainsString('Gesamtbelegung', $body);
         $this->assertMatchesRegularExpression('#7 <span[^>]*>/ 50</span>#', $body, 'absolute Zahlen für das Team');
         $this->assertStringNotContainsString('name="event"', $body, 'keine Veranstaltungsauswahl');
         $this->assertStringNotContainsString('Konferenz-Admin', $body, 'keine Admin-Navigation');

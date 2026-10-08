@@ -23,7 +23,7 @@ final class RegistrationsTest extends DbTestCase
         $this->assertSame('confirmed', $registration['status']);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $registration['cancel_token']);
         $this->assertMatchesRegularExpression('/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/', $registration['created_at']);
-        $this->assertSame(2, registration_occupied($this->event['id']));
+        $this->assertSame(3, registration_occupied($this->event['id']), 'alle Gruppen zählen');
     }
 
     public function testCreatePutsOtherPlaceOnWaitlist(): void
@@ -39,12 +39,12 @@ final class RegistrationsTest extends DbTestCase
         $this->assertSame('confirmed', $this->register(['congregation' => 'hamm'])['status']);
     }
 
-    public function testQuotaFullGoesToWaitlistAndBabiesDoNotCount(): void
+    public function testQuotaFullGoesToWaitlistAndAllGroupsCount(): void
     {
-        $this->register(['group_1' => 8, 'group_5' => 5]);
+        $this->register(['group_1' => 4, 'group_5' => 4]);
         $this->assertSame('confirmed', $this->register(['group_1' => 2])['status'], 'genau voll');
         $this->assertSame('pending', $this->register(['group_1' => 1])['status']);
-        $this->assertSame('confirmed', $this->register(['group_1' => 0, 'group_5' => 1])['status']);
+        $this->assertSame('pending', $this->register(['group_1' => 0, 'group_5' => 1])['status'], 'auch die jüngste Gruppe braucht einen Platz');
         $this->assertSame(10, registration_occupied($this->event['id']));
     }
 

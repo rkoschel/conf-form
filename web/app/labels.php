@@ -3,20 +3,24 @@ declare(strict_types=1);
 
 // Deutsche UI-Texte für englische DB-Werte (SPEC §8: zentral an einer Stelle)
 
-/** Spalte → Bezeichnung, in der Reihenfolge des Formulars */
-const AGE_GROUPS = [
-    'group_1' => 'Erwachsene',
-    'group_2' => 'Jugendliche ab 13',
-    'group_3' => 'Kinder 7–12',
-    'group_4' => 'Kinder 3–6',
-    'group_5' => 'Kinder 0–2',
+/**
+ * Personengruppen (SPEC §5.1): fünf feste Plätze mit Art und Standardnamen.
+ * Welche Gruppen eine Veranstaltung nutzt und wie sie heißen, steht in
+ * events.person_groups (siehe event_groups()). Reihenfolge = Formular.
+ */
+const PERSON_GROUPS = [
+    'group_1' => ['type' => 'adults', 'default' => 'Erwachsene'],
+    'group_2' => ['type' => 'youth', 'default' => 'Jugendliche'],
+    'group_3' => ['type' => 'kids', 'default' => 'Kindergruppe 3'],
+    'group_4' => ['type' => 'kids', 'default' => 'Kindergruppe 2'],
+    'group_5' => ['type' => 'kids', 'default' => 'Kindergruppe 1'],
 ];
 
-/** Altersgruppen mit möglicher Kinderbetreuung (SPEC §7.1), jüngste zuerst: Spalte → [von, bis] Jahre */
-const CHILDCARE_AGE_GROUPS = [
-    'group_5' => [0, 2],
-    'group_4' => [3, 6],
-    'group_3' => [7, 12],
+/** Art einer Personengruppe; Kinderbetreuung nur für 'kids' */
+const PERSON_GROUP_TYPES = [
+    'adults' => 'Erwachsene',
+    'youth' => 'Jugendliche',
+    'kids' => 'Kindergruppe',
 ];
 
 /** Status einer Anmeldung, in der Reihenfolge der UI (SPEC §7.2) */

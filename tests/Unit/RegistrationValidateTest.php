@@ -107,11 +107,27 @@ final class RegistrationValidateTest extends TestCase
         $this->assertStringNotContainsString('10', $errors['persons'], 'Kapazität wird nicht verraten');
     }
 
-    public function testCapacityExactlyReachedAndBabiesNotLimited(): void
+    public function testCapacityCountsAllGroups(): void
     {
-        [, $errors] = registration_validate($this->input(['group_1' => '10', 'group_5' => '5']), self::SLOTS, 10);
+        [, $errors] = registration_validate($this->input(['group_1' => '5', 'group_5' => '5']), self::SLOTS, 10);
+        $this->assertSame([], $errors, 'genau voll');
 
-        $this->assertSame([], $errors);
+        [, $errors] = registration_validate($this->input(['group_1' => '10', 'group_5' => '1']), self::SLOTS, 10);
+        $this->assertArrayHasKey('persons', $errors, 'auch die jüngste Gruppe zählt');
+    }
+
+    public function testGroupsNotSelectedForEventAreZero(): void
+    {
+        [$data, $errors] = registration_validate(
+            $this->input(['group_1' => '2', 'group_2' => '3', 'group_5' => 'kaputt', 'attend' => ['10' => '1']]),
+            self::SLOTS,
+            null,
+            ['group_1', 'group_4']
+        );
+
+        $this->assertSame([], $errors, 'Eingaben nicht gewählter Gruppen werden ignoriert');
+        $this->assertSame([2, 0, 0], [$data['group_1'], $data['group_2'], $data['group_5']]);
+        $this->assertSame(0, $data['slots'][10]['group_2']);
     }
 
     public function testWithoutCapacityNoUpperLimit(): void
@@ -132,10 +148,10 @@ final class RegistrationValidateTest extends TestCase
         $this->assertFalse($data['custom_split']);
         $this->assertSame(
             ['group_1' => 2, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 1],
-            array_intersect_key($data['slots'][10], AGE_GROUPS)
+            array_intersect_key($data['slots'][10], PERSON_GROUPS)
         );
         $this->assertSame(0, $data['slots'][10]['childcare_group_5'], 'ohne Betreuungsangebot keine Betreuung');
-        $this->assertSame(array_fill_keys(array_keys(AGE_GROUPS), 0), array_intersect_key($data['slots'][11], AGE_GROUPS));
+        $this->assertSame(array_fill_keys(array_keys(PERSON_GROUPS), 0), array_intersect_key($data['slots'][11], PERSON_GROUPS));
     }
 
     public function testCustomSplitPerSlotAndGroup(): void

@@ -5,26 +5,22 @@ declare(strict_types=1);
 // Admin-Funktionen (SPEC §5, §6, §7.2–7.4, §7.6)
 
 /**
- * Größere Anmeldungen (Personen gesamt inkl. 0–2) werden nie automatisch
- * bestätigt, sondern kommen zur Prüfung auf die Warteliste.
+ * Größere Anmeldungen (Personen gesamt) werden nie automatisch bestätigt,
+ * sondern kommen zur Prüfung auf die Warteliste.
  */
 const AUTO_CONFIRM_MAX_PERSONS = 99;
 
-/** Personen, die zum Kontingent zählen */
+/** Personen, die zum Kontingent zählen: alle Personengruppen (SPEC §5.3) */
 function registration_group_size(array $counts): int
 {
-    $size = 0;
-    foreach (QUOTA_AGE_GROUPS as $group) {
-        $size += (int) ($counts[$group] ?? 0);
-    }
-    return $size;
+    return registration_person_count($counts);
 }
 
-/** Alle Personen inkl. Kinder 0–2 */
+/** Alle Personen über alle Personengruppen */
 function registration_person_count(array $counts): int
 {
     $count = 0;
-    foreach (array_keys(AGE_GROUPS) as $group) {
+    foreach (array_keys(PERSON_GROUPS) as $group) {
         $count += (int) ($counts[$group] ?? 0);
     }
     return $count;
@@ -96,18 +92,21 @@ function registration_duplicate_ids(array $rows): array
  * Prüft und normalisiert die Eingaben des Anmeldeformulars.
  *
  * $input: first_name, last_name, congregation, email, phone, no_email,
- * Anzahlen je Altersgruppe (AGE_GROUPS), custom_split,
+ * Anzahlen je Personengruppe (group_1 … group_5), custom_split,
  * attend[slot_id] (Checkbox je Programmpunkt, ohne Aufteilung),
- * split[slot_id][Altersgruppe] (Anzahlen, mit Aufteilung).
+ * split[slot_id][group_x] (Anzahlen, mit Aufteilung).
  *
- * Mit $maxParticipants (öffentliches Formular) dürfen die Personen ohne
- * Kinder 0–2 die Kapazität nicht überschreiten; der Admin darf überbuchen.
+ * Mit $maxParticipants (öffentliches Formular) dürfen die Personen die
+ * Kapazität nicht überschreiten; der Admin darf überbuchen. Gruppen, die
+ * nicht in $groups stehen (nicht gewählt bei der Veranstaltung), sind 0.
  *
  * @param list<array<string, mixed>> $slots Programmpunkte der Veranstaltung (mit id)
+ * @param list<string>|null $groups Personengruppen der Veranstaltung (null = alle)
  * @return array{0: array<string, mixed>, 1: array<string, string>} [Daten, Fehler je Feld]
  */
-function registration_validate(array $input, array $slots, ?int $maxParticipants = null): array
+function registration_validate(array $input, array $slots, ?int $maxParticipants = null, ?array $groups = null): array
 {
+    $groups ??= array_keys(PERSON_GROUPS);
     $errors = [];
     $string = fn (string $key): string => is_string($input[$key] ?? null) ? $input[$key] : '';
 
@@ -137,7 +136,11 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
         $errors['email'] = 'Bitte eine gültige E-Mail-Adresse angeben.';
     }
 
-    foreach (AGE_GROUPS as $group => $label) {
+    foreach (array_keys(PERSON_GROUPS) as $group) {
+        if (!in_array($group, $groups, true)) {
+            $data[$group] = 0;
+            continue;
+        }
         $count = registration_parse_count($input[$group] ?? '');
         if ($count === null) {
             $errors[$group] = 'Bitte eine ganze Zahl ab 0 angeben.';
@@ -150,7 +153,7 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
     } elseif ($maxParticipants !== null && registration_group_size($data) > $maxParticipants) {
         // Kapazität bewusst nicht nennen (wird öffentlich nicht angezeigt, SPEC §4)
         $errors['persons'] = 'So viele Personen können wir leider nicht anmelden. Bitte nimm Kontakt mit uns auf.';
-        foreach (QUOTA_AGE_GROUPS as $group) {
+        foreach ($groups as $group) {
             $errors[$group] ??= '';
         }
     }
@@ -164,7 +167,7 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
         $childcare = $slot['childcare'] ?? [];
         $attending = !$data['custom_split'] && !empty($attend[$slotId]);
         $counts = [];
-        foreach (array_keys(AGE_GROUPS) as $group) {
+        foreach (array_keys(PERSON_GROUPS) as $group) {
             if ($data['custom_split']) {
                 $value = is_array($split[$slotId] ?? null) ? ($split[$slotId][$group] ?? '') : '';
                 $count = registration_parse_count($value);
@@ -181,7 +184,7 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
         // Kinderbetreuung je betreuter Gruppe: alle nicht beim Programmpunkt, sofern
         // jemand der Anmeldung den Programmpunkt besucht (SPEC §5.4)
         $present = $attending || array_sum($counts) > 0;
-        foreach (array_keys(CHILDCARE_AGE_GROUPS) as $group) {
+        foreach (kids_groups(array_keys(PERSON_GROUPS)) as $group) {
             $counts['childcare_' . $group] = $present && in_array($group, $childcare, true)
                 ? max($data[$group] - $counts[$group], 0)
                 : 0;
@@ -215,7 +218,7 @@ function registration_parse_count(mixed $value): ?int
 function registration_occupied(int $eventId, ?int $excludeId = null): int
 {
     $stmt = db()->prepare(
-        "SELECT COALESCE(SUM(group_1 + group_2 + group_3 + group_4), 0) FROM registrations
+        'SELECT COALESCE(SUM(' . implode(' + ', array_keys(PERSON_GROUPS)) . "), 0) FROM registrations
          WHERE event_id = ? AND status = 'confirmed' AND id != ?"
     );
     $stmt->execute([$eventId, $excludeId ?? 0]);
@@ -299,7 +302,7 @@ function registration_update(int $id, array $data, string $status): void
     });
 }
 
-/** @param array<int, array<string, int>> $slots slot_id → Anzahl je Altersgruppe */
+/** @param array<int, array<string, int>> $slots slot_id → Anzahl je Personengruppe */
 function registration_save_slots(PDO $pdo, int $registrationId, array $slots): void
 {
     $stmt = $pdo->prepare(
@@ -336,7 +339,7 @@ function registration_find_by_token(string $token): ?array
     return $stmt->fetch() ?: null;
 }
 
-/** @return array<int, array<string, int>> slot_id → Anzahl je Altersgruppe beim Programmpunkt und childcare_* (Kinderbetreuung) */
+/** @return array<int, array<string, int>> slot_id → Anzahl je Personengruppe beim Programmpunkt und childcare_* (Kinderbetreuung) */
 function registration_slot_counts(int $registrationId): array
 {
     $stmt = db()->prepare(
@@ -384,7 +387,7 @@ function registration_assert_status(string $status): void
 
 /**
  * Anmeldungen einer Veranstaltung für die Admin-Tabelle (§7.2), älteste
- * zuerst. Zusätzliche Felder: person_count (inkl. 0–2), is_preferred_place,
+ * zuerst. Zusätzliche Felder: person_count (alle Gruppen), is_preferred_place,
  * is_duplicate (über alle Status der Veranstaltung).
  *
  * @param string|null $search Teilstring in Name, Ort oder E-Mail (Groß-/Kleinschreibung egal)

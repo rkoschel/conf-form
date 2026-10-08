@@ -54,7 +54,8 @@ function mail_registration(string $type, array $registration, array $event): boo
 function mail_vars(array $registration, array $event): array
 {
     $people = [];
-    foreach (AGE_GROUPS as $column => $label) {
+    // Personengruppen mit den Namen der Veranstaltung
+    foreach (event_groups($event) as $column => $label) {
         $count = (int) ($registration[$column] ?? 0);
         if ($count > 0) {
             $people[$label] = $count;

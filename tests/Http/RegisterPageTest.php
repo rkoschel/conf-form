@@ -73,7 +73,7 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertStringContainsString('data-split-reset-confirm', $body);
     }
 
-    /** Programmpunkt „Vortrag“ bekommt Kinderbetreuung für 0–6 */
+    /** Programmpunkt „Vortrag“ bekommt Kinderbetreuung für die Gruppen 4 und 5 */
     private function withChildcare(): void
     {
         db()->prepare("UPDATE event_slots SET childcare = 'group_5,group_4' WHERE id = ?")
@@ -89,9 +89,9 @@ final class RegisterPageTest extends HttpTestCase
         $vortrag = $this->event['slots'][0]['id'];
         $jugend = $this->event['slots'][1]['id'];
 
-        $this->assertSame(2, substr_count($body, 'Parallel Kinderbetreuung für Kinder von 0–6 Jahren'), 'Ankreuzen und Aufteilung');
+        $this->assertSame(2, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 1'), 'Ankreuzen und Aufteilung');
         $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint hidden>#', $body, 'ohne Kinder kein Hinweis');
-        $this->assertStringContainsString('10:00 Uhr Vortrag: Kinder von 0–6 Jahren', $body);
+        $this->assertStringContainsString('10:00 Uhr Vortrag: Kindergruppe 2 und Kindergruppe 1', $body);
         $this->assertStringContainsString('data-childcare-split-hint hidden', $body);
         $this->assertMatchesRegularExpression('#name="split\[' . $vortrag . '\]\[group_4\]"\s+value="0"#', $body, 'betreute Gruppe mit 0 vorbelegt');
         $this->assertMatchesRegularExpression('#data-childcare-slot=""#', $body, 'Programmpunkt ohne Betreuung');
@@ -120,6 +120,30 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertSame([2, 0, 2, 1], [
             $counts['group_1'], $counts['group_4'], $counts['childcare_group_4'], $counts['childcare_group_5'],
         ]);
+    }
+
+    public function testShowsOnlyEventGroupsWithTheirNames(): void
+    {
+        db()->prepare('UPDATE events SET person_groups = ? WHERE id = ?')
+            ->execute(['{"group_1":"Eltern","group_4":"Kinder 3–6"}', $this->event['id']]);
+
+        $body = $this->get('/register/')['body'];
+
+        $this->assertStringContainsString('>Eltern</label>', $body);
+        $this->assertStringContainsString('>Kinder 3–6</label>', $body);
+        $this->assertStringNotContainsString('data-count="group_2"', $body);
+        $this->assertStringNotContainsString('data-count="group_5"', $body);
+        $this->assertMatchesRegularExpression('#name="group_1"\s+value="1"|name="group_1" value="1"#', $body, 'eine Person in der ersten Gruppe vorbelegt');
+    }
+
+    public function testGroupsNotOfferedAreIgnoredOnSubmit(): void
+    {
+        db()->prepare('UPDATE events SET person_groups = ? WHERE id = ?')->execute(['{"group_1":"Eltern"}', $this->event['id']]);
+
+        $this->submit(['group_1' => '2', 'group_5' => '7']);
+
+        $registration = $this->registrations()[0];
+        $this->assertSame([2, 0], [(int) $registration['group_1'], (int) $registration['group_5']]);
     }
 
     public function testPreferredPlaceIsConfirmedWithMail(): void
