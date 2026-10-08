@@ -126,6 +126,16 @@
   margin-top: 2rem;
 }
 
+/* Überzeile über dem Titel, z. B. „Anmeldung“ */
+.invitation-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bs-secondary-color);
+  margin-bottom: 0.5rem;
+}
+
 /* Kopf: Titel in Serifenschrift (Systemschriften, nichts extern), Eckdaten dezent */
 .invitation-header {
   text-align: center;
@@ -219,4 +229,19 @@
   .invitation-time {
     flex-basis: 4.75rem;
   }
+}
+
+/* Öffentliche Seiten: leicht getönter Hintergrund, damit die Karten sich absetzen */
+.public-page {
+  --app-page-bg: #eef0f3;
+  background-color: var(--app-page-bg);
+}
+
+[data-bs-theme="dark"] .public-page {
+  --app-page-bg: #16191c;
+}
+
+/* Tabellen (z. B. Team-Auswertung) ohne eigene Fläche auf dem getönten Hintergrund */
+.public-page .table {
+  --bs-table-bg: transparent;
 }
