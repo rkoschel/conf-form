@@ -197,10 +197,14 @@
   white-space: nowrap;
 }
 
-/* Fuß: Belegung und Buttons zentriert; Belegungskachel ohne eigenen Rahmen */
+/* Fuß: Belegung und Button zentriert; Belegungskachel ohne eigenen Rahmen */
 .invitation-footer .card {
   border-color: var(--bs-border-color-translucent);
   background: transparent;
+}
+
+.invitation-footer > :last-child {
+  margin-bottom: 0;
 }
 
 @media (max-width: 575.98px) {

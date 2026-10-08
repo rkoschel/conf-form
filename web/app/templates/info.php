@@ -47,11 +47,14 @@
       <div class="alert alert-secondary" role="status">Der Anmeldezeitraum ist abgelaufen.</div>
     <?php endif ?>
 
-    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center">
-      <?php if ($registrationOpen): ?>
+    <?php if ($registrationOpen): ?>
+      <div class="text-center">
         <a href="<?= e(url('register/')) ?>" class="btn btn-primary btn-lg px-5">Anmelden</a>
-      <?php endif ?>
-      <a href="<?= e(config('info_url')) ?>" class="btn btn-link">Weitere Informationen</a>
-    </div>
+      </div>
+    <?php endif ?>
   </footer>
 </article>
+
+<p class="text-center mt-4 mb-0">
+  <a href="<?= e(config('info_url')) ?>" class="link-secondary">Weitere Informationen</a>
+</p>
