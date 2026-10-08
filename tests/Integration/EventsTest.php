@@ -33,13 +33,13 @@ final class EventsTest extends DbTestCase
     public function testSavesAndLoadsChildcarePerSlot(): void
     {
         $id = event_save(null, $this->data(['slots' => [
-            ['time' => '10:00', 'label' => 'Vortrag', 'childcare' => ['kids_0_2', 'kids_3_6']],
+            ['time' => '10:00', 'label' => 'Vortrag', 'childcare' => ['group_5', 'group_4']],
             ['time' => '14:00', 'label' => 'Mittag', 'childcare' => []],
         ]]));
 
         $slots = event_find($id)['slots'];
 
-        $this->assertSame(['kids_0_2', 'kids_3_6'], $slots[0]['childcare']);
+        $this->assertSame(['group_5', 'group_4'], $slots[0]['childcare']);
         $this->assertSame([], $slots[1]['childcare']);
     }
 

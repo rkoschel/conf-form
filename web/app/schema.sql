@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS events (
   max_participants      INTEGER NOT NULL,
   organizer_name        TEXT NOT NULL DEFAULT '',
   organizer_email       TEXT NOT NULL DEFAULT '',
+  person_groups         TEXT NOT NULL DEFAULT '', -- JSON {"group_1":"Erwachsene",…} gewählte Gruppen + Namen; '' = alle, Standardnamen
   active                INTEGER NOT NULL DEFAULT 0
 );
 CREATE UNIQUE INDEX IF NOT EXISTS one_active_event ON events(active) WHERE active = 1;
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS event_slots (
   time     TEXT NOT NULL,                       -- HH:MM
   label    TEXT NOT NULL,
   sort     INTEGER NOT NULL DEFAULT 0,
-  childcare TEXT NOT NULL DEFAULT ''            -- betreute Gruppen, z. B. 'kids_3_6,kids_0_2'; '' = keine
+  childcare TEXT NOT NULL DEFAULT ''            -- betreute Gruppen, z. B. 'group_4,group_5'; '' = keine
 );
 
 CREATE TABLE IF NOT EXISTS registrations (
@@ -41,11 +42,11 @@ CREATE TABLE IF NOT EXISTS registrations (
   email        TEXT,
   phone        TEXT,
   no_email     INTEGER NOT NULL DEFAULT 0,
-  adults       INTEGER NOT NULL DEFAULT 0,
-  youth        INTEGER NOT NULL DEFAULT 0,
-  kids_7_12    INTEGER NOT NULL DEFAULT 0,
-  kids_3_6     INTEGER NOT NULL DEFAULT 0,
-  kids_0_2     INTEGER NOT NULL DEFAULT 0,
+  group_1         INTEGER NOT NULL DEFAULT 0,
+  group_2         INTEGER NOT NULL DEFAULT 0,
+  group_3         INTEGER NOT NULL DEFAULT 0,
+  group_4         INTEGER NOT NULL DEFAULT 0,
+  group_5         INTEGER NOT NULL DEFAULT 0,
   custom_split INTEGER NOT NULL DEFAULT 0,
   status       TEXT NOT NULL CHECK (status IN
                  ('pending','confirmed','cancelled','rejected')),
@@ -56,14 +57,14 @@ CREATE INDEX IF NOT EXISTS registrations_event ON registrations(event_id);
 CREATE TABLE IF NOT EXISTS registration_slots (
   registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
   slot_id         INTEGER NOT NULL REFERENCES event_slots(id) ON DELETE CASCADE,
-  adults          INTEGER NOT NULL DEFAULT 0,
-  youth           INTEGER NOT NULL DEFAULT 0,
-  kids_7_12       INTEGER NOT NULL DEFAULT 0,
-  kids_3_6        INTEGER NOT NULL DEFAULT 0,
-  kids_0_2        INTEGER NOT NULL DEFAULT 0,
-  childcare_kids_7_12 INTEGER NOT NULL DEFAULT 0, -- Kinder in der Betreuung (SPEC §5.4)
-  childcare_kids_3_6  INTEGER NOT NULL DEFAULT 0,
-  childcare_kids_0_2  INTEGER NOT NULL DEFAULT 0,
+  group_1         INTEGER NOT NULL DEFAULT 0,
+  group_2         INTEGER NOT NULL DEFAULT 0,
+  group_3         INTEGER NOT NULL DEFAULT 0,
+  group_4         INTEGER NOT NULL DEFAULT 0,
+  group_5         INTEGER NOT NULL DEFAULT 0,
+  childcare_group_3 INTEGER NOT NULL DEFAULT 0, -- Kinder in der Betreuung (SPEC §5.4)
+  childcare_group_4 INTEGER NOT NULL DEFAULT 0,
+  childcare_group_5 INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (registration_id, slot_id)
 );
 

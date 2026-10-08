@@ -22,7 +22,31 @@ const DB_MIGRATIONS = [
          FROM (SELECT MIN(name) AS name FROM preferred_places GROUP BY name COLLATE NOCASE ORDER BY name COLLATE NOCASE)",
         'DROP TABLE preferred_places',
     ],
+    // Personengruppen statt fester Altersgruppen (SPEC §5.1, §7.1): Spalten
+    // umbenennen (Reihenfolge bleibt: Erwachsene, Jugendliche, Kinder alt→jung),
+    // Auswahl und Namen je Veranstaltung ('' = alle Gruppen, Standardnamen)
+    3 => [
+        'ALTER TABLE registrations RENAME COLUMN adults TO group_1',
+        'ALTER TABLE registrations RENAME COLUMN youth TO group_2',
+        'ALTER TABLE registrations RENAME COLUMN kids_7_12 TO group_3',
+        'ALTER TABLE registrations RENAME COLUMN kids_3_6 TO group_4',
+        'ALTER TABLE registrations RENAME COLUMN kids_0_2 TO group_5',
+        'ALTER TABLE registration_slots RENAME COLUMN adults TO group_1',
+        'ALTER TABLE registration_slots RENAME COLUMN youth TO group_2',
+        'ALTER TABLE registration_slots RENAME COLUMN kids_7_12 TO group_3',
+        'ALTER TABLE registration_slots RENAME COLUMN kids_3_6 TO group_4',
+        'ALTER TABLE registration_slots RENAME COLUMN kids_0_2 TO group_5',
+        'ALTER TABLE registration_slots RENAME COLUMN childcare_kids_7_12 TO childcare_group_3',
+        'ALTER TABLE registration_slots RENAME COLUMN childcare_kids_3_6 TO childcare_group_4',
+        'ALTER TABLE registration_slots RENAME COLUMN childcare_kids_0_2 TO childcare_group_5',
+        "UPDATE event_slots SET childcare = replace(replace(replace(childcare,
+            'kids_7_12', 'group_3'), 'kids_3_6', 'group_4'), 'kids_0_2', 'group_5')",
+        "ALTER TABLE events ADD COLUMN person_groups TEXT NOT NULL DEFAULT ''",
+    ],
 ];
+
+/** Mindestversion für ALTER TABLE … RENAME COLUMN (Migration 3) */
+const DB_MIN_SQLITE_VERSION = '3.25.0';
 
 /**
  * Die DB-Verbindung der App (aus config('db_path')).
@@ -85,6 +109,10 @@ function db_version(PDO $pdo): int
 function db_upgrade(PDO $pdo): void
 {
     $latest = max(array_keys(DB_MIGRATIONS));
+    $sqlite = (string) $pdo->query('SELECT sqlite_version()')->fetchColumn();
+    if (db_has_schema($pdo) && version_compare($sqlite, DB_MIN_SQLITE_VERSION, '<')) {
+        throw new RuntimeException("SQLite $sqlite ist zu alt für die Datenbank-Migration (mindestens " . DB_MIN_SQLITE_VERSION . ').');
+    }
     $pdo->exec('BEGIN IMMEDIATE');
     try {
         if (!db_has_schema($pdo)) {

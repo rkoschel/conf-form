@@ -77,7 +77,7 @@ final class AdminStatsTest extends HttpTestCase
     {
         $db = $this->serverDb();
         $id = $this->event($db, 'Mit Betreuung', 0, 20);
-        $db->prepare("INSERT INTO event_slots (event_id, time, label, childcare) VALUES (?, '10:00', 'Vortrag', 'kids_0_2,kids_3_6')")
+        $db->prepare("INSERT INTO event_slots (event_id, time, label, childcare) VALUES (?, '10:00', 'Vortrag', 'group_5,group_4')")
             ->execute([$id]);
 
         $body = $this->get("/admin/stats.php?event=$id")['body'];
@@ -114,11 +114,11 @@ final class AdminStatsTest extends HttpTestCase
         return (int) $db->lastInsertId();
     }
 
-    private function registration(PDO $db, int $eventId, string $status, int $adults, int $toddlers): void
+    private function registration(PDO $db, int $eventId, string $status, int $group_1, int $toddlers): void
     {
         $db->prepare(
-            'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, adults, kids_0_2, status, cancel_token)
+            'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, group_1, group_5, status, cancel_token)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        )->execute([$eventId, now_utc(), 'Max', 'Muster', 'Hamm', $adults, $toddlers, $status, bin2hex(random_bytes(32))]);
+        )->execute([$eventId, now_utc(), 'Max', 'Muster', 'Hamm', $group_1, $toddlers, $status, bin2hex(random_bytes(32))]);
     }
 }

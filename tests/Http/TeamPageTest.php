@@ -18,7 +18,7 @@ final class TeamPageTest extends HttpTestCase
         )->execute([$title]);
         $id = (int) db()->lastInsertId();
         db()->prepare(
-            "INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, adults, status, cancel_token)
+            "INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, group_1, status, cancel_token)
              VALUES (?, ?, 'Max', 'Muster', 'Hamm', 7, 'confirmed', ?)"
         )->execute([$id, now_utc(), bin2hex(random_bytes(32))]);
     }

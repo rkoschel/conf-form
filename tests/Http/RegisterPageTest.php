@@ -40,8 +40,8 @@ final class RegisterPageTest extends HttpTestCase
             'last_name' => 'Muster',
             'congregation' => 'hamm',
             'email' => 'anna@example.org',
-            'adults' => '2',
-            'kids_0_2' => '1',
+            'group_1' => '2',
+            'group_5' => '1',
             'attend' => [$slotIds[0] => '1'],
         ]);
     }
@@ -76,7 +76,7 @@ final class RegisterPageTest extends HttpTestCase
     /** Programmpunkt „Vortrag“ bekommt Kinderbetreuung für 0–6 */
     private function withChildcare(): void
     {
-        db()->prepare("UPDATE event_slots SET childcare = 'kids_0_2,kids_3_6' WHERE id = ?")
+        db()->prepare("UPDATE event_slots SET childcare = 'group_5,group_4' WHERE id = ?")
             ->execute([$this->event['slots'][0]['id']]);
         $this->event = event_find((int) $this->event['id']);
     }
@@ -93,7 +93,7 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint hidden>#', $body, 'ohne Kinder kein Hinweis');
         $this->assertStringContainsString('10:00 Uhr Vortrag: Kinder von 0–6 Jahren', $body);
         $this->assertStringContainsString('data-childcare-split-hint hidden', $body);
-        $this->assertMatchesRegularExpression('#name="split\[' . $vortrag . '\]\[kids_3_6\]"\s+value="0"#', $body, 'betreute Gruppe mit 0 vorbelegt');
+        $this->assertMatchesRegularExpression('#name="split\[' . $vortrag . '\]\[group_4\]"\s+value="0"#', $body, 'betreute Gruppe mit 0 vorbelegt');
         $this->assertMatchesRegularExpression('#data-childcare-slot=""#', $body, 'Programmpunkt ohne Betreuung');
         $this->assertStringNotContainsString("$jugend: Kinder", $body);
     }
@@ -102,7 +102,7 @@ final class RegisterPageTest extends HttpTestCase
     {
         $this->withChildcare();
 
-        $response = $this->submit(['first_name' => '', 'kids_3_6' => '2']);
+        $response = $this->submit(['first_name' => '', 'group_4' => '2']);
 
         $this->assertSame(200, $response['status']);
         $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint>#', $response['body']);
@@ -113,12 +113,12 @@ final class RegisterPageTest extends HttpTestCase
         $this->withChildcare();
         $vortrag = $this->event['slots'][0]['id'];
 
-        $this->submit(['kids_3_6' => '2', 'attend' => [$vortrag => '1']]);
+        $this->submit(['group_4' => '2', 'attend' => [$vortrag => '1']]);
 
         $registration = $this->registrations()[0];
         $counts = registration_slot_counts((int) $registration['id'])[$vortrag];
         $this->assertSame([2, 0, 2, 1], [
-            $counts['adults'], $counts['kids_3_6'], $counts['childcare_kids_3_6'], $counts['childcare_kids_0_2'],
+            $counts['group_1'], $counts['group_4'], $counts['childcare_group_4'], $counts['childcare_group_5'],
         ]);
     }
 
@@ -134,8 +134,8 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertSame('confirmed', $registration['status']);
         $this->assertSame('hamm', $registration['congregation']);
         $slots = registration_slot_counts($registration['id']);
-        $this->assertSame(2, $slots[$this->event['slots'][0]['id']]['adults']);
-        $this->assertSame(0, $slots[$this->event['slots'][1]['id']]['adults']);
+        $this->assertSame(2, $slots[$this->event['slots'][0]['id']]['group_1']);
+        $this->assertSame(0, $slots[$this->event['slots'][1]['id']]['group_1']);
 
         $mail = db()->query('SELECT type, success FROM mail_log')->fetch();
         $this->assertSame(['type' => 'received_confirmed', 'success' => 1], $mail);
@@ -172,7 +172,7 @@ final class RegisterPageTest extends HttpTestCase
     public function testMoreQuotaPersonsThanCapacityIsRejected(): void
     {
         // Kapazität der Test-Veranstaltung: 10
-        $response = $this->submit(['adults' => '11', 'kids_0_2' => '0']);
+        $response = $this->submit(['group_1' => '11', 'group_5' => '0']);
 
         $this->assertSame(200, $response['status']);
         $this->assertStringContainsString('is-invalid', $response['body']);
@@ -225,7 +225,7 @@ final class RegisterPageTest extends HttpTestCase
         $this->event = $this->activeEvent('2020-04-15T23:59');
 
         $this->assertStringContainsString('Der Anmeldezeitraum ist abgelaufen.', $this->get('/register/')['body']);
-        $this->post('/register/', ['first_name' => 'Anna', 'last_name' => 'Muster', 'adults' => '1']);
+        $this->post('/register/', ['first_name' => 'Anna', 'last_name' => 'Muster', 'group_1' => '1']);
         $this->assertSame([], $this->registrations());
     }
 

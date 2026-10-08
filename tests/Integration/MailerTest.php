@@ -127,8 +127,8 @@ final class MailerTest extends DbTestCase
             'last_name' => 'Muster',
             'congregation' => 'Hamm',
             'email' => 'anna@example.org',
-            'adults' => 2,
-            'kids_0_2' => 1,
+            'group_1' => 2,
+            'group_5' => 1,
             'status' => 'confirmed',
             'cancel_token' => bin2hex(random_bytes(32)),
         ];

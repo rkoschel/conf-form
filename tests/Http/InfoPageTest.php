@@ -108,11 +108,11 @@ final class InfoPageTest extends HttpTestCase
     {
         $db = $this->serverDb();
         $eventId = (int) $db->query('SELECT id FROM events WHERE active = 1')->fetchColumn();
-        foreach ($adultsByStatus as $status => $adults) {
+        foreach ($adultsByStatus as $status => $group_1) {
             $db->prepare(
-                'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, adults, kids_0_2, status, cancel_token)
+                'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, group_1, group_5, status, cancel_token)
                  VALUES (?, ?, ?, ?, ?, ?, 4, ?, ?)'
-            )->execute([$eventId, now_utc(), 'Max', 'Muster', 'Hamm', $adults, $status, bin2hex(random_bytes(32))]);
+            )->execute([$eventId, now_utc(), 'Max', 'Muster', 'Hamm', $group_1, $status, bin2hex(random_bytes(32))]);
         }
     }
 
@@ -138,7 +138,7 @@ final class InfoPageTest extends HttpTestCase
         $this->activeEvent([
             'title' => 'Mit Betreuung',
             'slots' => [
-                ['time' => '10:00', 'label' => 'Begrüßung', 'childcare' => '1', 'childcare_groups' => ['kids_0_2', 'kids_3_6']],
+                ['time' => '10:00', 'label' => 'Begrüßung', 'childcare' => '1', 'childcare_groups' => ['group_5', 'group_4']],
                 ['time' => '14:00', 'label' => 'Jugendstunde'],
             ],
         ]);

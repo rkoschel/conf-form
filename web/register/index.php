@@ -18,7 +18,7 @@ if ($event === null || !event_registration_open($event)) {
     exit;
 }
 
-$form = ['adults' => '1', 'attend' => array_fill_keys(array_column($event['slots'], 'id'), '1')];
+$form = ['group_1' => '1', 'attend' => array_fill_keys(array_column($event['slots'], 'id'), '1')];
 $errors = [];
 $notice = null;
 

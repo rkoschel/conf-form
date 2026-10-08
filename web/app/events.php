@@ -137,7 +137,7 @@ function event_parse_slots(mixed $rows): array
 
 /**
  * Betreute Altersgruppen aus DB-Wert oder Formular, nur bekannte, jüngste zuerst.
- * 'kids_3_6,kids_0_2' → ['kids_0_2', 'kids_3_6']
+ * 'group_4,group_5' → ['group_5', 'group_4']
  *
  * @param string|list<mixed> $value
  * @return list<string>

@@ -49,7 +49,7 @@ final class SchemaTest extends DbTestCase
         db()->exec("INSERT INTO event_slots (event_id, time, label) VALUES ($eventId, '10:00', 'Vortrag')");
         $slotId = (int) db()->lastInsertId();
         $registrationId = $this->insertRegistration($eventId, 'confirmed');
-        db()->exec("INSERT INTO registration_slots (registration_id, slot_id, adults) VALUES ($registrationId, $slotId, 2)");
+        db()->exec("INSERT INTO registration_slots (registration_id, slot_id, group_1) VALUES ($registrationId, $slotId, 2)");
         db()->exec("INSERT INTO mail_log (registration_id, type, sent_at, success)
                     VALUES ($registrationId, 'received_confirmed', '2027-01-01T00:00:00Z', 1)");
         $this->insertRegistration($otherEventId, 'pending');

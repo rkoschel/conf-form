@@ -155,13 +155,13 @@ final class EventValidationTest extends TestCase
     {
         [$data, $errors] = event_validate($this->input([
             'slots' => [
-                ['time' => '10:00', 'label' => 'Mit', 'childcare' => '1', 'childcare_groups' => ['kids_3_6', 'youth', 'kids_0_2', 'x']],
-                ['time' => '14:00', 'label' => 'Aus', 'childcare' => '', 'childcare_groups' => ['kids_3_6']],
+                ['time' => '10:00', 'label' => 'Mit', 'childcare' => '1', 'childcare_groups' => ['group_4', 'group_2', 'group_5', 'x']],
+                ['time' => '14:00', 'label' => 'Aus', 'childcare' => '', 'childcare_groups' => ['group_4']],
             ],
         ]));
 
         $this->assertSame([], $errors);
-        $this->assertSame(['kids_0_2', 'kids_3_6'], $data['slots'][0]['childcare'], 'jüngste zuerst, Jugend/Unbekanntes verworfen');
+        $this->assertSame(['group_5', 'group_4'], $data['slots'][0]['childcare'], 'jüngste zuerst, Jugend/Unbekanntes verworfen');
         $this->assertSame([], $data['slots'][1]['childcare'], 'ohne Schalter keine Betreuung');
     }
 
@@ -170,7 +170,7 @@ final class EventValidationTest extends TestCase
         [, $errors] = event_validate($this->input([
             'slots' => [
                 ['time' => '10:00', 'label' => 'A'],
-                ['time' => '14:00', 'label' => 'B', 'childcare' => '1', 'childcare_groups' => ['youth']],
+                ['time' => '14:00', 'label' => 'B', 'childcare' => '1', 'childcare_groups' => ['group_2']],
             ],
         ]));
 

@@ -27,8 +27,8 @@ final class RegistrationValidateTest extends TestCase
         $this->assertSame('anna@example.org', $data['email']);
         $this->assertNull($data['phone'], 'Telefon nur bei „keine E-Mail“');
         $this->assertFalse($data['no_email']);
-        $this->assertSame(2, $data['adults']);
-        $this->assertSame(0, $data['youth']);
+        $this->assertSame(2, $data['group_1']);
+        $this->assertSame(0, $data['group_2']);
     }
 
     public function testRequiredFields(): void
@@ -68,14 +68,14 @@ final class RegistrationValidateTest extends TestCase
 
     public function testAtLeastOnePerson(): void
     {
-        [, $errors] = $this->validate(['adults' => '0']);
+        [, $errors] = $this->validate(['group_1' => '0']);
 
         $this->assertArrayHasKey('persons', $errors);
     }
 
     public function testBabyAloneCountsAsPerson(): void
     {
-        [, $errors] = $this->validate(['adults' => '0', 'kids_0_2' => '1']);
+        [, $errors] = $this->validate(['group_1' => '0', 'group_5' => '1']);
 
         $this->assertArrayNotHasKey('persons', $errors);
     }
@@ -83,25 +83,25 @@ final class RegistrationValidateTest extends TestCase
     public function testCountsMustBeNonNegativeIntegers(): void
     {
         foreach (['-1', '1.5', 'zwei', '1234567890'] as $value) {
-            [, $errors] = $this->validate(['youth' => $value]);
-            $this->assertArrayHasKey('youth', $errors, $value);
+            [, $errors] = $this->validate(['group_2' => $value]);
+            $this->assertArrayHasKey('group_2', $errors, $value);
         }
-        [$data, $errors] = $this->validate(['youth' => '']);
-        $this->assertArrayNotHasKey('youth', $errors, 'leer = 0');
-        $this->assertSame(0, $data['youth']);
+        [$data, $errors] = $this->validate(['group_2' => '']);
+        $this->assertArrayNotHasKey('group_2', $errors, 'leer = 0');
+        $this->assertSame(0, $data['group_2']);
     }
 
     public function testNoFixedLimitPerGroup(): void
     {
-        [$data, $errors] = $this->validate(['adults' => '150']);
+        [$data, $errors] = $this->validate(['group_1' => '150']);
 
         $this->assertSame([], $errors);
-        $this->assertSame(150, $data['adults']);
+        $this->assertSame(150, $data['group_1']);
     }
 
     public function testQuotaPersonsMayNotExceedCapacity(): void
     {
-        [, $errors] = registration_validate($this->input(['adults' => '8', 'youth' => '3']), self::SLOTS, 10);
+        [, $errors] = registration_validate($this->input(['group_1' => '8', 'group_2' => '3']), self::SLOTS, 10);
 
         $this->assertArrayHasKey('persons', $errors);
         $this->assertStringNotContainsString('10', $errors['persons'], 'Kapazität wird nicht verraten');
@@ -109,14 +109,14 @@ final class RegistrationValidateTest extends TestCase
 
     public function testCapacityExactlyReachedAndBabiesNotLimited(): void
     {
-        [, $errors] = registration_validate($this->input(['adults' => '10', 'kids_0_2' => '5']), self::SLOTS, 10);
+        [, $errors] = registration_validate($this->input(['group_1' => '10', 'group_5' => '5']), self::SLOTS, 10);
 
         $this->assertSame([], $errors);
     }
 
     public function testWithoutCapacityNoUpperLimit(): void
     {
-        [, $errors] = registration_validate($this->input(['adults' => '5000']), self::SLOTS);
+        [, $errors] = registration_validate($this->input(['group_1' => '5000']), self::SLOTS);
 
         $this->assertSame([], $errors);
     }
@@ -124,45 +124,45 @@ final class RegistrationValidateTest extends TestCase
     public function testGroupAttendanceCopiesGroupCounts(): void
     {
         [$data, $errors] = $this->validate([
-            'adults' => '2', 'kids_0_2' => '1',
+            'group_1' => '2', 'group_5' => '1',
             'attend' => ['10' => '1'],
         ]);
 
         $this->assertSame([], $errors);
         $this->assertFalse($data['custom_split']);
         $this->assertSame(
-            ['adults' => 2, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 1],
+            ['group_1' => 2, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 1],
             array_intersect_key($data['slots'][10], AGE_GROUPS)
         );
-        $this->assertSame(0, $data['slots'][10]['childcare_kids_0_2'], 'ohne Betreuungsangebot keine Betreuung');
+        $this->assertSame(0, $data['slots'][10]['childcare_group_5'], 'ohne Betreuungsangebot keine Betreuung');
         $this->assertSame(array_fill_keys(array_keys(AGE_GROUPS), 0), array_intersect_key($data['slots'][11], AGE_GROUPS));
     }
 
     public function testCustomSplitPerSlotAndGroup(): void
     {
         [$data, $errors] = $this->validate([
-            'adults' => '2', 'youth' => '1',
+            'group_1' => '2', 'group_2' => '1',
             'custom_split' => '1',
             'attend' => ['10' => '1', '11' => '1'], // wird bei Aufteilung ignoriert
             'split' => [
-                '10' => ['adults' => '2', 'youth' => '0'],
-                '11' => ['adults' => '1', 'youth' => '1'],
+                '10' => ['group_1' => '2', 'group_2' => '0'],
+                '11' => ['group_1' => '1', 'group_2' => '1'],
             ],
         ]);
 
         $this->assertSame([], $errors);
         $this->assertTrue($data['custom_split']);
-        $this->assertSame(0, $data['slots'][10]['youth']);
-        $this->assertSame(1, $data['slots'][11]['adults']);
-        $this->assertSame(0, $data['slots'][11]['kids_3_6'], 'fehlende Felder = 0');
+        $this->assertSame(0, $data['slots'][10]['group_2']);
+        $this->assertSame(1, $data['slots'][11]['group_1']);
+        $this->assertSame(0, $data['slots'][11]['group_4'], 'fehlende Felder = 0');
     }
 
     public function testSplitMayNotExceedGroupCount(): void
     {
         [, $errors] = $this->validate([
-            'adults' => '2',
+            'group_1' => '2',
             'custom_split' => '1',
-            'split' => ['10' => ['adults' => '3']],
+            'split' => ['10' => ['group_1' => '3']],
         ]);
 
         $this->assertArrayHasKey('split', $errors);
@@ -172,7 +172,7 @@ final class RegistrationValidateTest extends TestCase
     {
         [, $errors] = $this->validate([
             'custom_split' => '1',
-            'split' => ['11' => ['adults' => '-1']],
+            'split' => ['11' => ['group_1' => '-1']],
         ]);
 
         $this->assertArrayHasKey('split', $errors);
@@ -209,7 +209,7 @@ final class RegistrationValidateTest extends TestCase
             'last_name' => 'Muster',
             'congregation' => 'Hamm',
             'email' => 'anna@example.org',
-            'adults' => '2',
+            'group_1' => '2',
         ];
     }
 }

@@ -28,23 +28,23 @@ final class RegistrationAdminTest extends DbTestCase
         $registration = [
             'first_name' => 'Max', 'last_name' => 'Muster', 'congregation' => 'Hamm',
             'email' => null, 'phone' => '0123', 'no_email' => 1, 'custom_split' => 0, 'status' => 'pending',
-            'adults' => 2, 'youth' => 1, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 1,
+            'group_1' => 2, 'group_2' => 1, 'group_3' => 0, 'group_4' => 0, 'group_5' => 1,
         ];
         $slotCounts = [
-            7 => ['adults' => 2, 'youth' => 1, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 1],
-            8 => ['adults' => 0, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0],
-            9 => ['adults' => 0, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0, 'childcare_kids_0_2' => 1],
+            7 => ['group_1' => 2, 'group_2' => 1, 'group_3' => 0, 'group_4' => 0, 'group_5' => 1],
+            8 => ['group_1' => 0, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 0],
+            9 => ['group_1' => 0, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 0, 'childcare_group_5' => 1],
         ];
 
         $form = registration_form_values($registration, $slotCounts);
 
         $this->assertSame('', $form['email']);
         $this->assertTrue($form['no_email']);
-        $this->assertSame('2', $form['adults']);
+        $this->assertSame('2', $form['group_1']);
         $this->assertSame([7 => '1', 9 => '1'], $form['attend'], 'nur Programmpunkte mit Personen (auch in Betreuung) angekreuzt');
-        $this->assertSame('1', $form['split'][7]['youth']);
-        $this->assertArrayNotHasKey('childcare_kids_0_2', $form['split'][7], 'Aufteilung ohne Betreuungszahlen');
-        $this->assertSame('0', $form['split'][8]['adults']);
+        $this->assertSame('1', $form['split'][7]['group_2']);
+        $this->assertArrayNotHasKey('childcare_group_5', $form['split'][7], 'Aufteilung ohne Betreuungszahlen');
+        $this->assertSame('0', $form['split'][8]['group_1']);
     }
 
     private function insertRegistration(int $eventId): int

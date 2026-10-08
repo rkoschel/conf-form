@@ -215,7 +215,7 @@ function registration_parse_count(mixed $value): ?int
 function registration_occupied(int $eventId, ?int $excludeId = null): int
 {
     $stmt = db()->prepare(
-        "SELECT COALESCE(SUM(adults + youth + kids_7_12 + kids_3_6), 0) FROM registrations
+        "SELECT COALESCE(SUM(group_1 + group_2 + group_3 + group_4), 0) FROM registrations
          WHERE event_id = ? AND status = 'confirmed' AND id != ?"
     );
     $stmt->execute([$eventId, $excludeId ?? 0]);
@@ -259,12 +259,12 @@ function registration_create(array $event, array $data): array
 
         $pdo->prepare(
             'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, email, phone,
-                no_email, adults, youth, kids_7_12, kids_3_6, kids_0_2, custom_split, status, cancel_token)
+                no_email, group_1, group_2, group_3, group_4, group_5, custom_split, status, cancel_token)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         )->execute([
             $eventId, now_utc(), $data['first_name'], $data['last_name'], $data['congregation'],
             $data['email'], $data['phone'], $data['no_email'] ? 1 : 0,
-            $data['adults'], $data['youth'], $data['kids_7_12'], $data['kids_3_6'], $data['kids_0_2'],
+            $data['group_1'], $data['group_2'], $data['group_3'], $data['group_4'], $data['group_5'],
             $data['custom_split'] ? 1 : 0, $status, bin2hex(random_bytes(32)),
         ]);
         $id = (int) $pdo->lastInsertId();
@@ -286,13 +286,13 @@ function registration_update(int $id, array $data, string $status): void
     db_transaction(function (PDO $pdo) use ($id, $data, $status): void {
         $pdo->prepare(
             'UPDATE registrations SET first_name = ?, last_name = ?, congregation = ?, email = ?, phone = ?,
-                no_email = ?, adults = ?, youth = ?, kids_7_12 = ?, kids_3_6 = ?, kids_0_2 = ?,
+                no_email = ?, group_1 = ?, group_2 = ?, group_3 = ?, group_4 = ?, group_5 = ?,
                 custom_split = ?, status = ?
              WHERE id = ?'
         )->execute([
             $data['first_name'], $data['last_name'], $data['congregation'], $data['email'], $data['phone'],
-            $data['no_email'] ? 1 : 0, $data['adults'], $data['youth'], $data['kids_7_12'], $data['kids_3_6'],
-            $data['kids_0_2'], $data['custom_split'] ? 1 : 0, $status, $id,
+            $data['no_email'] ? 1 : 0, $data['group_1'], $data['group_2'], $data['group_3'], $data['group_4'],
+            $data['group_5'], $data['custom_split'] ? 1 : 0, $status, $id,
         ]);
         $pdo->prepare('DELETE FROM registration_slots WHERE registration_id = ?')->execute([$id]);
         registration_save_slots($pdo, $id, $data['slots']);
@@ -303,16 +303,16 @@ function registration_update(int $id, array $data, string $status): void
 function registration_save_slots(PDO $pdo, int $registrationId, array $slots): void
 {
     $stmt = $pdo->prepare(
-        'INSERT INTO registration_slots (registration_id, slot_id, adults, youth, kids_7_12, kids_3_6, kids_0_2,
-            childcare_kids_7_12, childcare_kids_3_6, childcare_kids_0_2)
+        'INSERT INTO registration_slots (registration_id, slot_id, group_1, group_2, group_3, group_4, group_5,
+            childcare_group_3, childcare_group_4, childcare_group_5)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     foreach ($slots as $slotId => $counts) {
         $stmt->execute([
             $registrationId, $slotId,
-            $counts['adults'] ?? 0, $counts['youth'] ?? 0, $counts['kids_7_12'] ?? 0,
-            $counts['kids_3_6'] ?? 0, $counts['kids_0_2'] ?? 0,
-            $counts['childcare_kids_7_12'] ?? 0, $counts['childcare_kids_3_6'] ?? 0, $counts['childcare_kids_0_2'] ?? 0,
+            $counts['group_1'] ?? 0, $counts['group_2'] ?? 0, $counts['group_3'] ?? 0,
+            $counts['group_4'] ?? 0, $counts['group_5'] ?? 0,
+            $counts['childcare_group_3'] ?? 0, $counts['childcare_group_4'] ?? 0, $counts['childcare_group_5'] ?? 0,
         ]);
     }
 }
@@ -340,8 +340,8 @@ function registration_find_by_token(string $token): ?array
 function registration_slot_counts(int $registrationId): array
 {
     $stmt = db()->prepare(
-        'SELECT slot_id, adults, youth, kids_7_12, kids_3_6, kids_0_2,
-                childcare_kids_7_12, childcare_kids_3_6, childcare_kids_0_2
+        'SELECT slot_id, group_1, group_2, group_3, group_4, group_5,
+                childcare_group_3, childcare_group_4, childcare_group_5
          FROM registration_slots WHERE registration_id = ?'
     );
     $stmt->execute([$registrationId]);

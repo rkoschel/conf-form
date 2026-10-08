@@ -18,7 +18,7 @@ final class RegistrationsTest extends DbTestCase
 
     public function testCreateConfirmsPreferredPlaceWithinQuota(): void
     {
-        $registration = $this->register(['adults' => 2, 'kids_0_2' => 1]);
+        $registration = $this->register(['group_1' => 2, 'group_5' => 1]);
 
         $this->assertSame('confirmed', $registration['status']);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $registration['cancel_token']);
@@ -41,10 +41,10 @@ final class RegistrationsTest extends DbTestCase
 
     public function testQuotaFullGoesToWaitlistAndBabiesDoNotCount(): void
     {
-        $this->register(['adults' => 8, 'kids_0_2' => 5]);
-        $this->assertSame('confirmed', $this->register(['adults' => 2])['status'], 'genau voll');
-        $this->assertSame('pending', $this->register(['adults' => 1])['status']);
-        $this->assertSame('confirmed', $this->register(['adults' => 0, 'kids_0_2' => 1])['status']);
+        $this->register(['group_1' => 8, 'group_5' => 5]);
+        $this->assertSame('confirmed', $this->register(['group_1' => 2])['status'], 'genau voll');
+        $this->assertSame('pending', $this->register(['group_1' => 1])['status']);
+        $this->assertSame('confirmed', $this->register(['group_1' => 0, 'group_5' => 1])['status']);
         $this->assertSame(10, registration_occupied($this->event['id']));
     }
 
@@ -53,15 +53,15 @@ final class RegistrationsTest extends DbTestCase
         db()->exec('UPDATE events SET max_participants = 1000');
         $this->event = event_find($this->event['id']);
 
-        $this->assertSame('confirmed', $this->register(['adults' => 98, 'kids_0_2' => 1])['status']);
-        $this->assertSame('pending', $this->register(['adults' => 99, 'kids_0_2' => 1])['status']);
+        $this->assertSame('confirmed', $this->register(['group_1' => 98, 'group_5' => 1])['status']);
+        $this->assertSame('pending', $this->register(['group_1' => 99, 'group_5' => 1])['status']);
     }
 
     public function testOnlyConfirmedCountAsOccupied(): void
     {
-        $a = $this->register(['adults' => 3]);
-        $this->register(['adults' => 4, 'congregation' => 'Dortmund']);
-        $c = $this->register(['adults' => 2]);
+        $a = $this->register(['group_1' => 3]);
+        $this->register(['group_1' => 4, 'congregation' => 'Dortmund']);
+        $c = $this->register(['group_1' => 2]);
         registration_cancel($c['id']);
 
         $this->assertSame(3, registration_occupied($this->event['id']));
@@ -70,7 +70,7 @@ final class RegistrationsTest extends DbTestCase
 
     public function testOccupiedCountsOnlyOwnEvent(): void
     {
-        $this->register(['adults' => 3]);
+        $this->register(['group_1' => 3]);
         $otherId = $this->createEvent();
 
         $this->assertSame(0, registration_occupied($otherId));
@@ -79,14 +79,14 @@ final class RegistrationsTest extends DbTestCase
     public function testCreateStoresSlotCounts(): void
     {
         $slots = $this->event['slots'];
-        $registration = $this->register(['adults' => 2], [
-            $slots[0]['id'] => ['adults' => 2, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0],
-            $slots[1]['id'] => ['adults' => 1, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0],
+        $registration = $this->register(['group_1' => 2], [
+            $slots[0]['id'] => ['group_1' => 2, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 0],
+            $slots[1]['id'] => ['group_1' => 1, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 0],
         ]);
 
         $stored = registration_slot_counts($registration['id']);
-        $this->assertSame(2, $stored[$slots[0]['id']]['adults']);
-        $this->assertSame(1, $stored[$slots[1]['id']]['adults']);
+        $this->assertSame(2, $stored[$slots[0]['id']]['group_1']);
+        $this->assertSame(1, $stored[$slots[1]['id']]['group_1']);
     }
 
     public function testCreateWithoutEmailStoresPhone(): void
@@ -132,32 +132,32 @@ final class RegistrationsTest extends DbTestCase
 
     public function testExceedsQuotaForAdminWarning(): void
     {
-        $a = $this->register(['adults' => 6]);
-        $b = $this->register(['adults' => 4, 'congregation' => 'Dortmund']);
+        $a = $this->register(['group_1' => 6]);
+        $b = $this->register(['group_1' => 4, 'congregation' => 'Dortmund']);
 
         $this->assertFalse(registration_exceeds_quota($this->event, $b));
-        $this->register(['adults' => 1]);
+        $this->register(['group_1' => 1]);
         $this->assertTrue(registration_exceeds_quota($this->event, $b));
         // eine bereits bestätigte Anmeldung zählt nicht doppelt
         $this->assertFalse(registration_exceeds_quota($this->event, $a));
-        $this->assertTrue(registration_exceeds_quota($this->event, ['adults' => 10] + $a));
+        $this->assertTrue(registration_exceeds_quota($this->event, ['group_1' => 10] + $a));
     }
 
     public function testUpdateChangesFieldsSlotsAndStatusWithoutMail(): void
     {
-        $registration = $this->register(['adults' => 2]);
+        $registration = $this->register(['group_1' => 2]);
         $slotId = $this->event['slots'][0]['id'];
 
         registration_update($registration['id'], $this->data([
             'first_name' => 'Anne',
-            'adults' => 3,
+            'group_1' => 3,
             'custom_split' => true,
-            'slots' => [$slotId => ['adults' => 1, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0]],
+            'slots' => [$slotId => ['group_1' => 1, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 0]],
         ]), 'pending');
 
         $updated = registration_find($registration['id']);
         $this->assertSame('Anne', $updated['first_name']);
-        $this->assertSame(3, $updated['adults']);
+        $this->assertSame(3, $updated['group_1']);
         $this->assertSame(1, $updated['custom_split']);
         $this->assertSame('pending', $updated['status']);
         $this->assertSame($registration['cancel_token'], $updated['cancel_token']);
@@ -168,7 +168,7 @@ final class RegistrationsTest extends DbTestCase
     public function testDeleteRemovesSlotsAndMailLog(): void
     {
         $registration = $this->register([], [
-            $this->event['slots'][0]['id'] => ['adults' => 2, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0],
+            $this->event['slots'][0]['id'] => ['group_1' => 2, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 0],
         ]);
         db()->exec("INSERT INTO mail_log (registration_id, type, sent_at, success)
                     VALUES ({$registration['id']}, 'received_confirmed', '2027-01-01T00:00:00Z', 1)");
@@ -182,7 +182,7 @@ final class RegistrationsTest extends DbTestCase
 
     public function testListFiltersByStatusAndSearches(): void
     {
-        $this->register(['first_name' => 'Anna', 'last_name' => 'Muster', 'email' => 'anna@example.org', 'kids_0_2' => 1]);
+        $this->register(['first_name' => 'Anna', 'last_name' => 'Muster', 'email' => 'anna@example.org', 'group_5' => 1]);
         $this->register(['first_name' => 'Ben', 'last_name' => 'Beispiel', 'congregation' => 'Dortmund', 'email' => 'ben@example.org']);
         $this->register(['first_name' => 'Carla', 'last_name' => 'Weg', 'email' => 'carla@mail.example']);
 
@@ -234,11 +234,11 @@ final class RegistrationsTest extends DbTestCase
             'email' => 'anna@example.org',
             'phone' => null,
             'no_email' => false,
-            'adults' => 1,
-            'youth' => 0,
-            'kids_7_12' => 0,
-            'kids_3_6' => 0,
-            'kids_0_2' => 0,
+            'group_1' => 1,
+            'group_2' => 0,
+            'group_3' => 0,
+            'group_4' => 0,
+            'group_5' => 0,
             'custom_split' => false,
             'slots' => [],
         ];

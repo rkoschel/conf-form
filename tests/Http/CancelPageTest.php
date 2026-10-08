@@ -16,7 +16,7 @@ final class CancelPageTest extends HttpTestCase
         $registration = registration_create(event_find($eventId), [
             'first_name' => 'Anna', 'last_name' => '<Muster>', 'congregation' => 'Hamm',
             'email' => 'anna@example.org', 'phone' => null, 'no_email' => false,
-            'adults' => 2, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 0,
+            'group_1' => 2, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 0,
             'custom_split' => false, 'slots' => [],
         ]);
         registration_set_status($registration['id'], $status);

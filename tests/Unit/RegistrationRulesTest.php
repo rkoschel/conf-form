@@ -8,7 +8,7 @@ final class RegistrationRulesTest extends TestCase
 {
     public function testGroupSizeExcludesKidsUnderThree(): void
     {
-        $counts = ['adults' => 2, 'youth' => 1, 'kids_7_12' => 1, 'kids_3_6' => 1, 'kids_0_2' => 3];
+        $counts = ['group_1' => 2, 'group_2' => 1, 'group_3' => 1, 'group_4' => 1, 'group_5' => 3];
 
         $this->assertSame(5, registration_group_size($counts));
         $this->assertSame(8, registration_person_count($counts));
@@ -16,7 +16,7 @@ final class RegistrationRulesTest extends TestCase
 
     public function testGroupSizeTreatsMissingGroupsAsZero(): void
     {
-        $this->assertSame(2, registration_group_size(['adults' => '2']));
+        $this->assertSame(2, registration_group_size(['group_1' => '2']));
     }
 
     public function testPreferredPlaceWithEnoughCapacityIsConfirmed(): void

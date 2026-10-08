@@ -44,7 +44,7 @@ if (form) {
 
   const splitGroups = () => [...form.querySelectorAll('[data-split-group]')];
 
-  // Betreute Altersgruppen eines Programmpunkts (data-childcare-slot="kids_0_2 kids_3_6")
+  // Betreute Altersgruppen eines Programmpunkts (data-childcare-slot="group_5 group_4")
   const childcareOf = (el) => (el.closest('[data-childcare-slot]')?.dataset.childcareSlot || '')
     .split(' ').filter(Boolean);
 

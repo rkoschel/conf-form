@@ -36,7 +36,7 @@ final class AdminRegistrationsTest extends HttpTestCase
             'last_name' => 'Muster',
             'congregation' => 'Unna',
             'email' => 'max' . bin2hex(random_bytes(3)) . '@example.org',
-            'adults' => 1,
+            'group_1' => 1,
             'status' => 'pending',
             'cancel_token' => bin2hex(random_bytes(32)),
         ];
@@ -76,7 +76,7 @@ final class AdminRegistrationsTest extends HttpTestCase
     public function testListShowsRegistrationDetails(): void
     {
         $this->registration(['first_name' => 'Lena', 'last_name' => 'Liste', 'congregation' => 'Hamm',
-            'adults' => 2, 'kids_0_2' => 1, 'status' => 'confirmed']);
+            'group_1' => 2, 'group_5' => 1, 'status' => 'confirmed']);
 
         $body = $this->get('/admin/')['body'];
 
@@ -147,8 +147,8 @@ final class AdminRegistrationsTest extends HttpTestCase
     public function testConfirmingBeyondQuotaWarnsButConfirms(): void
     {
         $this->serverDb()->exec("UPDATE registrations SET status = 'cancelled' WHERE status = 'confirmed'");
-        $this->registration(['adults' => 9, 'status' => 'confirmed']);
-        $id = $this->registration(['first_name' => 'Quentin', 'last_name' => 'Quote', 'adults' => 2]);
+        $this->registration(['group_1' => 9, 'status' => 'confirmed']);
+        $id = $this->registration(['first_name' => 'Quentin', 'last_name' => 'Quote', 'group_1' => 2]);
 
         $list = $this->get('/admin/?q=Quote')['body'];
         $this->assertMatchesRegularExpression('#data-action="confirm" data-id="' . $id . '".*?data-exceeds="1"#s', $list);
@@ -182,14 +182,14 @@ final class AdminRegistrationsTest extends HttpTestCase
 
     public function testEditFormIsPrefilled(): void
     {
-        $id = $this->registration(['first_name' => 'Erik', 'last_name' => 'Edit', 'adults' => 2, 'youth' => 1]);
-        $this->serverDb()->prepare('INSERT INTO registration_slots (registration_id, slot_id, adults, youth) VALUES (?, ?, 2, 1)')
+        $id = $this->registration(['first_name' => 'Erik', 'last_name' => 'Edit', 'group_1' => 2, 'group_2' => 1]);
+        $this->serverDb()->prepare('INSERT INTO registration_slots (registration_id, slot_id, group_1, group_2) VALUES (?, ?, 2, 1)')
             ->execute([$id, self::$slots['Vormittag']]);
 
         $body = $this->get("/admin/registration.php?id=$id")['body'];
 
         $this->assertStringContainsString('value="Erik"', $body);
-        $this->assertMatchesRegularExpression('#name="adults"\s+value="2"|name="adults" value="2"#', $body);
+        $this->assertMatchesRegularExpression('#name="group_1"\s+value="2"|name="group_1" value="2"#', $body);
         $this->assertMatchesRegularExpression('#name="attend\[' . self::$slots['Vormittag'] . '\]" value="1" checked#', $body);
         $this->assertMatchesRegularExpression('#name="attend\[' . self::$slots['Nachmittag'] . '\]" value="1" >#', $body);
         $this->assertStringContainsString('form.js', $body);
@@ -206,7 +206,7 @@ final class AdminRegistrationsTest extends HttpTestCase
             'last_name' => 'Geändert',
             'congregation' => 'Soest',
             'email' => 'uwe@example.org',
-            'adults' => '2', 'youth' => '0', 'kids_7_12' => '0', 'kids_3_6' => '0', 'kids_0_2' => '1',
+            'group_1' => '2', 'group_2' => '0', 'group_3' => '0', 'group_4' => '0', 'group_5' => '1',
             'attend' => [self::$slots['Nachmittag'] => '1'],
         ]);
 
@@ -214,7 +214,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $stored = $this->stored($id);
         $this->assertSame('Geändert', $stored['last_name']);
         $this->assertSame('confirmed', $stored['status']);
-        $this->assertSame(1, (int) $stored['kids_0_2']);
+        $this->assertSame(1, (int) $stored['group_5']);
         $this->assertSame(0, $this->mailCount($id));
     }
 
@@ -229,7 +229,7 @@ final class AdminRegistrationsTest extends HttpTestCase
             'last_name' => 'X',
             'congregation' => 'Hamm',
             'email' => 'kaputt',
-            'adults' => '0',
+            'group_1' => '0',
         ]);
 
         $this->assertSame(200, $response['status']);

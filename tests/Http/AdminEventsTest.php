@@ -87,7 +87,7 @@ final class AdminEventsTest extends HttpTestCase
     {
         $id = $this->createEvent('Betreuung-Test', [
             'slots' => [
-                ['time' => '10:00', 'label' => 'Vortrag', 'childcare' => '1', 'childcare_groups' => ['kids_0_2', 'kids_3_6']],
+                ['time' => '10:00', 'label' => 'Vortrag', 'childcare' => '1', 'childcare_groups' => ['group_5', 'group_4']],
                 ['time' => '14:00', 'label' => 'Mittag'],
             ],
         ]);
@@ -95,8 +95,8 @@ final class AdminEventsTest extends HttpTestCase
         $body = $this->get("/admin/event.php?id=$id")['body'];
 
         $this->assertMatchesRegularExpression('#name="slots\[0\]\[childcare\]"\s+checked#', $body);
-        $this->assertMatchesRegularExpression('#value="kids_3_6"[^>]*name="slots\[0\]\[childcare_groups\]\[\]"\s+checked#', $body);
-        $this->assertMatchesRegularExpression('#value="kids_7_12"[^>]*name="slots\[0\]\[childcare_groups\]\[\]"\s+>#', $body);
+        $this->assertMatchesRegularExpression('#value="group_4"[^>]*name="slots\[0\]\[childcare_groups\]\[\]"\s+checked#', $body);
+        $this->assertMatchesRegularExpression('#value="group_3"[^>]*name="slots\[0\]\[childcare_groups\]\[\]"\s+>#', $body);
         $this->assertMatchesRegularExpression('#name="slots\[1\]\[childcare\]"\s+>#', $body);
     }
 

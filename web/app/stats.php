@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /** Altersgruppen, die zum Kontingent zählen (SPEC §5.3: Kinder 0–2 nicht) */
-const QUOTA_AGE_GROUPS = ['adults', 'youth', 'kids_7_12', 'kids_3_6'];
+const QUOTA_AGE_GROUPS = ['group_1', 'group_2', 'group_3', 'group_4'];
 
 /**
  * Auswertung einer Veranstaltung (SPEC §7.7).

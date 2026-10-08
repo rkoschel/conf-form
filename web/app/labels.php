@@ -5,18 +5,18 @@ declare(strict_types=1);
 
 /** Spalte → Bezeichnung, in der Reihenfolge des Formulars */
 const AGE_GROUPS = [
-    'adults' => 'Erwachsene',
-    'youth' => 'Jugendliche ab 13',
-    'kids_7_12' => 'Kinder 7–12',
-    'kids_3_6' => 'Kinder 3–6',
-    'kids_0_2' => 'Kinder 0–2',
+    'group_1' => 'Erwachsene',
+    'group_2' => 'Jugendliche ab 13',
+    'group_3' => 'Kinder 7–12',
+    'group_4' => 'Kinder 3–6',
+    'group_5' => 'Kinder 0–2',
 ];
 
 /** Altersgruppen mit möglicher Kinderbetreuung (SPEC §7.1), jüngste zuerst: Spalte → [von, bis] Jahre */
 const CHILDCARE_AGE_GROUPS = [
-    'kids_0_2' => [0, 2],
-    'kids_3_6' => [3, 6],
-    'kids_7_12' => [7, 12],
+    'group_5' => [0, 2],
+    'group_4' => [3, 6],
+    'group_3' => [7, 12],
 ];
 
 /** Status einer Anmeldung, in der Reihenfolge der UI (SPEC §7.2) */

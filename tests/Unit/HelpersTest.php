@@ -59,13 +59,13 @@ final class HelpersTest extends TestCase
 
     public function testFormatsChildcareAges(): void
     {
-        $this->assertSame('0–2', childcare_ages(['kids_0_2']));
-        $this->assertSame('0–6', childcare_ages(['kids_3_6', 'kids_0_2']));
-        $this->assertSame('3–12', childcare_ages(['kids_7_12', 'kids_3_6']));
-        $this->assertSame('0–12', childcare_ages(['kids_0_2', 'kids_3_6', 'kids_7_12']));
-        $this->assertSame('0–2 und 7–12', childcare_ages(['kids_7_12', 'kids_0_2']));
+        $this->assertSame('0–2', childcare_ages(['group_5']));
+        $this->assertSame('0–6', childcare_ages(['group_4', 'group_5']));
+        $this->assertSame('3–12', childcare_ages(['group_3', 'group_4']));
+        $this->assertSame('0–12', childcare_ages(['group_5', 'group_4', 'group_3']));
+        $this->assertSame('0–2 und 7–12', childcare_ages(['group_3', 'group_5']));
         $this->assertSame('', childcare_ages([]));
-        $this->assertSame(['kids_0_2', 'kids_7_12'], childcare_parse('kids_7_12,youth,kids_0_2'));
+        $this->assertSame(['group_5', 'group_3'], childcare_parse('group_3,group_2,group_5'));
     }
 
     public function testUrlUsesBaseUrl(): void

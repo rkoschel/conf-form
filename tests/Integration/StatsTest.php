@@ -34,10 +34,10 @@ final class StatsTest extends DbTestCase
 
     public function testCountsByStatusIncludingToddlers(): void
     {
-        $this->registration('confirmed', ['adults' => 2, 'kids_0_2' => 1]);
-        $this->registration('confirmed', ['adults' => 1, 'youth' => 1]);
-        $this->registration('pending', ['adults' => 3]);
-        $this->registration('cancelled', ['adults' => 1, 'kids_3_6' => 2]);
+        $this->registration('confirmed', ['group_1' => 2, 'group_5' => 1]);
+        $this->registration('confirmed', ['group_1' => 1, 'group_2' => 1]);
+        $this->registration('pending', ['group_1' => 3]);
+        $this->registration('cancelled', ['group_1' => 1, 'group_4' => 2]);
 
         $byStatus = stats_for_event(event_find($this->eventId))['by_status'];
 
@@ -49,26 +49,26 @@ final class StatsTest extends DbTestCase
 
     public function testQuotaCountsOnlyConfirmedWithoutToddlers(): void
     {
-        $this->registration('confirmed', ['adults' => 2, 'youth' => 1, 'kids_7_12' => 1, 'kids_3_6' => 1, 'kids_0_2' => 2]);
-        $this->registration('pending', ['adults' => 4]);
-        $this->registration('rejected', ['adults' => 4]);
+        $this->registration('confirmed', ['group_1' => 2, 'group_2' => 1, 'group_3' => 1, 'group_4' => 1, 'group_5' => 2]);
+        $this->registration('pending', ['group_1' => 4]);
+        $this->registration('rejected', ['group_1' => 4]);
 
         $stats = stats_for_event(event_find($this->eventId));
 
         $this->assertSame(5, $stats['quota_used']);
         $this->assertSame(
-            ['adults' => 2, 'youth' => 1, 'kids_7_12' => 1, 'kids_3_6' => 1, 'kids_0_2' => 2],
+            ['group_1' => 2, 'group_2' => 1, 'group_3' => 1, 'group_4' => 1, 'group_5' => 2],
             $stats['age_groups']
         );
     }
 
     public function testPendingQuotaCountsOnlyPendingWithoutToddlers(): void
     {
-        $this->registration('pending', ['adults' => 2, 'kids_3_6' => 1, 'kids_0_2' => 3]);
-        $this->registration('pending', ['youth' => 1]);
-        $this->registration('confirmed', ['adults' => 5]);
-        $this->registration('cancelled', ['adults' => 4]);
-        $this->registration('rejected', ['adults' => 4]);
+        $this->registration('pending', ['group_1' => 2, 'group_4' => 1, 'group_5' => 3]);
+        $this->registration('pending', ['group_2' => 1]);
+        $this->registration('confirmed', ['group_1' => 5]);
+        $this->registration('cancelled', ['group_1' => 4]);
+        $this->registration('rejected', ['group_1' => 4]);
 
         $stats = stats_for_event(event_find($this->eventId));
 
@@ -79,11 +79,11 @@ final class StatsTest extends DbTestCase
     public function testCountsPeoplePerPlaceForConfirmedAndPending(): void
     {
         preferred_places_set(['Hamm']);
-        $this->registration('confirmed', ['adults' => 2, 'kids_0_2' => 1], congregation: 'Hamm');
-        $this->registration('pending', ['adults' => 1], congregation: 'hamm');
-        $this->registration('pending', ['adults' => 5], congregation: 'Unna');
-        $this->registration('cancelled', ['adults' => 9], congregation: 'Soest');
-        $this->registration('rejected', ['adults' => 9], congregation: 'Hamm');
+        $this->registration('confirmed', ['group_1' => 2, 'group_5' => 1], congregation: 'Hamm');
+        $this->registration('pending', ['group_1' => 1], congregation: 'hamm');
+        $this->registration('pending', ['group_1' => 5], congregation: 'Unna');
+        $this->registration('cancelled', ['group_1' => 9], congregation: 'Soest');
+        $this->registration('rejected', ['group_1' => 9], congregation: 'Hamm');
 
         $places = stats_for_event(event_find($this->eventId))['places'];
 
@@ -95,38 +95,38 @@ final class StatsTest extends DbTestCase
 
     public function testSlotAttendanceCountsOnlyConfirmed(): void
     {
-        $confirmed = $this->registration('confirmed', ['adults' => 2, 'kids_0_2' => 1]);
-        $this->attend($confirmed, 'Vormittag', ['adults' => 2, 'kids_0_2' => 1]);
-        $this->attend($confirmed, 'Nachmittag', ['adults' => 1]);
+        $confirmed = $this->registration('confirmed', ['group_1' => 2, 'group_5' => 1]);
+        $this->attend($confirmed, 'Vormittag', ['group_1' => 2, 'group_5' => 1]);
+        $this->attend($confirmed, 'Nachmittag', ['group_1' => 1]);
 
-        $other = $this->registration('confirmed', ['youth' => 3]);
-        $this->attend($other, 'Nachmittag', ['youth' => 3]);
+        $other = $this->registration('confirmed', ['group_2' => 3]);
+        $this->attend($other, 'Nachmittag', ['group_2' => 3]);
 
-        $pending = $this->registration('pending', ['adults' => 5]);
-        $this->attend($pending, 'Vormittag', ['adults' => 5]);
+        $pending = $this->registration('pending', ['group_1' => 5]);
+        $this->attend($pending, 'Vormittag', ['group_1' => 5]);
 
         $slots = stats_for_event(event_find($this->eventId))['slots'];
 
         $this->assertSame('Vormittag', $slots[0]['label']);
-        $this->assertSame(['adults' => 2, 'youth' => 0, 'kids_7_12' => 0, 'kids_3_6' => 0, 'kids_0_2' => 1], $slots[0]['groups']);
+        $this->assertSame(['group_1' => 2, 'group_2' => 0, 'group_3' => 0, 'group_4' => 0, 'group_5' => 1], $slots[0]['groups']);
         $this->assertSame(3, $slots[0]['total']);
         $this->assertSame(4, $slots[1]['total']);
-        $this->assertSame(3, $slots[1]['groups']['youth']);
+        $this->assertSame(3, $slots[1]['groups']['group_2']);
     }
 
     public function testSlotStatsIncludeChildcareSeparately(): void
     {
-        db()->prepare("UPDATE event_slots SET childcare = 'kids_3_6,kids_0_2' WHERE id = ?")
+        db()->prepare("UPDATE event_slots SET childcare = 'group_4,group_5' WHERE id = ?")
             ->execute([$this->slotIds['Vormittag']]);
-        $confirmed = $this->registration('confirmed', ['adults' => 2, 'kids_3_6' => 2, 'kids_0_2' => 1]);
-        $this->attend($confirmed, 'Vormittag', ['adults' => 2, 'kids_3_6' => 1, 'childcare_kids_3_6' => 1, 'childcare_kids_0_2' => 1]);
-        $pending = $this->registration('pending', ['kids_3_6' => 4]);
-        $this->attend($pending, 'Vormittag', ['childcare_kids_3_6' => 4]);
+        $confirmed = $this->registration('confirmed', ['group_1' => 2, 'group_4' => 2, 'group_5' => 1]);
+        $this->attend($confirmed, 'Vormittag', ['group_1' => 2, 'group_4' => 1, 'childcare_group_4' => 1, 'childcare_group_5' => 1]);
+        $pending = $this->registration('pending', ['group_4' => 4]);
+        $this->attend($pending, 'Vormittag', ['childcare_group_4' => 4]);
 
         $slots = stats_for_event(event_find($this->eventId))['slots'];
 
-        $this->assertSame(['kids_0_2', 'kids_3_6'], $slots[0]['childcare_groups']);
-        $this->assertSame(['kids_0_2' => 1, 'kids_3_6' => 1], $slots[0]['childcare'], 'nur bestätigte, nur betreute Gruppen');
+        $this->assertSame(['group_5', 'group_4'], $slots[0]['childcare_groups']);
+        $this->assertSame(['group_5' => 1, 'group_4' => 1], $slots[0]['childcare'], 'nur bestätigte, nur betreute Gruppen');
         $this->assertSame(2, $slots[0]['childcare_total']);
         $this->assertSame(3, $slots[0]['total'], 'Summe ohne Kinder in der Betreuung');
         $this->assertSame([], $slots[1]['childcare_groups']);
@@ -136,7 +136,7 @@ final class StatsTest extends DbTestCase
     public function testIgnoresOtherEvents(): void
     {
         $other = $this->createEvent();
-        $this->registration('confirmed', ['adults' => 3], $other);
+        $this->registration('confirmed', ['group_1' => 3], $other);
 
         $stats = stats_for_event(event_find($this->eventId));
 
