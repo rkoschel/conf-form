@@ -245,3 +245,21 @@
 .public-page .table {
   --bs-table-bg: transparent;
 }
+
+/* Kompakte Karte für kurze Seiten (Ergebnis, Absage, Hinweise): zentriert, weniger Innenabstand */
+.invitation-compact {
+  padding: 2.25rem 2rem 2rem;
+  text-align: center;
+}
+
+.invitation-compact .invitation-title {
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+}
+
+.invitation-compact .invitation-header::after {
+  margin-top: 1.25rem;
+}
+
+.invitation-compact > * + * {
+  margin-top: 1.5rem;
+}
