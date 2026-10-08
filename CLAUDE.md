@@ -1,7 +1,22 @@
 # Hinweise für Agents
 
-Fachliche Grundlage ist `SPEC.md` (nicht im Repo, per `.gitignore`
-ausgeschlossen). Tests: `./test.sh` (siehe SPEC §11).
+Fachliche Grundlage ist `SPEC.md` (im Repo). Tests: `./test.sh` (siehe SPEC §11).
+
+## Keine sensiblen Daten im Repo
+
+**Das Repo ist öffentlich** (GitHub `rkoschel/conf-form`). Alles, was
+committet wird – auch `SPEC.md`, `CLAUDE.md`, Kommentare, Testdaten und
+Commit-Nachrichten –, ist für jeden lesbar und bleibt in der Git-Historie.
+Niemals hinein dürfen:
+
+- Passwörter, Schlüssel und Tokens (`app_secret`, SMTP-/FTP-Zugangsdaten,
+  Team-Schlüssel, Inhalte von `deploy.env`, `config.*.php`, `.htpasswd`)
+- personenbezogene Daten (Namen, Adressen, Telefonnummern, E-Mail-Adressen
+  realer Teilnehmer oder Ansprechpartner; Datenbank-Inhalte, Mail-Logs)
+- interne Absprachen oder Informationen, die nicht öffentlich sein sollen
+
+Testdaten nur erfunden (`example.org`, „Anna Muster“). Im Zweifel den
+Nutzer fragen, bevor etwas in eine committete Datei kommt.
 
 ## Niemals deployen
 
