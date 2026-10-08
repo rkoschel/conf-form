@@ -11,7 +11,10 @@ $checked = fn (string $name): string => !empty($form[$name]) ? 'checked' : '';
 $attend = is_array($form['attend'] ?? null) ? $form['attend'] : [];
 $split = is_array($form['split'] ?? null) ? $form['split'] : [];
 $noEmail = !empty($form['no_email']);
-$customSplit = !empty($form['custom_split']);
+// Individuelle Aufteilung nur, wenn die Veranstaltung sie erlaubt
+// ($allowSplit kann die Seite vorgeben, z. B. Admin bei bestehender Aufteilung)
+$allowSplit ??= (bool) ($event['allow_split'] ?? true);
+$customSplit = $allowSplit && !empty($form['custom_split']);
 $childcareSlots = array_values(array_filter($event['slots'], fn ($slot) => !empty($slot['childcare'])));
 $hasCount = fn (string $group): bool => (int) ($form[$group] ?? 0) > 0;
 // Sichtbarkeit der Hinweise ohne JS; form.js aktualisiert sie beim Tippen
@@ -77,11 +80,13 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
       <p class="form-text mt-0 mb-3">
         <span class="text-pre-line"><?= e(setting_text('attendance_hint')) ?></span>
       </p>
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" role="switch" id="f-custom_split" name="custom_split" value="1"
-               <?= $checked('custom_split') ?>>
-        <label class="form-check-label" for="f-custom_split">Anzahl individuell aufteilen</label>
-      </div>
+      <?php if ($allowSplit): ?>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="f-custom_split" name="custom_split" value="1"
+                 <?= $customSplit ? 'checked' : '' ?>>
+          <label class="form-check-label" for="f-custom_split">Anzahl individuell aufteilen</label>
+        </div>
+      <?php endif ?>
       <?php if (isset($errors['split'])): ?>
         <div class="text-danger small mb-2"><?= e($errors['split']) ?></div>
       <?php endif ?>
@@ -100,6 +105,7 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
                 <?php endif ?>
               </label>
             </div>
+            <?php if ($allowSplit): ?>
             <div data-split<?= $customSplit ? '' : ' hidden' ?>>
               <div class="mb-2">
                 <span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?>
@@ -129,10 +135,12 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
                 </div>
               <?php endif ?>
             </div>
+            <?php endif ?>
           </div>
         <?php endforeach ?>
       </div>
 
+      <?php if ($allowSplit): ?>
       <div class="modal fade" id="split-reset-modal" tabindex="-1" aria-labelledby="split-reset-title" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
@@ -150,5 +158,15 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
           </div>
         </div>
       </div>
+      <?php endif ?>
     </fieldset>
   <?php endif ?>
+
+  <fieldset>
+    <legend class="h5">Nachricht an uns <span class="fs-6 fw-normal text-body-secondary">(optional)</span></legend>
+    <label for="f-message" class="visually-hidden">Nachricht an uns</label>
+    <textarea id="f-message" name="message" rows="3" maxlength="<?= REGISTRATION_MESSAGE_MAX ?>"
+              class="form-control<?= invalid_class($errors, 'message') ?>"
+              placeholder="<?= e(setting_text('message_placeholder')) ?>"><?= e(is_string($form['message'] ?? null) ? $form['message'] : '') ?></textarea>
+    <?= field_error($errors, 'message') ?>
+  </fieldset>

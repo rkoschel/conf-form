@@ -18,8 +18,9 @@ final class RegistrationChildcareStorageTest extends DbTestCase
             'group_1' => '1', 'group_4' => '2', 'attend' => [$slotId => '1'],
         ];
 
-        [$data] = registration_validate($input, $event['slots']);
+        [$data] = registration_validate($input + ['message' => 'Hallo'], $event['slots']);
         $registration = registration_create($event, $data);
+        $this->assertSame('Hallo', $registration['message'], 'Nachricht gespeichert');
         $counts = registration_slot_counts((int) $registration['id'])[$slotId];
 
         $this->assertSame([1, 0, 2], [$counts['group_1'], $counts['group_4'], $counts['childcare_group_4']]);

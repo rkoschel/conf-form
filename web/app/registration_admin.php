@@ -44,6 +44,7 @@ function registration_form_values(array $registration, array $slotCounts): array
         'phone' => (string) $registration['phone'],
         'no_email' => (bool) $registration['no_email'],
         'custom_split' => (bool) $registration['custom_split'],
+        'message' => (string) ($registration['message'] ?? ''),
         'status' => $registration['status'],
         'attend' => [],
         'split' => [],

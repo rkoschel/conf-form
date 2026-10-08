@@ -263,3 +263,11 @@
 .invitation-compact > * + * {
   margin-top: 1.5rem;
 }
+
+/* Anfragen: Nachricht an uns einzeilig gekürzt, ganzer Text als Tooltip */
+.message-preview {
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

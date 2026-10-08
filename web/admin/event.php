@@ -30,6 +30,7 @@ if (is_post()) {
         'organizer_name' => post_string('organizer_name'),
         'organizer_email' => post_string('organizer_email'),
         'active' => isset($_POST['active']),
+        'allow_split' => isset($_POST['allow_split']),
         'slots' => post_rows('slots', ['time', 'label', 'childcare'], ['childcare_groups']),
         'person_groups' => array_values(array_filter((array) ($_POST['person_groups'] ?? []), 'is_string')),
         'group_names' => array_filter((array) ($_POST['group_names'] ?? []), 'is_string'),
@@ -55,6 +56,7 @@ if (is_post()) {
     $form = [
         'timezone' => 'Europe/Berlin',
         'active' => false,
+        'allow_split' => true,
         'slots' => [],
         'person_groups' => array_keys($lastGroups),
         'group_names' => $lastGroups + person_groups_default(),

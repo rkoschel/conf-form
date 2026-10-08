@@ -146,6 +146,32 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertSame([2, 0], [(int) $registration['group_1'], (int) $registration['group_5']]);
     }
 
+    public function testHidesSplitOptionWhenNotAllowed(): void
+    {
+        $this->assertStringContainsString('id="f-custom_split"', $this->get('/register/')['body'], 'Standard: erlaubt');
+
+        db()->prepare('UPDATE events SET allow_split = 0 WHERE id = ?')->execute([$this->event['id']]);
+        $body = $this->get('/register/')['body'];
+
+        $this->assertStringNotContainsString('id="f-custom_split"', $body);
+        $this->assertStringNotContainsString('data-split', $body);
+        $this->assertStringNotContainsString('split-reset-modal', $body);
+        $this->assertStringContainsString('name="attend[', $body, 'Ankreuzen je Programmpunkt bleibt');
+    }
+
+    public function testMessageFieldWithPlaceholderIsStored(): void
+    {
+        $body = $this->get('/register/')['body'];
+        $this->assertMatchesRegularExpression(
+            '#<textarea id="f-message" name="message"[^>]*placeholder="Falls wir noch etwas berücksichtigen sollten, lass es uns gerne wissen\.">\s*</textarea>#',
+            $body
+        );
+
+        $this->submit(['message' => 'Wir bringen einen Rollstuhl mit.']);
+
+        $this->assertSame('Wir bringen einen Rollstuhl mit.', $this->registrations()[0]['message']);
+    }
+
     public function testPreferredPlaceIsConfirmedWithMail(): void
     {
         $response = $this->submit();

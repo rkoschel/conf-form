@@ -63,6 +63,8 @@ final class MigrationTest extends TestCase
             'Erwachsene→1, Jugend→2, 7–12→3, 3–6→4, 0–2→5'
         );
         $this->assertSame('', $pdo->query('SELECT person_groups FROM events')->fetchColumn(), 'bestehende Veranstaltung: alle Gruppen');
+        $this->assertSame(1, (int) $pdo->query('SELECT allow_split FROM events')->fetchColumn(), 'Aufteilung bleibt erlaubt');
+        $this->assertSame('', $registration['message']);
     }
 
     public function testChildcareIsMigratedToGroupKeys(): void

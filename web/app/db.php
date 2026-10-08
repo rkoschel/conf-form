@@ -43,6 +43,12 @@ const DB_MIGRATIONS = [
             'kids_7_12', 'group_3'), 'kids_3_6', 'group_4'), 'kids_0_2', 'group_5')",
         "ALTER TABLE events ADD COLUMN person_groups TEXT NOT NULL DEFAULT ''",
     ],
+    // Individuelle Aufteilung je Veranstaltung abschaltbar; Nachricht an die
+    // Veranstalter in der Anmeldung (SPEC §5.1, §7.1)
+    4 => [
+        'ALTER TABLE events ADD COLUMN allow_split INTEGER NOT NULL DEFAULT 1',
+        "ALTER TABLE registrations ADD COLUMN message TEXT NOT NULL DEFAULT ''",
+    ],
 ];
 
 /** Mindestversion für ALTER TABLE … RENAME COLUMN (Migration 3) */

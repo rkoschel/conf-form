@@ -34,6 +34,13 @@ const SETTING_TEXTS = [
         'label' => 'Hinweis unter „Voraussichtliche Anwesenheit“',
         'default' => 'Deine Angaben helfen uns, die Räumlichkeiten besser zu nutzen und möglichst vielen die Teilnahme zu ermöglichen.',
     ],
+    'message_placeholder' => [
+        'section' => 'Anmeldeformular',
+        'label' => 'Platzhalter im Feld „Nachricht an uns“',
+        'help' => 'Grau im leeren Feld; das Feld selbst ist optional.',
+        'default' => 'Falls wir noch etwas berücksichtigen sollten, lass es uns gerne wissen.',
+        'line' => true,
+    ],
     'fully_booked_hint' => [
         'section' => 'Anmeldeformular',
         'label' => 'Hinweis, wenn die Veranstaltung ausgebucht ist',

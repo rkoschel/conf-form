@@ -179,6 +179,15 @@ final class EventValidationTest extends TestCase
         $this->assertSame('Programmpunkt 2: Kindergruppen für die Kinderbetreuung auswählen.', $errors['slots']);
     }
 
+    public function testAllowSplitSwitch(): void
+    {
+        [$data] = event_validate($this->input(['allow_split' => '1']));
+        $this->assertTrue($data['allow_split']);
+
+        [$data] = event_validate($this->input());
+        $this->assertFalse($data['allow_split'], 'Checkbox nicht gesetzt = aus');
+    }
+
     public function testParsesSelectedGroupsWithNames(): void
     {
         [$data, $errors] = event_validate($this->input([

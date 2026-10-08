@@ -87,6 +87,27 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->assertStringContainsString('>bestätigt</span>', $body);
     }
 
+    public function testListShowsMessage(): void
+    {
+        $this->registration(['first_name' => 'Nina', 'last_name' => 'Nachricht', 'message' => 'Bitte <Rampe> einplanen']);
+
+        $body = $this->get('/admin/?q=Nachricht')['body'];
+
+        $this->assertStringContainsString('title="Bitte &lt;Rampe&gt; einplanen"', $body);
+        $this->assertStringContainsString('message-preview', $body);
+    }
+
+    public function testEditKeepsExistingSplitEvenIfEventNoLongerAllowsIt(): void
+    {
+        $this->serverDb()->prepare('UPDATE events SET allow_split = 0 WHERE id = ?')->execute([$this->event()]);
+        $plain = $this->registration(['first_name' => 'Ohne']);
+        $split = $this->registration(['first_name' => 'Mit', 'custom_split' => 1]);
+
+        $this->assertStringNotContainsString('id="f-custom_split"', $this->get("/admin/registration.php?id=$plain")['body']);
+        $this->assertStringContainsString('id="f-custom_split"', $this->get("/admin/registration.php?id=$split")['body']);
+        $this->serverDb()->prepare('UPDATE events SET allow_split = 1 WHERE id = ?')->execute([$this->event()]);
+    }
+
     public function testMarksDuplicates(): void
     {
         $this->registration(['first_name' => 'Doris', 'last_name' => 'Doppelt']);

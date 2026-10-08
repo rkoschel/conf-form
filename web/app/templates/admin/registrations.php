@@ -77,6 +77,11 @@ $statusBadge = [
                         aria-label="Mögliche Dublette">⚠</span>
                 <?php endif ?>
                 <div class="small text-body-secondary"><?= e($row['no_email'] ? 'Tel. ' . $row['phone'] : $row['email']) ?></div>
+                <?php if (($row['message'] ?? '') !== ''): ?>
+                  <div class="small text-body-secondary message-preview" title="<?= e($row['message']) ?>">
+                    <span aria-hidden="true">💬</span><span class="visually-hidden">Nachricht:</span> <?= e($row['message']) ?>
+                  </div>
+                <?php endif ?>
               </td>
               <td class="text-end tabular-nums"><?= (int) $row['person_count'] ?></td>
               <td>

@@ -116,6 +116,34 @@ final class RegistrationValidateTest extends TestCase
         $this->assertArrayHasKey('persons', $errors, 'auch die jüngste Gruppe zählt');
     }
 
+    public function testMessageIsOptionalNormalizedAndLimited(): void
+    {
+        [$data, $errors] = $this->validate(['message' => "  Wir kommen etwas später.\r\nDanke!  "]);
+        $this->assertSame([], $errors);
+        $this->assertSame("Wir kommen etwas später.\nDanke!", $data['message']);
+
+        [$data] = $this->validate([]);
+        $this->assertSame('', $data['message']);
+
+        [, $errors] = $this->validate(['message' => str_repeat('a', REGISTRATION_MESSAGE_MAX + 1)]);
+        $this->assertSame('Bitte höchstens ' . REGISTRATION_MESSAGE_MAX . ' Zeichen.', $errors['message']);
+    }
+
+    public function testCustomSplitIgnoredWhenNotAllowed(): void
+    {
+        [$data, $errors] = registration_validate(
+            $this->input(['custom_split' => '1', 'split' => ['10' => ['group_1' => '1']], 'attend' => ['10' => '1']]),
+            self::SLOTS,
+            null,
+            null,
+            false
+        );
+
+        $this->assertSame([], $errors);
+        $this->assertFalse($data['custom_split']);
+        $this->assertSame(2, $data['slots'][10]['group_1'], 'Ankreuzen gilt für die ganze Gruppe');
+    }
+
     public function testGroupsNotSelectedForEventAreZero(): void
     {
         [$data, $errors] = registration_validate(

@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS events (
   organizer_name        TEXT NOT NULL DEFAULT '',
   organizer_email       TEXT NOT NULL DEFAULT '',
   person_groups         TEXT NOT NULL DEFAULT '', -- JSON {"group_1":"Erwachsene",…} gewählte Gruppen + Namen; '' = alle, Standardnamen
+  allow_split           INTEGER NOT NULL DEFAULT 1, -- individuelle Aufteilung auf Programmpunkte erlaubt
   active                INTEGER NOT NULL DEFAULT 0
 );
 CREATE UNIQUE INDEX IF NOT EXISTS one_active_event ON events(active) WHERE active = 1;
@@ -48,6 +49,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   group_4         INTEGER NOT NULL DEFAULT 0,
   group_5         INTEGER NOT NULL DEFAULT 0,
   custom_split INTEGER NOT NULL DEFAULT 0,
+  message      TEXT NOT NULL DEFAULT '',          -- „Nachricht an uns“ (optional)
   status       TEXT NOT NULL CHECK (status IN
                  ('pending','confirmed','cancelled','rejected')),
   cancel_token TEXT NOT NULL UNIQUE

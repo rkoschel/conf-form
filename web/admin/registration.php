@@ -9,13 +9,15 @@ if ($registration === null) {
 }
 $id = (int) $registration['id'];
 $event = event_find((int) $registration['event_id']);
+// Aufteilung, wenn die Veranstaltung sie erlaubt oder diese Anmeldung schon eine hat
+$allowSplit = (bool) $event['allow_split'] || (bool) $registration['custom_split'];
 
 $errors = [];
 
 if (is_post()) {
     csrf_check();
     $form = $_POST;
-    [$data, $errors] = registration_validate($_POST, $event['slots'], null, array_keys($event['groups']));
+    [$data, $errors] = registration_validate($_POST, $event['slots'], null, array_keys($event['groups']), $allowSplit);
     $status = post_string('status');
     if (!isset(STATUS_LABELS[$status])) {
         $errors['status'] = 'Bitte einen Status auswählen.';
@@ -39,5 +41,6 @@ admin_render('registration_form', [
     'registration' => $registration,
     'form' => $form,
     'errors' => $errors,
+    'allowSplit' => $allowSplit,
     'scripts' => ['form.js'],
 ]);

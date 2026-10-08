@@ -7,7 +7,7 @@ declare(strict_types=1);
  * $input: title, date (TT.MM.JJJJ), location, description,
  * registration_deadline_date (TT.MM.JJJJ), registration_deadline_time
  * (HH:MM, 24 h), timezone, max_participants, organizer_name,
- * organizer_email (Strings), active (bool), slots (Liste von
+ * organizer_email (Strings), active (bool), allow_split (bool), slots (Liste von
  * ['time' => HH:MM, 'label' => …, 'childcare' => '1'|'', 'childcare_groups'
  * => Liste von Kindergruppen]), person_groups (Liste gewählter group_x),
  * group_names (group_x → Name). Bevorzugte Orte sind global (preferred_places()).
@@ -36,6 +36,7 @@ function event_validate(array $input, ?array $lockedSlots = null, ?array $locked
         'organizer_name' => normalize_line((string) ($input['organizer_name'] ?? '')),
         'organizer_email' => trim((string) ($input['organizer_email'] ?? '')),
         'active' => !empty($input['active']),
+        'allow_split' => !empty($input['allow_split']),
     ];
 
     foreach (['title' => 'Titel', 'location' => 'Ort'] as $field => $label) {
@@ -303,6 +304,7 @@ function event_save(?int $id, array $data): int
             'organizer_name' => $data['organizer_name'],
             'organizer_email' => $data['organizer_email'],
             'person_groups' => json_encode($data['person_groups'] ?? person_groups_default(), JSON_UNESCAPED_UNICODE),
+            'allow_split' => ($data['allow_split'] ?? true) ? 1 : 0,
             'active' => $data['active'] ? 1 : 0,
         ];
 

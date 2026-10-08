@@ -109,6 +109,15 @@
 
   <fieldset>
     <legend class="h5">Ablauf</legend>
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" role="switch" id="f-allow_split" name="allow_split" value="1"
+             <?= !empty($form['allow_split']) ? 'checked' : '' ?>>
+      <label class="form-check-label" for="f-allow_split">Individuelle Aufteilung auf Programmpunkte erlauben</label>
+      <div class="form-text mt-0">
+        Wenn aus, kreuzen Teilnehmer je Programmpunkt nur an, ob die ganze Gruppe dabei ist
+        (Option „Anzahl individuell aufteilen“ erscheint nicht). Jederzeit änderbar; bestehende Aufteilungen bleiben erhalten.
+      </div>
+    </div>
     <?php if ($slotsLocked): ?>
       <div class="alert alert-info">
         Es gibt bereits Anmeldungen – der Ablauf kann nicht mehr geändert werden.

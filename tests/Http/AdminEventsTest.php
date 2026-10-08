@@ -158,6 +158,15 @@ final class AdminEventsTest extends HttpTestCase
         $this->assertSame(['group_1' => 'Eltern', 'group_2' => 'Teens'], json_decode((string) $stmt->fetchColumn(), true));
     }
 
+    public function testAllowSplitIsSavedAndPrefilledOnForNewEvents(): void
+    {
+        $this->assertMatchesRegularExpression('#name="allow_split" value="1"\s+checked#', $this->get('/admin/event.php')['body'], 'neu: an');
+
+        $id = $this->createEvent('Ohne Aufteilung');  // formData ohne allow_split = aus
+
+        $this->assertMatchesRegularExpression('#name="allow_split" value="1"\s+>#', $this->get("/admin/event.php?id=$id")['body']);
+    }
+
     public function testNoGroupSelectedShowsError(): void
     {
         $response = $this->post('/admin/event.php', $this->formData('Ohne Gruppe', ['person_groups' => []]));

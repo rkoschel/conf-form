@@ -10,6 +10,9 @@ declare(strict_types=1);
  */
 const AUTO_CONFIRM_MAX_PERSONS = 99;
 
+/** Höchstlänge der „Nachricht an uns“ */
+const REGISTRATION_MESSAGE_MAX = 2000;
+
 /** Personen, die zum Kontingent zählen: alle Personengruppen (SPEC §5.3) */
 function registration_group_size(array $counts): int
 {
@@ -96,6 +99,10 @@ function registration_duplicate_ids(array $rows): array
  * attend[slot_id] (Checkbox je Programmpunkt, ohne Aufteilung),
  * split[slot_id][group_x] (Anzahlen, mit Aufteilung).
  *
+ * message: „Nachricht an uns“ (optional, höchstens REGISTRATION_MESSAGE_MAX
+ * Zeichen). custom_split nur, wenn die Veranstaltung die Aufteilung erlaubt
+ * ($allowSplit); sonst gilt das Ankreuzen je Programmpunkt.
+ *
  * Mit $maxParticipants (öffentliches Formular) dürfen die Personen die
  * Kapazität nicht überschreiten; der Admin darf überbuchen. Gruppen, die
  * nicht in $groups stehen (nicht gewählt bei der Veranstaltung), sind 0.
@@ -104,8 +111,13 @@ function registration_duplicate_ids(array $rows): array
  * @param list<string>|null $groups Personengruppen der Veranstaltung (null = alle)
  * @return array{0: array<string, mixed>, 1: array<string, string>} [Daten, Fehler je Feld]
  */
-function registration_validate(array $input, array $slots, ?int $maxParticipants = null, ?array $groups = null): array
-{
+function registration_validate(
+    array $input,
+    array $slots,
+    ?int $maxParticipants = null,
+    ?array $groups = null,
+    bool $allowSplit = true
+): array {
     $groups ??= array_keys(PERSON_GROUPS);
     $errors = [];
     $string = fn (string $key): string => is_string($input[$key] ?? null) ? $input[$key] : '';
@@ -118,8 +130,12 @@ function registration_validate(array $input, array $slots, ?int $maxParticipants
         'email' => $noEmail ? null : trim($string('email')),
         'phone' => $noEmail ? normalize_line($string('phone')) : null,
         'no_email' => $noEmail,
-        'custom_split' => !empty($input['custom_split']),
+        'custom_split' => $allowSplit && !empty($input['custom_split']),
+        'message' => normalize_text($string('message')),
     ];
+    if (mb_strlen($data['message']) > REGISTRATION_MESSAGE_MAX) {
+        $errors['message'] = 'Bitte höchstens ' . REGISTRATION_MESSAGE_MAX . ' Zeichen.';
+    }
 
     foreach (['first_name' => 'Vorname', 'last_name' => 'Nachname', 'congregation' => setting_text('congregation_label')] as $field => $label) {
         if ($data[$field] === '') {
@@ -262,13 +278,13 @@ function registration_create(array $event, array $data): array
 
         $pdo->prepare(
             'INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, email, phone,
-                no_email, group_1, group_2, group_3, group_4, group_5, custom_split, status, cancel_token)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                no_email, group_1, group_2, group_3, group_4, group_5, custom_split, message, status, cancel_token)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         )->execute([
             $eventId, now_utc(), $data['first_name'], $data['last_name'], $data['congregation'],
             $data['email'], $data['phone'], $data['no_email'] ? 1 : 0,
             $data['group_1'], $data['group_2'], $data['group_3'], $data['group_4'], $data['group_5'],
-            $data['custom_split'] ? 1 : 0, $status, bin2hex(random_bytes(32)),
+            $data['custom_split'] ? 1 : 0, $data['message'] ?? '', $status, bin2hex(random_bytes(32)),
         ]);
         $id = (int) $pdo->lastInsertId();
         registration_save_slots($pdo, $id, $data['slots']);
@@ -290,12 +306,12 @@ function registration_update(int $id, array $data, string $status): void
         $pdo->prepare(
             'UPDATE registrations SET first_name = ?, last_name = ?, congregation = ?, email = ?, phone = ?,
                 no_email = ?, group_1 = ?, group_2 = ?, group_3 = ?, group_4 = ?, group_5 = ?,
-                custom_split = ?, status = ?
+                custom_split = ?, message = ?, status = ?
              WHERE id = ?'
         )->execute([
             $data['first_name'], $data['last_name'], $data['congregation'], $data['email'], $data['phone'],
             $data['no_email'] ? 1 : 0, $data['group_1'], $data['group_2'], $data['group_3'], $data['group_4'],
-            $data['group_5'], $data['custom_split'] ? 1 : 0, $status, $id,
+            $data['group_5'], $data['custom_split'] ? 1 : 0, $data['message'] ?? '', $status, $id,
         ]);
         $pdo->prepare('DELETE FROM registration_slots WHERE registration_id = ?')->execute([$id]);
         registration_save_slots($pdo, $id, $data['slots']);

@@ -41,7 +41,8 @@ if (is_post()) {
             $_POST,
             $event['slots'],
             (int) $event['max_participants'],
-            array_keys($event['groups'])
+            array_keys($event['groups']),
+            (bool) $event['allow_split']
         );
         if (!$errors) {
             $registration = registration_create($event, $data);
