@@ -172,6 +172,20 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertSame('Wir bringen einen Rollstuhl mit.', $this->registrations()[0]['message']);
     }
 
+    public function testNoSlotPreselectedAndAtLeastOneRequired(): void
+    {
+        $body = $this->get('/register/')['body'];
+        $this->assertMatchesRegularExpression('#name="attend\[\d+\]" value="1"\s+>#', $body, 'nicht vorausgewählt');
+        $this->assertStringNotContainsString('" value="1" checked>', $body);
+        $this->assertMatchesRegularExpression('#data-attend-error hidden>#', $body);
+
+        $response = $this->submit(['attend' => []]);
+
+        $this->assertSame(200, $response['status']);
+        $this->assertMatchesRegularExpression('#data-attend-error>\s*Bitte mindestens einen Programmpunkt auswählen\.#', $response['body']);
+        $this->assertSame([], $this->registrations());
+    }
+
     public function testPreferredPlaceIsConfirmedWithMail(): void
     {
         $response = $this->submit();

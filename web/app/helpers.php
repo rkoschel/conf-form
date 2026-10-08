@@ -45,13 +45,16 @@ function now_utc(): string
 /** Einzeiliger Text: trim und Mehrfach-Leerzeichen zu einem zusammenfassen */
 function normalize_line(string $value): string
 {
-    return trim((string) preg_replace('/\s+/u', ' ', $value));
+    // Leerraum zusammenfassen, übrige Steuerzeichen (z. B. \x00) entfernen
+    return trim((string) preg_replace(['/\s+/u', '/\p{Cc}/u'], [' ', ''], $value));
 }
 
 /** Mehrzeiliger Text: einheitliche Zeilenumbrüche, trim */
 function normalize_text(string $value): string
 {
-    return trim(str_replace(["\r\n", "\r"], "\n", $value));
+    $text = str_replace(["\r\n", "\r"], "\n", $value);
+    // Steuerzeichen außer Zeilenumbruch und Tabulator entfernen
+    return trim((string) preg_replace('/[^\P{Cc}\n\t]/u', '', $text));
 }
 
 /** Eingabe TT.MM.JJJJ (auch 1.5.2027) → 2027-05-01, ungültig → null */

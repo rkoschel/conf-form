@@ -200,10 +200,35 @@ if (form) {
   }
 
   // Nicht absenden, solange eine Anzahl erkennbar falsch ist
+  // Mindestens ein Programmpunkt: angekreuzt bzw. in der Aufteilung > 0
+  const attendError = form.querySelector('[data-attend-error]');
+  const anyAttendance = () => {
+    if (customSplit && customSplit.checked) {
+      return splitGroups().some((el) => parseInt(el.querySelector('input').value, 10) > 0);
+    }
+    return [...form.querySelectorAll('[data-attend] input')].some((input) => input.checked);
+  };
+  const updateAttendError = () => {
+    if (attendError && anyAttendance()) {
+      attendError.hidden = true;
+    }
+  };
+  form.addEventListener('change', updateAttendError);
+  form.addEventListener('input', updateAttendError);
+
   form.addEventListener('submit', (event) => {
     const invalid = [...form.querySelectorAll('[data-count]')].filter((input) => !checkNumber(input));
     if (customSplit && customSplit.checked) {
       invalid.push(...splitGroups().filter((el) => !el.hidden && !checkSplitInput(el)).map((el) => el.querySelector('input')));
+    }
+    if (attendError && !anyAttendance()) {
+      attendError.hidden = false;
+      const first = customSplit && customSplit.checked
+        ? splitGroups().find((el) => !el.hidden)?.querySelector('input')
+        : form.querySelector('[data-attend] input');
+      if (first) {
+        invalid.push(first);
+      }
     }
     if (invalid.length > 0) {
       event.preventDefault();

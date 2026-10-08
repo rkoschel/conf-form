@@ -108,6 +108,16 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->serverDb()->prepare('UPDATE events SET allow_split = 1 WHERE id = ?')->execute([$this->event()]);
     }
 
+    public function testMessageIsEscapedInEditForm(): void
+    {
+        $id = $this->registration(['message' => '<script>alert(1)</script>']);
+
+        $body = $this->get("/admin/registration.php?id=$id")['body'];
+
+        $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;</textarea>', $body);
+        $this->assertStringNotContainsString('<script>alert(1)', $body);
+    }
+
     public function testMarksDuplicates(): void
     {
         $this->registration(['first_name' => 'Doris', 'last_name' => 'Doppelt']);

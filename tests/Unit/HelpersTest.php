@@ -57,6 +57,13 @@ final class HelpersTest extends TestCase
         $this->assertSame('kaputt', format_utc_datetime('kaputt', 'Europe/Berlin'));
     }
 
+    public function testNormalizersRemoveControlCharacters(): void
+    {
+        $this->assertSame('ab c', normalize_line("  a\x00b\t\nc  "));
+        $this->assertSame("xy\nz\tw", normalize_text("x\x07y\r\nz\tw\x1b"), 'Zeilenumbruch und Tab bleiben');
+        $this->assertSame('<script>', normalize_line(' <script> '), 'HTML bleibt Text, escaped wird bei der Ausgabe');
+    }
+
     public function testParsesPersonGroups(): void
     {
         $this->assertSame(person_groups_default(), person_groups_parse(''), 'leer = alle mit Standardnamen');

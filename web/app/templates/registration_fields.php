@@ -90,6 +90,9 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
       <?php if (isset($errors['split'])): ?>
         <div class="text-danger small mb-2"><?= e($errors['split']) ?></div>
       <?php endif ?>
+      <div class="text-danger small mb-2" data-attend-error<?= isset($errors['attend']) ? '' : ' hidden' ?>>
+        Bitte mindestens einen Programmpunkt auswählen.
+      </div>
 
       <div class="vstack gap-2">
         <?php foreach ($event['slots'] as $slot): ?>

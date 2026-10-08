@@ -18,8 +18,9 @@ if ($event === null || !event_registration_open($event)) {
     exit;
 }
 
-// Vorbelegung: eine Person in der ersten Gruppe der Veranstaltung
-$form = [array_key_first($event['groups']) => '1', 'attend' => array_fill_keys(array_column($event['slots'], 'id'), '1')];
+// Vorbelegung: eine Person in der ersten Gruppe; kein Programmpunkt vorausgewählt,
+// damit bewusst entschieden wird
+$form = [array_key_first($event['groups']) => '1', 'attend' => []];
 $errors = [];
 $notice = null;
 

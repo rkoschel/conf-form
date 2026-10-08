@@ -224,10 +224,29 @@ final class RegistrationValidateTest extends TestCase
 
     public function testUnknownSlotsAreIgnored(): void
     {
-        [$data, $errors] = $this->validate(['attend' => ['99' => '1'], 'split' => 'kaputt']);
+        [$data, $errors] = $this->validate(['attend' => ['99' => '1', '11' => '1'], 'split' => 'kaputt']);
 
         $this->assertSame([], $errors);
         $this->assertSame([10, 11], array_keys($data['slots']));
+    }
+
+    public function testAtLeastOneSlotIsRequired(): void
+    {
+        [, $errors] = $this->validate(['attend' => []]);
+        $this->assertSame('Bitte mindestens einen Programmpunkt auswählen.', $errors['attend']);
+
+        [, $errors] = $this->validate(['attend' => ['99' => '1']]);
+        $this->assertArrayHasKey('attend', $errors, 'unbekannter Programmpunkt zählt nicht');
+
+        [, $errors] = $this->validate([
+            'attend' => [],
+            'custom_split' => '1',
+            'split' => ['10' => ['group_1' => '0'], '11' => ['group_1' => '0']],
+        ]);
+        $this->assertArrayHasKey('attend', $errors, 'Aufteilung überall 0');
+
+        [, $errors] = $this->validate(['attend' => [], 'custom_split' => '1', 'split' => ['11' => ['group_1' => '1']]]);
+        $this->assertArrayNotHasKey('attend', $errors);
     }
 
     public function testEventWithoutSlots(): void
@@ -254,6 +273,7 @@ final class RegistrationValidateTest extends TestCase
             'congregation' => 'Hamm',
             'email' => 'anna@example.org',
             'group_1' => '2',
+            'attend' => ['10' => '1'],
         ];
     }
 }

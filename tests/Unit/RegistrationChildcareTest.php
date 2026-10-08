@@ -60,7 +60,10 @@ final class RegistrationChildcareTest extends TestCase
     {
         $slots = $this->validate([
             'custom_split' => '1',
-            'split' => ['1' => ['group_1' => '0', 'group_3' => '0', 'group_4' => '0', 'group_5' => '0']],
+            'split' => [
+                '1' => ['group_1' => '0', 'group_3' => '0', 'group_4' => '0', 'group_5' => '0'],
+                '2' => ['group_1' => '2'],
+            ],
         ]);
 
         $this->assertSame(0, $slots[1]['childcare_group_4']);

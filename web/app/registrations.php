@@ -99,6 +99,7 @@ function registration_duplicate_ids(array $rows): array
  * attend[slot_id] (Checkbox je Programmpunkt, ohne Aufteilung),
  * split[slot_id][group_x] (Anzahlen, mit Aufteilung).
  *
+ * Gibt es Programmpunkte, muss mindestens einer besucht werden (Fehler 'attend').
  * message: „Nachricht an uns“ (optional, höchstens REGISTRATION_MESSAGE_MAX
  * Zeichen). custom_split nur, wenn die Veranstaltung die Aufteilung erlaubt
  * ($allowSplit); sonst gilt das Ankreuzen je Programmpunkt.
@@ -209,6 +210,11 @@ function registration_validate(
     }
     if ($splitInvalid) {
         $errors['split'] = 'Die Anzahl je Programmpunkt darf die Anzahl der Personen nicht überschreiten.';
+    }
+    // Mindestens ein Programmpunkt muss besucht werden (beim Programmpunkt
+    // oder in der Kinderbetreuung)
+    if ($slots && !isset($errors['split']) && !array_filter($data['slots'], fn ($counts) => array_sum($counts) > 0)) {
+        $errors['attend'] = 'Bitte mindestens einen Programmpunkt auswählen.';
     }
 
     return [$data, $errors];
