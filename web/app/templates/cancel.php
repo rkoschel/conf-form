@@ -1,32 +1,35 @@
 <?php /* Absage-Seite (SPEC §6) */ ?>
-<h1 class="h3 mb-4">Teilnahme absagen</h1>
+<article class="invitation invitation-compact">
+  <header class="invitation-header">
+    <h1 class="invitation-title">Teilnahme absagen</h1>
+    <?php if ($registration !== null): ?>
+      <p class="invitation-meta mb-1"><?= e($registration['first_name'] . ' ' . $registration['last_name']) ?></p>
+      <p class="invitation-meta small mb-0">
+        <?= e($event['title']) ?> · <span class="text-nowrap"><?= e(format_date_long($event['date'])) ?></span>
+      </p>
+    <?php endif ?>
+  </header>
 
-<?php if ($registration === null): ?>
-  <div class="alert alert-secondary" role="status">
-    Dieser Link ist ungültig. Bitte prüfe, ob du ihn vollständig aus der E-Mail übernommen hast.
+  <div>
+    <?php if ($registration === null): ?>
+      <div class="alert alert-secondary mb-0" role="status">
+        Dieser Link ist ungültig. Bitte prüfe, ob du ihn vollständig aus der E-Mail übernommen hast.
+      </div>
+    <?php elseif ($done): ?>
+      <div class="alert alert-success mb-0" role="status">
+        <span class="text-pre-line"><?= e(setting_text('cancel_done')) ?></span>
+      </div>
+    <?php elseif ($registration['status'] === 'cancelled'): ?>
+      <div class="alert alert-secondary mb-0" role="status">Diese Anmeldung ist bereits storniert.</div>
+    <?php elseif ($registration['status'] === 'rejected'): ?>
+      <div class="alert alert-secondary mb-0" role="status">Diese Anmeldung wurde bereits abgelehnt.</div>
+    <?php else: ?>
+      <p>Möchtest du deine <?= $registration['status'] === 'pending' ? 'Anfrage' : 'Teilnahme' ?> wirklich absagen?</p>
+      <form method="post" action="<?= e(url('cancel/')) ?>">
+        <?= csrf_field() ?>
+        <input type="hidden" name="t" value="<?= e($token) ?>">
+        <button type="submit" class="btn btn-danger">Teilnahme absagen</button>
+      </form>
+    <?php endif ?>
   </div>
-<?php else: ?>
-  <dl class="row mb-4">
-    <dt class="col-sm-4">Name</dt>
-    <dd class="col-sm-8"><?= e($registration['first_name'] . ' ' . $registration['last_name']) ?></dd>
-    <dt class="col-sm-4">Veranstaltung</dt>
-    <dd class="col-sm-8"><?= e($event['title']) ?>, <?= e(format_date_long($event['date'])) ?></dd>
-  </dl>
-
-  <?php if ($done): ?>
-    <div class="alert alert-success" role="status">
-      <span class="text-pre-line"><?= e(setting_text('cancel_done')) ?></span>
-    </div>
-  <?php elseif ($registration['status'] === 'cancelled'): ?>
-    <div class="alert alert-secondary" role="status">Diese Anmeldung ist bereits storniert.</div>
-  <?php elseif ($registration['status'] === 'rejected'): ?>
-    <div class="alert alert-secondary" role="status">Diese Anmeldung wurde bereits abgelehnt.</div>
-  <?php else: ?>
-    <p>Möchtest du deine <?= $registration['status'] === 'pending' ? 'Anfrage' : 'Teilnahme' ?> wirklich absagen?</p>
-    <form method="post" action="<?= e(url('cancel/')) ?>">
-      <?= csrf_field() ?>
-      <input type="hidden" name="t" value="<?= e($token) ?>">
-      <button type="submit" class="btn btn-danger">Teilnahme absagen</button>
-    </form>
-  <?php endif ?>
-<?php endif ?>
+</article>

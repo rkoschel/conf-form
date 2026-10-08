@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="<?= e(asset('app.css')) ?>">
   <script src="<?= e(asset('theme.js')) ?>"></script>
 </head>
-<body>
+<body class="public-page">
   <?php $narrow = empty($wide) ? ' page-narrow' : '' /* $wide: volle Breite, z. B. Team-Auswertung */ ?>
   <div class="container<?= $narrow ?> pt-3 d-flex justify-content-end">
     <?php require __DIR__ . '/theme_toggle.php' ?>

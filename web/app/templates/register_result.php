@@ -1,10 +1,14 @@
 <?php /* Ergebnis nach dem Absenden (SPEC §5.3) */ ?>
-<?php if ($status === 'confirmed'): ?>
-  <h1 class="h3 mb-3">Anmeldung bestätigt</h1>
-  <p class="text-pre-line"><?= e(setting_text('result_confirmed')) ?></p>
-<?php else: ?>
-  <h1 class="h3 mb-3">Du stehst auf der Warteliste</h1>
-  <p class="text-pre-line"><?= e(setting_text('result_waitlist')) ?></p>
-<?php endif ?>
-<p class="text-body-secondary text-pre-line"><?= e(setting_text('result_mail_hint')) ?></p>
-<p><a href="<?= e(url('')) ?>">Zur Startseite</a></p>
+<article class="invitation invitation-compact">
+  <header class="invitation-header">
+    <p class="invitation-eyebrow">Anmeldung</p>
+    <h1 class="invitation-title">
+      <?= $status === 'confirmed' ? 'Anmeldung bestätigt' : 'Du stehst auf der Warteliste' ?>
+    </h1>
+  </header>
+  <div>
+    <p class="text-pre-line"><?= e(setting_text($status === 'confirmed' ? 'result_confirmed' : 'result_waitlist')) ?></p>
+    <p class="text-body-secondary text-pre-line mb-0"><?= e(setting_text('result_mail_hint')) ?></p>
+  </div>
+</article>
+<p class="text-center mt-4 mb-0"><a href="<?= e(url('')) ?>" class="link-secondary">Zur Startseite</a></p>

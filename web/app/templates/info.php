@@ -1,19 +1,6 @@
 <?php /* Infoseite der aktiven Veranstaltung (SPEC §4) als „Einladungskarte“; Belegung nur in Prozent, nie absolute Zahlen */ ?>
 <article class="invitation">
-  <header class="invitation-header">
-    <h1 class="invitation-title"><?= e($event['title']) ?></h1>
-    <p class="invitation-meta mb-1">
-      <span class="text-nowrap"><?= e(format_date_long($event['date'])) ?></span>
-      <span aria-hidden="true">·</span>
-      <span><?= e($event['location']) ?></span>
-    </p>
-    <p class="invitation-meta small mb-0">
-      Anmeldung bis <?= e(format_local_datetime($event['registration_deadline'])) ?>
-      <?php if ($event['timezone'] !== 'Europe/Berlin'): ?>
-        (<?= e($event['timezone']) ?>)
-      <?php endif ?>
-    </p>
-  </header>
+  <?php require __DIR__ . '/invitation_header.php' ?>
 
   <?php if ($event['description'] !== ''): ?>
     <div class="invitation-description text-pre-line"><?= e($event['description']) ?></div>
