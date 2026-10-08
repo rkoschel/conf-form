@@ -147,7 +147,7 @@ final class InfoPageTest extends HttpTestCase
 
         $body = $this->get('/')['body'];
 
-        $this->assertSame(1, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 1'));
+        $this->assertSame(1, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 3'));
         $this->assertLessThan(strpos($body, 'Jugendstunde'), strpos($body, 'Kinderbetreuung'), 'beim richtigen Programmpunkt');
     }
 

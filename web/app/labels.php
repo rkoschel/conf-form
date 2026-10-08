@@ -11,9 +11,9 @@ declare(strict_types=1);
 const PERSON_GROUPS = [
     'group_1' => ['type' => 'adults', 'default' => 'Erwachsene'],
     'group_2' => ['type' => 'youth', 'default' => 'Jugendliche'],
-    'group_3' => ['type' => 'kids', 'default' => 'Kindergruppe 3'],
+    'group_3' => ['type' => 'kids', 'default' => 'Kindergruppe 1'],
     'group_4' => ['type' => 'kids', 'default' => 'Kindergruppe 2'],
-    'group_5' => ['type' => 'kids', 'default' => 'Kindergruppe 1'],
+    'group_5' => ['type' => 'kids', 'default' => 'Kindergruppe 3'],
 ];
 
 /** Art einer Personengruppe; Kinderbetreuung nur für 'kids' */

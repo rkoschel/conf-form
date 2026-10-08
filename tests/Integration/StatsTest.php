@@ -57,7 +57,7 @@ final class StatsTest extends DbTestCase
         $stats = stats_for_event(event_find($this->eventId));
 
         $this->assertSame(7, $stats['quota_used']);
-        $this->assertSame(['name' => 'Kindergruppe 1', 'confirmed' => 2, 'pending' => 0], $stats['groups']['group_5']);
+        $this->assertSame(['name' => 'Kindergruppe 3', 'confirmed' => 2, 'pending' => 0], $stats['groups']['group_5']);
         $this->assertSame(['name' => 'Erwachsene', 'confirmed' => 2, 'pending' => 4], $stats['groups']['group_1']);
     }
 

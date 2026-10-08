@@ -89,9 +89,9 @@ final class RegisterPageTest extends HttpTestCase
         $vortrag = $this->event['slots'][0]['id'];
         $jugend = $this->event['slots'][1]['id'];
 
-        $this->assertSame(2, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 1'), 'Ankreuzen und Aufteilung');
+        $this->assertSame(2, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 3'), 'Ankreuzen und Aufteilung');
         $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint hidden>#', $body, 'ohne Kinder kein Hinweis');
-        $this->assertStringContainsString('10:00 Uhr Vortrag: Kindergruppe 2 und Kindergruppe 1', $body);
+        $this->assertStringContainsString('10:00 Uhr Vortrag: Kindergruppe 2 und Kindergruppe 3', $body);
         $this->assertStringContainsString('data-childcare-split-hint hidden', $body);
         $this->assertMatchesRegularExpression('#name="split\[' . $vortrag . '\]\[group_4\]"\s+value="0"#', $body, 'betreute Gruppe mit 0 vorbelegt');
         $this->assertMatchesRegularExpression('#data-childcare-slot=""#', $body, 'Programmpunkt ohne Betreuung');
