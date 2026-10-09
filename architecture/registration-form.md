@@ -57,7 +57,8 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
   Unter den Anzahlen steht je Programmpunkt mit Zielgruppe **nur dann** eine
   Zeile, wenn mindestens eine Person der Zielgruppe eingetragen ist **und**
   außerdem Personen eingetragen sind, die dort nicht zur Zielgruppe gehören:
-  „Bei „Jugendstunde“ nehmen nur Personen der Zielgruppe teil (Jugendliche).“
+  „Jugendstunde wurde für Jugendliche aktiviert.“ (bzw. „… für Erwachsene und
+  Jugendliche aktiviert.“)
   Gehört **niemand** aus der Anmeldung zur Zielgruppe eines Programmpunkts,
   ist dessen Häkchen ausgegraut und abgewählt, mit Hinweis „Niemand aus deiner
   Anmeldung gehört zur Zielgruppe.“. Kommt jemand aus der Zielgruppe dazu
@@ -69,8 +70,10 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
   Zielgruppe. Ohne JS prüft nur der Server (siehe §5.4). Die Texte duzen wie
   das übrige Formular und sind fest, nicht einstellbar.
 - **Gemeinsame Infobox:** Die Hinweise zur Kinderbetreuung und zur Zielgruppe
-  stehen unter den Anzahlen in **einer** Infobox (zwei Abschnitte). Die Box ist
-  nur sichtbar, wenn mindestens einer der beiden Hinweise sichtbar ist.
+  stehen unter den Anzahlen in **einer** Infobox (zwei Abschnitte, beide mit
+  Aufzählungszeichen: der Kinder-Hinweis als Punkt mit Unterliste der
+  Programmpunkte, der Zielgruppen-Hinweis als eine Zeile je Programmpunkt).
+  Die Box ist nur sichtbar, wenn mindestens einer der beiden Hinweise sichtbar ist.
 - Sofortprüfung beim Tippen (JS, zusätzlich zur Prüfung auf dem Server):
   Anzahlen müssen ganze Zahlen ab 0 sein; in der Aufteilung höchstens die
   oben eingestellte Anzahl der Gruppe („Höchstens n (Anzahl oben)“).
