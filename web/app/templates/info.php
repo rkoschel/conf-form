@@ -18,6 +18,9 @@
               <?php if ($slot['childcare']): ?>
                 <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], event_groups($event))) ?></span>
               <?php endif ?>
+              <?php if ($slot['target_groups']): ?>
+                <span class="d-block small text-body-secondary"><?= e(target_notice($slot['target_groups'], event_groups($event))) ?></span>
+              <?php endif ?>
             </span>
           </li>
         <?php endforeach ?>

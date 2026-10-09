@@ -148,6 +148,20 @@ final class StatsTest extends DbTestCase
         $this->assertSame(0, $slots[1]['childcare_total']);
     }
 
+    public function testSlotStatsExposeTargetGroups(): void
+    {
+        db()->prepare("UPDATE event_slots SET target_groups = 'group_2,group_1,group_4' WHERE id = ?")
+            ->execute([$this->slotIds['Vormittag']]);
+        // group_4 ist in dieser Veranstaltung nicht gewählt
+        db()->prepare("UPDATE events SET person_groups = ? WHERE id = ?")
+            ->execute([json_encode(['group_1' => 'Erwachsene', 'group_2' => 'Jugendliche', 'group_3' => 'Kinder']), $this->eventId]);
+
+        $slots = stats_for_event(event_find($this->eventId))['slots'];
+
+        $this->assertSame(['group_1', 'group_2'], $slots[0]['target_groups'], 'nur gewählte Gruppen, feste Reihenfolge');
+        $this->assertSame([], $slots[1]['target_groups'], 'ohne Zielgruppe für alle');
+    }
+
     public function testIgnoresOtherEvents(): void
     {
         $other = $this->createEvent();

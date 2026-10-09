@@ -20,7 +20,9 @@ Alle Links werden aus `base_url` gebildet.
   konfigurierbare Text (Klartext, kein Rich Text), siehe [§7.5](admin.md).
 - **Aktiv, vor Anmeldefrist:** Titel, Datum, Ort, Anmeldefrist, Beschreibung,
   Ablauf (Programmpunkte; bei Kinderbetreuung Hinweis „Parallel
-  Kinderbetreuung für <Namen der betreuten Kindergruppen>“), Link zu
+  Kinderbetreuung für <Namen der betreuten Kindergruppen>“, bei Zielgruppe
+  Hinweis „Zielgruppe: <Namen>“, z. B. „Zielgruppe: Jugendliche“ bzw.
+  „Zielgruppe: Erwachsene und Jugendliche“), Link zu
   `https://christen-in-hamm.de/info/`, Button „Anmelden“.
 - **Aktiv, nach Anmeldefrist:** Eckdaten wie oben, fester Text
   „Der Anmeldezeitraum ist abgelaufen.“, Link zur Info-Seite, kein Button.

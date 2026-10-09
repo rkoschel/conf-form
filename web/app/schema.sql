@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS event_slots (
   time     TEXT NOT NULL,                       -- HH:MM
   label    TEXT NOT NULL,
   sort     INTEGER NOT NULL DEFAULT 0,
-  childcare TEXT NOT NULL DEFAULT ''            -- betreute Gruppen, z. B. 'group_4,group_5'; '' = keine
+  childcare TEXT NOT NULL DEFAULT '',           -- betreute Gruppen, z. B. 'group_4,group_5'; '' = keine
+  target_groups TEXT NOT NULL DEFAULT ''        -- Zielgruppe, z. B. 'group_1,group_2'; '' = alle
 );
 
 CREATE TABLE IF NOT EXISTS registrations (

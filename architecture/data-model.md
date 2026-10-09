@@ -36,7 +36,8 @@ CREATE TABLE event_slots (
   time     TEXT NOT NULL,                       -- HH:MM
   label    TEXT NOT NULL,
   sort     INTEGER NOT NULL DEFAULT 0,
-  childcare TEXT NOT NULL DEFAULT ''            -- betreute Kindergruppen, z. B. 'group_4,group_5'; '' = keine
+  childcare TEXT NOT NULL DEFAULT '',           -- betreute Kindergruppen, z. B. 'group_4,group_5'; '' = keine
+  target_groups TEXT NOT NULL DEFAULT ''        -- Zielgruppe, z. B. 'group_1,group_2'; '' = alle
 );
 
 CREATE TABLE registrations (
@@ -103,7 +104,8 @@ CREATE INDEX rate_limit_lookup ON rate_limit(ip_hash, created_at);
   Version 3: Personengruppen – Spalten adults/youth/kids_7_12/kids_3_6/
   kids_0_2 → group_1…group_5, childcare_kids_* → childcare_group_3…5,
   events.person_groups; benötigt SQLite ≥ 3.25 für RENAME COLUMN;
-  Version 4: events.allow_split, registrations.message).
+  Version 4: events.allow_split, registrations.message;
+  Version 5: event_slots.target_groups).
 - Existiert die DB-Datei nicht, wird sie beim ersten Aufruf aus
   `schema.sql` angelegt.
 - Technische Zeitstempel (`created_at`, `sent_at`) in UTC; Anzeige in der

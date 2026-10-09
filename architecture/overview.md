@@ -19,7 +19,7 @@ zeigt die Datei dazu.
 | 1 | diese Datei | Ziel |
 | 2 | [operations.md](operations.md) | Technik, Verzeichnisse auf dem Server, Deployment (2.1), Konfiguration |
 | 3, 4, 6 | [public-pages.md](public-pages.md) | URLs, Infoseite, Absage per Link |
-| 5 | [registration-form.md](registration-form.md) | Anmeldeformular: Felder (5.1), Spamschutz (5.2), Logik beim Absenden (5.3), Zählweise Programmpunkte und Kinderbetreuung (5.4) |
+| 5 | [registration-form.md](registration-form.md) | Anmeldeformular: Felder (5.1), Spamschutz (5.2), Logik beim Absenden (5.3), Zählweise Programmpunkte, Zielgruppe und Kinderbetreuung (5.4) |
 | 7 | [admin.md](admin.md) | Veranstaltungen (7.1), Anfragen (7.2), Statuswechsel (7.3), Bearbeiten (7.4), Einstellungen (7.5), Löschen (7.6), Auswertung (7.7), Team-Zugang (7.8), Menü und Hilfe (7.9) |
 | 8 | [data-model.md](data-model.md) | SQLite-Schema, Migrationen |
 | 9 | [mails.md](mails.md) | Mail-Typen und Absender |

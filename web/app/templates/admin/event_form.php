@@ -129,6 +129,9 @@
             <?php if ($slot['childcare']): ?>
               <span class="text-body-secondary small">· Kinderbetreuung für <?= e(childcare_names($slot['childcare'], $groupNames)) ?></span>
             <?php endif ?>
+            <?php if (!empty($slot['target_groups'])): ?>
+              <span class="text-body-secondary small">· <?= e(target_notice($slot['target_groups'], $groupNames)) ?></span>
+            <?php endif ?>
           </li>
         <?php endforeach ?>
       </ul>
@@ -138,8 +141,11 @@
           <?php
           // Aus der DB: childcare = Liste; aus dem Formular: childcare = '1' + childcare_groups
           $groups = is_array($slot['childcare'] ?? null) ? $slot['childcare'] : ($slot['childcare_groups'] ?? []);
+          // Zielgruppe: Aus der DB nur die Liste, aus dem Formular Schalter 'target' + Liste
           $row = ['index' => $i, 'time' => $slot['time'], 'label' => $slot['label'],
-              'childcare' => !empty($slot['childcare']), 'groups' => $groups];
+              'childcare' => !empty($slot['childcare']), 'groups' => $groups,
+              'target' => array_key_exists('target', $slot) ? !empty($slot['target']) : !empty($slot['target_groups']),
+              'target_groups' => (array) ($slot['target_groups'] ?? [])];
           ?>
           <?php require __DIR__ . '/slot_row.php' ?>
         <?php endforeach ?>
@@ -151,9 +157,11 @@
       <div class="form-text">
         Wird automatisch nach Uhrzeit sortiert. Leere Zeilen werden ignoriert.
         Kinderbetreuung: Kinder der gewählten Kindergruppen werden bei der Anmeldung automatisch für die Betreuung gezählt.
+        Zielgruppe: Der Programmpunkt gilt nur für die gewählten Personengruppen; mit Kinderbetreuung nicht kombinierbar.
       </div>
       <template id="slot-row-template">
-        <?php $row = ['index' => '__INDEX__', 'time' => '', 'label' => '', 'childcare' => false, 'groups' => []] ?>
+        <?php $row = ['index' => '__INDEX__', 'time' => '', 'label' => '', 'childcare' => false, 'groups' => [],
+            'target' => false, 'target_groups' => []] ?>
         <?php require __DIR__ . '/slot_row.php' ?>
       </template>
     <?php endif ?>

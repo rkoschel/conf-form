@@ -52,6 +52,18 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
   erscheint im Block des Programmpunkts der Info-Hinweis (keine Warnung)
   „Eingetragene Kinder (<Gruppennamen>) nehmen teil, die übrigen sind in der
   Kinderbetreuung eingeplant.“
+- **Zielgruppe** (siehe [§7.1](admin.md), Zählweise [§5.4](registration-form.md)):
+  Programmpunkte mit Zielgruppe zeigen den Hinweis „Zielgruppe: <Namen>“.
+  Unter den Anzahlen steht je Programmpunkt mit Zielgruppe **nur dann** eine
+  Zeile, wenn eingetragene Personen betroffen sind (eine eingetragene Gruppe
+  gehört bei dem Programmpunkt nicht zur Zielgruppe): „Bei „Jugendstunde“
+  nehmen nur Personen der Zielgruppe teil (Jugendliche).“ Gehört **niemand**
+  aus der Anmeldung zur Zielgruppe eines Programmpunkts, ist dessen Häkchen
+  ausgegraut und abgewählt, mit Hinweis „Niemand aus deiner Anmeldung gehört
+  zur Zielgruppe.“; es wird nicht automatisch wieder angekreuzt, sobald jemand
+  passt. In der individuellen Aufteilung erscheinen bei dem Programmpunkt nur
+  Felder der Zielgruppe. Ohne JS prüft nur der Server (siehe §5.4). Die
+  Texte duzen wie das übrige Formular und sind fest, nicht einstellbar.
 - Sofortprüfung beim Tippen (JS, zusätzlich zur Prüfung auf dem Server):
   Anzahlen müssen ganze Zahlen ab 0 sein; in der Aufteilung höchstens die
   oben eingestellte Anzahl der Gruppe („Höchstens n (Anzahl oben)“).
@@ -123,7 +135,7 @@ Kein Captcha. Drei Maßnahmen, alle serverseitig geprüft:
 Ohne E-Mail (nur Telefon): keine Mail; Kontakt erfolgt telefonisch durch den
 Admin.
 
-### 5.4 Zählweise Programmpunkte und Kinderbetreuung
+### 5.4 Zählweise Programmpunkte, Zielgruppe und Kinderbetreuung
 
 Je Anmeldung und Programmpunkt werden zwei Zahlenreihen gespeichert: wer
 **beim Programmpunkt** ist (je Personengruppe) und wie viele Kinder **in der
@@ -133,4 +145,13 @@ Kinderbetreuung** sind (je betreuter Kindergruppe, Gruppen 3–5).
 |---|---|---|
 | Standard, Programmpunkt angekreuzt | alle Gruppen ohne Betreuungsangebot | Kinder der betreuten Kindergruppen |
 | Individuelle Aufteilung | die eingegebenen Zahlen | je betreuter Gruppe: Anzahl oben − eingegebene Zahl, sofern beim Programmpunkt mindestens eine Person der Anmeldung ist |
+| Programmpunkt mit Zielgruppe, angekreuzt | nur die Gruppen der Zielgruppe | – (keine Betreuung bei Zielgruppe) |
+| Programmpunkt mit Zielgruppe, individuelle Aufteilung | nur Felder der Zielgruppe; andere Gruppen immer 0, mitgeschickte Werte werden ignoriert (kein Fehler) | – |
+| Angekreuzt, aber niemand aus der Anmeldung gehört zur Zielgruppe | 0 (kein Fehler); zählt nicht für „mindestens ein Programmpunkt“ | – |
 | Programmpunkt nicht besucht | 0 | 0 |
+
+Bei einem Programmpunkt mit **Zielgruppe** (§7.1) zählen nur Personen der
+Zielgruppen-Gruppen; die übrigen Personen der Anmeldung zählen dort nirgends
+(auch nicht in einer Betreuung). Die Regeln gelten gleich im Admin-Bearbeiten
+(§7.4). Auf Kontingent, öffentliche Belegung und Mails hat die Zielgruppe
+keine Auswirkung.

@@ -91,6 +91,27 @@ final class AdminStatsTest extends HttpTestCase
         $this->assertStringNotContainsString('↳', $body, 'keine Zusatzzeilen mehr in der Programmpunkt-Tabelle');
     }
 
+    public function testShowsDashForGroupsOutsideTargetGroup(): void
+    {
+        $db = $this->serverDb();
+        $id = $this->event($db, 'Mit Zielgruppe', 0, 20);
+        $db->prepare("INSERT INTO event_slots (event_id, time, label, target_groups) VALUES (?, '10:00', 'Jugendstunde', 'group_2')")
+            ->execute([$id]);
+        $db->prepare("INSERT INTO event_slots (event_id, time, label) VALUES (?, '14:00', 'Alle')")->execute([$id]);
+
+        $body = $this->get("/admin/stats.php?event=$id")['body'];
+
+        // Tabelle: Zeile mit Zielgruppe zeigt „–“ für alle anderen Gruppen, die offene Zeile Zahlen
+        $this->assertMatchesRegularExpression(
+            '#<td>Jugendstunde\s*<span[^>]*>Zielgruppe: Jugendliche</span>\s*</td>\s*<td class="text-end">–</td>\s*<td class="text-end">0</td>(\s*<td class="text-end">–</td>){3}#',
+            $body
+        );
+        $this->assertMatchesRegularExpression('#<td>Alle\s*</td>(\s*<td class="text-end">0</td>){5}#', $body);
+        // mobile Ansicht
+        $this->assertMatchesRegularExpression('#Jugendstunde.*?Erwachsene</dt>\s*<dd[^>]*>–</dd>#s', $body);
+        $this->assertStringContainsString('Zielgruppe: Jugendliche', $body);
+    }
+
     public function testNoChildcareTableWithoutChildcare(): void
     {
         $db = $this->serverDb();

@@ -17,6 +17,14 @@ $allowSplit ??= (bool) ($event['allow_split'] ?? true);
 $customSplit = $allowSplit && !empty($form['custom_split']);
 $childcareSlots = array_values(array_filter($event['slots'], fn ($slot) => !empty($slot['childcare'])));
 $hasCount = fn (string $group): bool => (int) ($form[$group] ?? 0) > 0;
+// Programmpunkte mit Zielgruppe (SPEC §5.1); [] = für alle
+$targetOf = fn (array $slot): array => array_values(array_intersect($slot['target_groups'] ?? [], array_keys($groups)));
+$targetSlots = array_values(array_filter($event['slots'], fn ($slot) => $targetOf($slot) !== []));
+// Eingetragene Personen, die bei dem Programmpunkt nicht zur Zielgruppe gehören
+$targetAffected = fn (array $slot): bool => (bool) array_filter(
+    array_keys($groups),
+    fn ($group) => $hasCount($group) && !in_array($group, $targetOf($slot), true)
+);
 // Sichtbarkeit der Hinweise ohne JS; form.js aktualisiert sie beim Tippen
 $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childcare'], $hasCount);
 ?>
@@ -58,6 +66,19 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
     <?php if (isset($errors['persons'])): ?>
       <div class="col-12 text-danger small"><?= e($errors['persons']) ?></div>
     <?php endif ?>
+    <?php if ($targetSlots): ?>
+      <div class="col-12" data-target-hint<?= array_filter($targetSlots, $targetAffected) ? '' : ' hidden' ?>>
+        <div class="alert alert-info small mb-0">
+          <ul class="mb-0">
+            <?php foreach ($targetSlots as $slot): ?>
+              <li data-target-groups="<?= e(implode(' ', $targetOf($slot))) ?>"<?= $targetAffected($slot) ? '' : ' hidden' ?>>
+                Bei „<?= e($slot['label']) ?>“ nehmen nur Personen der Zielgruppe teil (<?= e(group_names_join($targetOf($slot), $groups)) ?>).
+              </li>
+            <?php endforeach ?>
+          </ul>
+        </div>
+      </div>
+    <?php endif ?>
     <?php if ($childcareSlots): ?>
       <div class="col-12" data-childcare-hint<?= array_filter($childcareSlots, $childcareVisible) ? '' : ' hidden' ?>>
         <div class="alert alert-info small mb-0">
@@ -97,7 +118,8 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
       <div class="vstack gap-2">
         <?php foreach ($event['slots'] as $slot): ?>
           <?php $slotId = (int) $slot['id'] ?>
-          <div class="border rounded p-3" data-childcare-slot="<?= e(implode(' ', $slot['childcare'] ?? [])) ?>">
+          <div class="border rounded p-3" data-childcare-slot="<?= e(implode(' ', $slot['childcare'] ?? [])) ?>"
+               data-target-slot="<?= e(implode(' ', $targetOf($slot))) ?>">
             <div class="form-check" data-attend<?= $customSplit ? ' hidden' : '' ?>>
               <input class="form-check-input" type="checkbox" id="attend-<?= $slotId ?>"
                      name="attend[<?= $slotId ?>]" value="1" <?= !empty($attend[$slotId]) ? 'checked' : '' ?>>
@@ -105,6 +127,9 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
                 <span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?>
                 <?php if (!empty($slot['childcare'])): ?>
                   <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], $groups)) ?></span>
+                <?php endif ?>
+                <?php if ($targetOf($slot)): ?>
+                  <span class="d-block small text-body-secondary"><?= e(target_notice($targetOf($slot), $groups)) ?></span>
                 <?php endif ?>
               </label>
             </div>
@@ -115,9 +140,13 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
                 <?php if (!empty($slot['childcare'])): ?>
                   <span class="d-block small text-body-secondary"><?= e(childcare_notice($slot['childcare'], $groups)) ?></span>
                 <?php endif ?>
+                <?php if ($targetOf($slot)): ?>
+                  <span class="d-block small text-body-secondary"><?= e(target_notice($targetOf($slot), $groups)) ?></span>
+                <?php endif ?>
               </div>
               <div class="row g-2">
                 <?php foreach ($groups as $group => $label): ?>
+                  <?php if ($targetOf($slot) && !in_array($group, $targetOf($slot), true)) { continue; } /* nur Felder der Zielgruppe */ ?>
                   <?php
                   // Betreute Kindergruppen sind mit 0 vorbelegt (sie sind in der Kinderbetreuung)
                   $default = in_array($group, $slot['childcare'] ?? [], true) ? '0' : ($form[$group] ?? '0');
@@ -138,6 +167,11 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
                 </div>
               <?php endif ?>
             </div>
+            <?php endif ?>
+            <?php if ($targetOf($slot)): ?>
+              <div class="small text-body-secondary mt-2" data-target-none hidden>
+                Niemand aus deiner Anmeldung gehört zur Zielgruppe.
+              </div>
             <?php endif ?>
           </div>
         <?php endforeach ?>

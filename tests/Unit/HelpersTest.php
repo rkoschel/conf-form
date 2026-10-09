@@ -88,6 +88,28 @@ final class HelpersTest extends TestCase
         $this->assertSame('', childcare_names([], $groups));
     }
 
+    public function testTargetGroupsAndNotice(): void
+    {
+        $this->assertSame(['group_1', 'group_2', 'group_5'], target_groups_parse('group_5,group_2,x,group_1'));
+        $this->assertSame(['group_3'], target_groups_parse(['group_3', 3, 'nope']));
+        $this->assertSame([], target_groups_parse(''));
+
+        $groups = ['group_1' => 'Erwachsene', 'group_2' => 'Jugendliche', 'group_3' => 'Kinder'];
+        $this->assertSame('Zielgruppe: Jugendliche', target_notice(['group_2'], $groups));
+        $this->assertSame('Zielgruppe: Erwachsene und Jugendliche', target_notice(['group_1', 'group_2'], $groups));
+        $this->assertSame('Zielgruppe: Erwachsene, Jugendliche und Kinder', target_notice(['group_1', 'group_2', 'group_3'], $groups));
+    }
+
+    public function testGroupNamesJoin(): void
+    {
+        $groups = ['group_1' => 'A', 'group_2' => 'B', 'group_3' => 'C'];
+        $this->assertSame('A', group_names_join(['group_1'], $groups));
+        $this->assertSame('A und C', group_names_join(['group_1', 'group_3'], $groups));
+        $this->assertSame('A, B und C', group_names_join(['group_1', 'group_2', 'group_3'], $groups));
+        $this->assertSame('', group_names_join([], $groups));
+        $this->assertSame('Erwachsene', group_names_join(['group_1'], []), 'Standardname, wenn die Veranstaltung keinen kennt');
+    }
+
     public function testUrlUsesBaseUrl(): void
     {
         // base_url ist in tests/config.test.php leer

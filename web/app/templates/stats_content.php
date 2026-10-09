@@ -20,6 +20,9 @@
   $registrations = array_sum(array_column($stats['by_status'], 'registrations'));
   $people = array_sum(array_column($stats['by_status'], 'people'));
   $groupNames = array_column($stats['groups'], 'name');
+  $groupLabels = array_map(fn ($group) => $group['name'], $stats['groups']);
+  // Gruppe gehört zur Zielgruppe des Programmpunkts (ohne Zielgruppe: alle)
+  $inTarget = fn (array $slot, string $column): bool => !$slot['target_groups'] || in_array($column, $slot['target_groups'], true);
   // Balkensegment im gemeinsamen Maßstab (Kapazität bzw. mehr bei Überbuchung)
   $segment = function (int $value, string $label, string $class) use ($percent, $max): string {
       if ($value <= 0) {
@@ -160,10 +163,13 @@
               <span><?= e($slot['time']) ?> <?= e($slot['label']) ?></span>
               <span class="tabular-nums"><?= $slot['total'] ?></span>
             </div>
+            <?php if ($slot['target_groups']): ?>
+              <div class="small text-body-secondary"><?= e(target_notice($slot['target_groups'], $groupLabels)) ?></div>
+            <?php endif ?>
             <dl class="row small mb-0 mt-1 tabular-nums">
               <?php foreach ($slot['groups'] as $column => $count): ?>
                 <dt class="col-8 fw-normal text-body-secondary"><?= e($stats['groups'][$column]['name']) ?></dt>
-                <dd class="col-4 text-end mb-0"><?= $count ?></dd>
+                <dd class="col-4 text-end mb-0"><?= $inTarget($slot, $column) ? $count : '–' ?></dd>
               <?php endforeach ?>
             </dl>
           </div>
@@ -186,9 +192,13 @@
           <?php foreach ($stats['slots'] as $slot): ?>
             <tr>
               <td class="text-nowrap"><?= e($slot['time']) ?></td>
-              <td><?= e($slot['label']) ?></td>
-              <?php foreach ($slot['groups'] as $count): ?>
-                <td class="text-end"><?= $count ?></td>
+              <td><?= e($slot['label']) ?>
+                <?php if ($slot['target_groups']): ?>
+                  <span class="d-block small text-body-secondary"><?= e(target_notice($slot['target_groups'], $groupLabels)) ?></span>
+                <?php endif ?>
+              </td>
+              <?php foreach ($slot['groups'] as $column => $count): ?>
+                <td class="text-end"><?= $inTarget($slot, $column) ? $count : '–' ?></td>
               <?php endforeach ?>
               <td class="text-end fw-semibold"><?= $slot['total'] ?></td>
             </tr>
@@ -198,13 +208,13 @@
     </div>
     <p class="small text-body-secondary">
       Nur bestätigte Anmeldungen. Summe = Personen beim Programmpunkt, ohne Kinder in der Kinderbetreuung.
+      „–“ = Gruppe gehört nicht zur Zielgruppe des Programmpunkts.
     </p>
 
     <?php
     $childcareSlots = array_values(array_filter($stats['slots'], fn ($slot) => $slot['childcare_groups']));
     // Spalten: Kindergruppen der Veranstaltung (nur diese sind betreubar)
     $childcareColumns = kids_groups(array_keys($stats['groups']));
-    $groupLabels = array_map(fn ($group) => $group['name'], $stats['groups']);
     ?>
     <?php if ($childcareSlots): ?>
       <h2 class="h5 mt-4">Kinderbetreuung je Programmpunkt</h2>

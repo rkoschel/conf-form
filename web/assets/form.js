@@ -73,6 +73,40 @@ if (form) {
     });
   };
 
+  // Zielgruppen (SPEC §5.1): Hinweiszeilen unter den Anzahlen nur für betroffene
+  // Programmpunkte; Häkchen eines Programmpunkts ausgrauen (und abwählen), wenn
+  // niemand aus der Anmeldung zur Zielgruppe gehört. Wird nicht automatisch
+  // wieder angekreuzt, sobald jemand passt. Ohne JS prüft nur der Server.
+  const allGroups = () => [...form.querySelectorAll('[data-count]')].map((input) => input.dataset.count);
+  const updateTargets = () => {
+    const hint = form.querySelector('[data-target-hint]');
+    if (hint) {
+      let any = false;
+      hint.querySelectorAll('[data-target-groups]').forEach((item) => {
+        const target = item.dataset.targetGroups.split(' ');
+        const show = allGroups().some((group) => count(group) > 0 && !target.includes(group));
+        item.hidden = !show;
+        any = any || show;
+      });
+      hint.hidden = !any;
+    }
+    form.querySelectorAll('[data-target-slot]').forEach((slot) => {
+      const target = slot.dataset.targetSlot.split(' ').filter(Boolean);
+      if (target.length === 0) {
+        return;
+      }
+      const nobody = !target.some((group) => count(group) > 0);
+      const checkbox = slot.querySelector('[data-attend] input');
+      if (checkbox) {
+        checkbox.disabled = nobody;
+        if (nobody) {
+          checkbox.checked = false;
+        }
+      }
+      slot.querySelector('[data-target-none]').hidden = !nobody;
+    });
+  };
+
   const checkSplitInput = (el) => checkNumber(el.querySelector('input'), count(el.dataset.splitGroup));
 
   const updateContact = () => {
@@ -183,6 +217,7 @@ if (form) {
       growSplit(input.dataset.count, parseInt(input.dataset.previous, 10), current);
       input.dataset.previous = String(current);
       updateSplit();
+      updateTargets();
     });
   });
   splitGroups().forEach((el) => {
@@ -225,7 +260,7 @@ if (form) {
       attendError.hidden = false;
       const first = customSplit && customSplit.checked
         ? splitGroups().find((el) => !el.hidden)?.querySelector('input')
-        : form.querySelector('[data-attend] input');
+        : form.querySelector('[data-attend] input:not(:disabled)');
       if (first) {
         invalid.push(first);
       }
@@ -238,4 +273,5 @@ if (form) {
 
   updateContact();
   updateSplit();
+  updateTargets();
 }

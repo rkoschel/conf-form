@@ -9,6 +9,7 @@ document.addEventListener('click', (event) => {
     rows.dataset.nextIndex = String(index + 1);
     rows.insertAdjacentHTML('beforeend', template.innerHTML.replaceAll('__INDEX__', String(index)));
     syncChildcareOptions();
+    syncExclusiveToggles(rows.lastElementChild);
     rows.lastElementChild.querySelector('input').focus();
     return;
   }
@@ -20,21 +21,37 @@ document.addEventListener('click', (event) => {
 });
 
 // Personengruppen der Veranstaltung: In der Kinderbetreuung nur gewählte
-// Kindergruppen anbieten, mit ihren aktuellen Namen
+// Kindergruppen, in der Zielgruppe alle gewählten Gruppen anbieten, mit
+// ihren aktuellen Namen
 function syncChildcareOptions() {
   document.querySelectorAll('[data-person-group]').forEach((checkbox) => {
     const key = checkbox.dataset.personGroup;
     const name = document.querySelector(`[data-group-name="${key}"]`)?.value.trim() || key;
-    document.querySelectorAll(`[data-childcare-option="${key}"]`).forEach((option) => {
-      option.hidden = !checkbox.checked;
-      if (!checkbox.checked) {
-        option.querySelector('input').checked = false;
-      }
-    });
-    document.querySelectorAll(`[data-childcare-label="${key}"]`).forEach((label) => {
-      label.textContent = name;
+    ['childcare', 'target'].forEach((kind) => {
+      document.querySelectorAll(`[data-${kind}-option="${key}"]`).forEach((option) => {
+        option.hidden = !checkbox.checked;
+        if (!checkbox.checked) {
+          option.querySelector('input').checked = false;
+        }
+      });
+      document.querySelectorAll(`[data-${kind}-label="${key}"]`).forEach((label) => {
+        label.textContent = name;
+      });
     });
   });
+}
+
+// Zielgruppe und Kinderbetreuung schließen sich aus: Ist einer der beiden
+// Schalter an, ist der andere gesperrt. Stehen nach einem Fehler beide an,
+// bleiben beide bedienbar, damit man es korrigieren kann.
+function syncExclusiveToggles(row) {
+  const childcare = row.querySelector('[data-childcare-toggle]');
+  const target = row.querySelector('[data-target-toggle]');
+  if (!childcare || !target) {
+    return;
+  }
+  childcare.disabled = target.checked && !childcare.checked;
+  target.disabled = childcare.checked && !target.checked;
 }
 document.addEventListener('change', (event) => {
   if (event.target.closest('[data-person-group]')) {
@@ -47,13 +64,18 @@ document.addEventListener('input', (event) => {
   }
 });
 
-// Ablauf: Kindergruppen nur bei eingeschalteter Kinderbetreuung zeigen
+// Ablauf: Kindergruppen bzw. Zielgruppen nur bei eingeschaltetem Schalter zeigen
 document.addEventListener('change', (event) => {
-  const toggle = event.target.closest('[data-childcare-toggle]');
+  const childcare = event.target.closest('[data-childcare-toggle]');
+  const target = event.target.closest('[data-target-toggle]');
+  const toggle = childcare || target;
   if (toggle) {
-    toggle.closest('.slot-row').querySelector('[data-childcare-groups]').hidden = !toggle.checked;
+    const row = toggle.closest('.slot-row');
+    row.querySelector(childcare ? '[data-childcare-groups]' : '[data-target-groups]').hidden = !toggle.checked;
+    syncExclusiveToggles(row);
   }
 });
+document.querySelectorAll('.slot-row').forEach(syncExclusiveToggles);
 
 const deleteModal = document.getElementById('delete-modal');
 if (deleteModal) {

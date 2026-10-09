@@ -182,10 +182,15 @@ function registration_validate(
     foreach ($slots as $slot) {
         $slotId = (int) $slot['id'];
         $childcare = $slot['childcare'] ?? [];
+        // Zielgruppe (SPEC §5.1): beim Programmpunkt zählen nur ihre Gruppen, [] = alle
+        $target = $slot['target_groups'] ?? [];
         $attending = !$data['custom_split'] && !empty($attend[$slotId]);
         $counts = [];
         foreach (array_keys(PERSON_GROUPS) as $group) {
-            if ($data['custom_split']) {
+            if ($target && !in_array($group, $target, true)) {
+                // Außerhalb der Zielgruppe immer 0, auch wenn Werte mitgeschickt werden
+                $count = 0;
+            } elseif ($data['custom_split']) {
                 $value = is_array($split[$slotId] ?? null) ? ($split[$slotId][$group] ?? '') : '';
                 $count = registration_parse_count($value);
                 if ($count === null || $count > $data[$group]) {
