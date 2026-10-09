@@ -25,7 +25,8 @@ declare(strict_types=1);
  *     groups: array<string, array{name: string, confirmed: int, pending: int}>,
  *     places: list<array{name: string, confirmed: int, pending: int, preferred: bool}>,
  *     slots: list<array{time: string, label: string, groups: array<string, int>, total: int,
- *         childcare_groups: list<string>, childcare: array<string, int>, childcare_total: int}>
+ *         childcare_groups: list<string>, childcare: array<string, int>, childcare_total: int,
+ *         target_groups: list<string>}>
  * }
  */
 function stats_for_event(array $event): array
@@ -90,7 +91,7 @@ function stats_for_event(array $event): array
         array_merge($columns, $childcareColumns)
     ));
     $stmt = db()->prepare(
-        "SELECT s.time, s.label, s.childcare AS childcare_groups, $slotSums
+        "SELECT s.time, s.label, s.childcare AS childcare_groups, s.target_groups, $slotSums
          FROM event_slots s
          LEFT JOIN (
              SELECT rs.* FROM registration_slots rs
@@ -120,6 +121,11 @@ function stats_for_event(array $event): array
             'childcare_groups' => $childcareGroups,
             'childcare' => $childcare,
             'childcare_total' => array_sum($childcare),
+            // Zielgruppe (SPEC §5.1): [] = alle; Gruppen außerhalb zeigt die Auswertung als „–“
+            'target_groups' => array_values(array_intersect(
+                target_groups_parse((string) $row['target_groups']),
+                array_keys($eventGroups)
+            )),
         ];
     }
 
