@@ -57,6 +57,26 @@ final class PagesTest extends HttpTestCase
         $this->assertGreaterThan(strpos($body, '</main>'), strpos($body, 'data-theme-value'), 'Theme-Auswahl bleibt im Footer');
     }
 
+    public function testPublicBarIsFlatAndFullWidth(): void
+    {
+        $body = $this->get('/')['body'];
+
+        // volle Breite: kein .container um die Leiste, der Button sitzt direkt in der Leiste
+        $this->assertMatchesRegularExpression('#<header class="public-bar">\s*<div class="public-bar-inner">#', $body);
+
+        // flach: die Regeln der Leiste in app.css haben weder Schatten noch Rundung
+        $css = $this->get('/assets/app.css')['body'];
+        preg_match_all('#\.public-bar(?:-inner)?\s*\{[^}]*\}#', $css, $blocks);
+        $this->assertNotEmpty($blocks[0], 'Regeln der Leiste gefunden');
+        foreach ($blocks[0] as $block) {
+            $this->assertStringNotContainsString('box-shadow', $block);
+            $this->assertStringNotContainsString('border-radius', $block);
+        }
+        $this->assertDoesNotMatchRegularExpression('#\.public-bar[^{]*\{[^}]*box-shadow#', $css, 'auch nicht im Dark Mode');
+        // sichtbare Abgrenzung zum Inhalt: feine Linie in der Rahmenfarbe des Themes (hell und dunkel)
+        $this->assertMatchesRegularExpression('#\.public-bar\s*\{[^}]*border-bottom:\s*1px solid var\(--bs-border-color\)#', $css);
+    }
+
     public function testAdminHasNoPublicBar(): void
     {
         $this->assertStringNotContainsString('public-bar', $this->get('/admin/')['body']);

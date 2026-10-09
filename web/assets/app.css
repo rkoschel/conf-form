@@ -273,26 +273,18 @@
 }
 
 /* Feste Leiste oben auf den öffentlichen Seiten: bleibt beim Scrollen sichtbar,
-   wie die Karten abgesetzt (Rahmen, Rundung, weicher Schatten). Der Streifen
-   dahinter hat die Seitenfarbe, damit nichts durchscheint. */
+   flach (kein Schatten, keine Rundung) über die ganze Breite. Die feine Linie
+   unten grenzt sie hell wie dunkel vom Inhalt ab, der darunter durchscrollt. */
 .public-bar {
   position: sticky;
   top: 0;
   z-index: 1030;
-  padding-top: 0.75rem;
-  background-color: var(--app-page-bg);
+  background: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color);
 }
 
 .public-bar-inner {
   display: flex;
   justify-content: flex-end;
-  padding: 0.5rem 0.75rem;
-  background: var(--bs-body-bg);
-  border: 1px solid var(--bs-border-color);
-  border-radius: 0.75rem;
-  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06), 0 0.5rem 1.25rem rgba(0, 0, 0, 0.06);
-}
-
-[data-bs-theme="dark"] .public-bar-inner {
-  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.35), 0 0.5rem 1.25rem rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 1rem;
 }
