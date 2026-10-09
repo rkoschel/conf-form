@@ -1,9 +1,11 @@
 <?php
 /**
  * Eine Zeile im Ablauf; erwartet $row = [index, time, label, childcare (bool),
- * groups (Liste)] sowie $selectedGroups und $groupNames aus event_form.php.
- * Zur Kinderbetreuung stehen nur Kindergruppen; nicht gewählte sind
- * ausgeblendet (admin.js gleicht Auswahl und Namen beim Ändern ab).
+ * groups (Liste), target (bool), target_groups (Liste)] sowie $selectedGroups
+ * und $groupNames aus event_form.php. Zur Kinderbetreuung stehen nur
+ * Kindergruppen, zur Zielgruppe alle gewählten Personengruppen; nicht gewählte
+ * sind ausgeblendet (admin.js gleicht Auswahl und Namen beim Ändern ab).
+ * Zielgruppe und Kinderbetreuung schließen sich aus (admin.js sperrt den anderen Schalter).
  */
 ?>
 <div class="row g-2 mb-2 slot-row">
@@ -36,6 +38,26 @@
                    id="slot-<?= e($row['index']) ?>-<?= e($group) ?>" name="slots[<?= e($row['index']) ?>][childcare_groups][]"
                    <?= in_array($group, $row['groups'], true) ? 'checked' : '' ?>>
             <label class="form-check-label" for="slot-<?= e($row['index']) ?>-<?= e($group) ?>"><span data-childcare-label="<?= e($group) ?>"><?= e($groupNames[$group]) ?></span></label>
+          </div>
+        <?php endforeach ?>
+      </div></div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="d-flex flex-wrap align-items-center column-gap-3 row-gap-1 small ps-1">
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" role="switch" value="1" data-target-toggle
+               id="slot-<?= e($row['index']) ?>-target" name="slots[<?= e($row['index']) ?>][target]"
+               <?= $row['target'] ? 'checked' : '' ?>>
+        <label class="form-check-label" for="slot-<?= e($row['index']) ?>-target">Zielgruppe festlegen</label>
+      </div>
+      <div data-target-groups<?= $row['target'] ? '' : ' hidden' ?>><div class="d-flex flex-wrap column-gap-3">
+        <?php foreach (PERSON_GROUPS as $group => $meta): ?>
+          <div class="form-check mb-0" data-target-option="<?= e($group) ?>"<?= in_array($group, $selectedGroups, true) ? '' : ' hidden' ?>>
+            <input class="form-check-input" type="checkbox" value="<?= e($group) ?>"
+                   id="slot-<?= e($row['index']) ?>-target-<?= e($group) ?>" name="slots[<?= e($row['index']) ?>][target_groups][]"
+                   <?= in_array($group, $row['target_groups'], true) ? 'checked' : '' ?>>
+            <label class="form-check-label" for="slot-<?= e($row['index']) ?>-target-<?= e($group) ?>"><span data-target-label="<?= e($group) ?>"><?= e($groupNames[$group]) ?></span></label>
           </div>
         <?php endforeach ?>
       </div></div>

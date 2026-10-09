@@ -249,6 +249,106 @@ final class RegistrationValidateTest extends TestCase
         $this->assertArrayNotHasKey('attend', $errors);
     }
 
+    /** Programmpunkte: 10 für alle, 11 nur Jugendliche, 12 nur Erwachsene und Jugendliche */
+    private const TARGET_SLOTS = [
+        ['id' => 10, 'time' => '10:00', 'label' => 'Vortrag', 'childcare' => [], 'target_groups' => []],
+        ['id' => 11, 'time' => '14:00', 'label' => 'Jugendstunde', 'childcare' => [], 'target_groups' => ['group_2']],
+        ['id' => 12, 'time' => '16:00', 'label' => 'Gesprächskreis', 'childcare' => [], 'target_groups' => ['group_1', 'group_2']],
+    ];
+
+    /** @return array{0: array<string, mixed>, 1: array<string, string>} */
+    private function validateTarget(array $overrides): array
+    {
+        return registration_validate($this->input($overrides + ['attend' => []]), self::TARGET_SLOTS);
+    }
+
+    public function testStandardModeCountsOnlyTargetGroupsAtTargetSlot(): void
+    {
+        [$data, $errors] = $this->validateTarget([
+            'group_1' => '2', 'group_2' => '1', 'group_4' => '3',
+            'attend' => ['10' => '1', '11' => '1', '12' => '1'],
+        ]);
+
+        $this->assertSame([], $errors);
+        $count = fn (int $slot) => array_intersect_key($data['slots'][$slot], PERSON_GROUPS);
+        $this->assertSame([2, 1, 0, 3, 0], array_values($count(10)), 'ohne Zielgruppe alle');
+        $this->assertSame([0, 1, 0, 0, 0], array_values($count(11)), 'nur Jugendliche');
+        $this->assertSame([2, 1, 0, 0, 0], array_values($count(12)), 'Erwachsene und Jugendliche; Kinder zählen dort nirgends');
+        $this->assertSame(0, $data['slots'][11]['childcare_group_4'], 'auch nicht in einer Betreuung');
+    }
+
+    public function testCheckedTargetSlotWithoutTargetPersonCountsZeroWithoutError(): void
+    {
+        [$data, $errors] = $this->validateTarget([
+            'group_1' => '2', 'attend' => ['10' => '1', '11' => '1'],
+        ]);
+
+        $this->assertSame([], $errors, 'kein Fehler');
+        $this->assertSame(0, array_sum(array_intersect_key($data['slots'][11], PERSON_GROUPS)));
+    }
+
+    public function testOnlyTargetSlotWithoutTargetPersonDoesNotCountAsAttendance(): void
+    {
+        [, $errors] = $this->validateTarget(['group_1' => '2', 'attend' => ['11' => '1']]);
+
+        $this->assertSame('Bitte mindestens einen Programmpunkt auswählen.', $errors['attend']);
+    }
+
+    public function testOnlyTargetSlotWithTargetPersonCountsAsAttendance(): void
+    {
+        [, $errors] = $this->validateTarget(['group_1' => '2', 'group_2' => '1', 'attend' => ['11' => '1']]);
+
+        $this->assertArrayNotHasKey('attend', $errors);
+    }
+
+    public function testCustomSplitIgnoresGroupsOutsideTargetWithoutError(): void
+    {
+        [$data, $errors] = $this->validateTarget([
+            'group_1' => '2', 'group_2' => '1',
+            'custom_split' => '1',
+            'split' => [
+                '10' => ['group_1' => '2', 'group_2' => '1'],
+                '11' => ['group_1' => '2', 'group_2' => '1'], // group_1 gehört nicht zur Zielgruppe
+                '12' => ['group_1' => 'kaputt', 'group_2' => '1'], // group_1 gehört dazu → Fehler
+            ],
+        ]);
+
+        $this->assertSame(0, $data['slots'][11]['group_1'], 'mitgeschickter Wert ignoriert');
+        $this->assertSame(1, $data['slots'][11]['group_2']);
+        $this->assertArrayHasKey('split', $errors, 'ungültiger Wert bei einer Zielgruppe wird weiter geprüft');
+    }
+
+    public function testCustomSplitIgnoresInvalidValueOutsideTarget(): void
+    {
+        [$data, $errors] = $this->validateTarget([
+            'group_1' => '2', 'group_2' => '1',
+            'custom_split' => '1',
+            'split' => [
+                '10' => ['group_1' => '2'],
+                '11' => ['group_1' => '99', 'group_2' => '1'], // 99 > 2, aber außerhalb der Zielgruppe
+                '12' => ['group_1' => '2', 'group_2' => '1'],
+            ],
+        ]);
+
+        $this->assertSame([], $errors);
+        $this->assertSame(0, $data['slots'][11]['group_1']);
+    }
+
+    public function testTargetSlotsStayOnAdminEditPath(): void
+    {
+        // Admin-Bearbeiten ruft dieselbe Funktion auf: gleiche Regeln
+        [$data, $errors] = registration_validate(
+            $this->input(['group_1' => '1', 'group_2' => '1', 'attend' => ['11' => '1']]),
+            self::TARGET_SLOTS,
+            null,
+            null,
+            false
+        );
+
+        $this->assertSame([], $errors);
+        $this->assertSame([0, 1], [$data['slots'][11]['group_1'], $data['slots'][11]['group_2']]);
+    }
+
     public function testEventWithoutSlots(): void
     {
         [$data, $errors] = registration_validate($this->input([]), []);
