@@ -112,6 +112,61 @@ final class AdminEventsTest extends HttpTestCase
         $this->assertStringContainsString('Kindergruppen für die Kinderbetreuung auswählen.', $response['body']);
     }
 
+    public function testTargetGroupsAreSavedAndShownInEditForm(): void
+    {
+        $id = $this->createEvent('Zielgruppe-Test', [
+            'slots' => [
+                ['time' => '10:00', 'label' => 'Vortrag', 'target' => '1', 'target_groups' => ['group_2', 'group_1']],
+                ['time' => '14:00', 'label' => 'Mittag'],
+            ],
+        ]);
+
+        $body = $this->get("/admin/event.php?id=$id")['body'];
+
+        $this->assertMatchesRegularExpression('#name="slots\[0\]\[target\]"\s+checked#', $body);
+        $this->assertMatchesRegularExpression('#value="group_1"[^>]*name="slots\[0\]\[target_groups\]\[\]"\s+checked#', $body);
+        $this->assertMatchesRegularExpression('#value="group_3"[^>]*name="slots\[0\]\[target_groups\]\[\]"\s+>#', $body);
+        $this->assertMatchesRegularExpression('#name="slots\[1\]\[target\]"\s+>#', $body);
+        $this->assertStringContainsString('data-target-toggle', $body);
+    }
+
+    public function testTargetErrorsAreShown(): void
+    {
+        $response = $this->post('/admin/event.php', $this->formData('Zielgruppe-Fehler', [
+            'slots' => [
+                ['time' => '10:00', 'label' => 'A', 'target' => '1'],
+                ['time' => '11:00', 'label' => 'B', 'target' => '1', 'target_groups' => ['group_2'], 'childcare' => '1', 'childcare_groups' => ['group_4']],
+            ],
+        ]));
+
+        $this->assertSame(200, $response['status']);
+        $this->assertStringContainsString('Programmpunkt 1: Zielgruppe auswählen.', $response['body']);
+        $this->assertStringContainsString('Programmpunkt 2: Zielgruppe und Kinderbetreuung sind nicht kombinierbar.', $response['body']);
+        $this->assertMatchesRegularExpression('#name="slots\[1\]\[target\]"\s+checked#', $response['body'], 'Eingaben bleiben');
+    }
+
+    public function testTargetIsLockedWithRegistrationsAndShownInList(): void
+    {
+        $id = $this->createEvent('Zielgruppe-Sperre', [
+            'slots' => [['time' => '10:00', 'label' => 'Jugendstunde', 'target' => '1', 'target_groups' => ['group_2']]],
+        ]);
+        $db = $this->serverDb();
+        $db->prepare(
+            "INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, group_2, status, cancel_token)
+             VALUES (?, ?, 'Max', 'Muster', 'Hamm', 1, 'confirmed', ?)"
+        )->execute([$id, now_utc(), bin2hex(random_bytes(32))]);
+
+        // Ablauf gesperrt: eingeschickte Zielgruppe wird ignoriert
+        $this->post('/admin/event.php?id=' . $id, $this->formData('Zielgruppe-Sperre', [
+            'csrf' => $this->csrfToken("/admin/event.php?id=$id"),
+            'slots' => [['time' => '10:00', 'label' => 'Jugendstunde']],
+        ]));
+
+        $body = $this->get("/admin/event.php?id=$id")['body'];
+        $this->assertStringContainsString('der Ablauf kann nicht mehr geändert werden', $body);
+        $this->assertStringContainsString('Zielgruppe: Jugendliche', $body);
+    }
+
     public function testPersonGroupsAreSavedAndPrefilledForNewEvents(): void
     {
         $id = $this->createEvent('Gruppen-Test', [

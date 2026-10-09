@@ -122,6 +122,82 @@ final class RegisterPageTest extends HttpTestCase
         ]);
     }
 
+    /** Programmpunkt „Jugendstunde“ (zweiter) hat die Zielgruppe Jugendliche */
+    private function withTarget(): void
+    {
+        db()->prepare("UPDATE event_slots SET target_groups = 'group_2' WHERE id = ?")
+            ->execute([$this->event['slots'][1]['id']]);
+        $this->event = event_find((int) $this->event['id']);
+    }
+
+    public function testShowsTargetNoticesHintAndOnlyTargetSplitFields(): void
+    {
+        $this->withTarget();
+        $vortrag = $this->event['slots'][0]['id'];
+        $jugend = $this->event['slots'][1]['id'];
+
+        $body = $this->get('/register/')['body'];
+
+        $this->assertSame(2, substr_count($body, 'Zielgruppe: Jugendliche'), 'Ankreuzen und Aufteilung');
+        $this->assertMatchesRegularExpression('#data-target-slot="group_2"#', $body);
+        $this->assertMatchesRegularExpression('#data-target-slot=""#', $body, 'Programmpunkt ohne Zielgruppe');
+        $this->assertMatchesRegularExpression('#<div class="col-12" data-target-hint>#', $body, 'Vorbelegung 1 Erwachsene: betroffen');
+        $this->assertStringContainsString('Bei „Jugendstunde“ nehmen nur Personen der Zielgruppe teil (Jugendliche).', $body);
+        $this->assertStringContainsString('data-target-none hidden', $body, 'Hinweis „niemand“ ohne JS verborgen');
+        $this->assertStringContainsString('Niemand aus deiner Anmeldung gehört zur Zielgruppe.', $body);
+        $this->assertStringNotContainsString('name="split[' . $jugend . '][group_1]"', $body, 'nur Felder der Zielgruppe');
+        $this->assertStringContainsString('name="split[' . $jugend . '][group_2]"', $body);
+        $this->assertStringContainsString('name="split[' . $vortrag . '][group_1]"', $body);
+        $this->assertMatchesRegularExpression('#id="attend-' . $jugend . '"\s+name="attend\[' . $jugend . '\]"\s+value="1"\s*>#', $body, 'ohne JS nicht gesperrt');
+    }
+
+    public function testNoTargetHintWhenNobodyIsAffected(): void
+    {
+        $this->withTarget();
+
+        $response = $this->submit(['first_name' => '', 'group_1' => '0', 'group_2' => '2', 'group_5' => '0']);
+
+        $this->assertStringContainsString('data-target-hint hidden', $response['body']);
+    }
+
+    public function testRegistrationCountsOnlyTargetGroupsAtTargetSlot(): void
+    {
+        $this->withTarget();
+        $vortrag = $this->event['slots'][0]['id'];
+        $jugend = $this->event['slots'][1]['id'];
+
+        $this->submit(['group_1' => '2', 'group_2' => '1', 'group_5' => '0', 'attend' => [$vortrag => '1', $jugend => '1']]);
+
+        $counts = registration_slot_counts((int) $this->registrations()[0]['id']);
+        $this->assertSame([2, 1], [$counts[$vortrag]['group_1'], $counts[$vortrag]['group_2']]);
+        $this->assertSame([0, 1], [$counts[$jugend]['group_1'], $counts[$jugend]['group_2']], 'Erwachsene zählen bei der Jugendstunde nicht');
+    }
+
+    public function testCheckedTargetSlotWithoutMatchingPersonCountsNothingWithoutError(): void
+    {
+        $this->withTarget();
+        $vortrag = $this->event['slots'][0]['id'];
+        $jugend = $this->event['slots'][1]['id'];
+
+        $response = $this->submit(['group_1' => '2', 'group_5' => '0', 'attend' => [$vortrag => '1', $jugend => '1']]);
+
+        $this->assertSame(303, $response['status'], 'kein Fehler');
+        $counts = registration_slot_counts((int) $this->registrations()[0]['id']);
+        $this->assertSame(0, array_sum(array_intersect_key($counts[$jugend], PERSON_GROUPS)));
+    }
+
+    public function testOnlyTargetSlotWithoutMatchingPersonDoesNotCountAsAttendance(): void
+    {
+        $this->withTarget();
+        $jugend = $this->event['slots'][1]['id'];
+
+        $response = $this->submit(['group_1' => '2', 'group_5' => '0', 'attend' => [$jugend => '1']]);
+
+        $this->assertSame(200, $response['status']);
+        $this->assertStringContainsString('Bitte mindestens einen Programmpunkt auswählen.', $response['body']);
+        $this->assertSame([], $this->registrations());
+    }
+
     public function testShowsOnlyEventGroupsWithTheirNames(): void
     {
         db()->prepare('UPDATE events SET person_groups = ? WHERE id = ?')

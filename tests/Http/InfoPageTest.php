@@ -151,6 +151,25 @@ final class InfoPageTest extends HttpTestCase
         $this->assertLessThan(strpos($body, 'Jugendstunde'), strpos($body, 'Kinderbetreuung'), 'beim richtigen Programmpunkt');
     }
 
+    public function testShowsTargetGroupNoticeForSlots(): void
+    {
+        $this->activeEvent([
+            'title' => 'Mit Zielgruppe',
+            'slots' => [
+                ['time' => '10:00', 'label' => 'Begrüßung'],
+                ['time' => '14:00', 'label' => 'Jugendstunde', 'target' => '1', 'target_groups' => ['group_2']],
+                ['time' => '16:00', 'label' => 'Gesprächskreis', 'target' => '1', 'target_groups' => ['group_1', 'group_2']],
+            ],
+        ]);
+
+        $body = $this->get('/')['body'];
+
+        $this->assertSame(1, substr_count($body, 'Zielgruppe: Jugendliche'));
+        $this->assertLessThan(strpos($body, 'Zielgruppe: Jugendliche'), strpos($body, 'Jugendstunde'), 'beim richtigen Programmpunkt');
+        $this->assertLessThan(strpos($body, 'Gesprächskreis'), strpos($body, 'Zielgruppe: Jugendliche'));
+        $this->assertStringContainsString('Zielgruppe: Erwachsene und Jugendliche', $body);
+    }
+
     public function testShowsTimezoneOutsideBerlin(): void
     {
         $this->activeEvent(['timezone' => 'Europe/Lisbon']);
