@@ -22,4 +22,25 @@ final class ThemeTest extends HttpTestCase
             $this->assertStringContainsString('data-theme-value="' . $value . '"', $body);
         }
     }
+
+    public function testPublicPagesShowOptionsSideBySideInFooter(): void
+    {
+        $body = $this->get('/')['body'];
+
+        $footer = substr($body, (int) strpos($body, '<footer'));
+        $this->assertStringContainsString('btn-group', $footer);
+        foreach (['Automatisch', 'Hell', 'Dunkel'] as $label) {
+            $this->assertMatchesRegularExpression('#data-theme-value="[a-z]+" aria-pressed="false">\s*<svg[^>]*>.*?</svg> ' . $label . '#s', $footer);
+        }
+        $this->assertStringNotContainsString('dropdown', $body, 'öffentlich kein Dropdown');
+        $this->assertLessThan(strpos($body, '<footer'), strpos($body, '</main>'), 'unter dem Inhalt');
+    }
+
+    public function testAdminKeepsDropdown(): void
+    {
+        $body = $this->get('/admin/events.php')['body'];
+
+        $this->assertStringContainsString('data-theme-current', $body);
+        $this->assertStringContainsString('dropdown-menu', $body);
+    }
 }

@@ -28,13 +28,17 @@
     const current = choice();
     document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
       toggle.hidden = false;
+      // Nur das Dropdown (Admin) hat einen Knopf mit dem aktuellen Symbol;
+      // die Leiste im Footer markiert die gewählte Option
       const button = toggle.querySelector('[data-theme-current]');
-      button.querySelectorAll('[data-theme-icon]').forEach((icon) => {
-        // SVG-Elemente haben keine .hidden-Eigenschaft, daher das Attribut
-        icon.toggleAttribute('hidden', icon.dataset.themeIcon !== current);
-      });
-      button.setAttribute('aria-label', `Farbschema: ${LABELS[current]}`);
-      button.title = `Farbschema: ${LABELS[current]}`;
+      if (button) {
+        button.querySelectorAll('[data-theme-icon]').forEach((icon) => {
+          // SVG-Elemente haben keine .hidden-Eigenschaft, daher das Attribut
+          icon.toggleAttribute('hidden', icon.dataset.themeIcon !== current);
+        });
+        button.setAttribute('aria-label', `Farbschema: ${LABELS[current]}`);
+        button.title = `Farbschema: ${LABELS[current]}`;
+      }
       toggle.querySelectorAll('[data-theme-value]').forEach((item) => {
         const active = item.dataset.themeValue === current;
         item.classList.toggle('active', active);

@@ -10,12 +10,12 @@
 </head>
 <body class="public-page">
   <?php $narrow = empty($wide) ? ' page-narrow' : '' /* $wide: volle Breite, z. B. Team-Auswertung */ ?>
-  <div class="container<?= $narrow ?> pt-3 d-flex justify-content-end">
-    <?php require __DIR__ . '/theme_toggle.php' ?>
-  </div>
-  <main class="container pb-4<?= $narrow ?>">
+  <main class="container pt-4 pb-4<?= $narrow ?>">
     <?= $content ?>
   </main>
+  <footer class="container<?= $narrow ?> pb-4 d-flex justify-content-center">
+    <?php require __DIR__ . '/theme_switch.php' ?>
+  </footer>
   <script src="<?= e(asset('vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>
   <?php foreach ($scripts ?? [] as $script): ?>
     <script src="<?= e(asset($script)) ?>"></script>
