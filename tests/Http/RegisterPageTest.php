@@ -90,7 +90,8 @@ final class RegisterPageTest extends HttpTestCase
         $jugend = $this->event['slots'][1]['id'];
 
         $this->assertSame(2, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 3'), 'Ankreuzen und Aufteilung');
-        $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint hidden>#', $body, 'ohne Kinder kein Hinweis');
+        $this->assertMatchesRegularExpression('#<div data-childcare-hint hidden>#', $body, 'ohne Kinder kein Hinweis');
+        $this->assertMatchesRegularExpression('#<div class="col-12" data-info-box hidden>#', $body, 'ohne Hinweise keine Infobox');
         $this->assertStringContainsString('10:00 Uhr Vortrag: Kindergruppe 2 und Kindergruppe 3', $body);
         $this->assertStringContainsString('data-childcare-split-hint hidden', $body);
         $this->assertMatchesRegularExpression('#name="split\[' . $vortrag . '\]\[group_4\]"\s+value="0"#', $body, 'betreute Gruppe mit 0 vorbelegt');
@@ -105,7 +106,8 @@ final class RegisterPageTest extends HttpTestCase
         $response = $this->submit(['first_name' => '', 'group_4' => '2']);
 
         $this->assertSame(200, $response['status']);
-        $this->assertMatchesRegularExpression('#<div class="col-12" data-childcare-hint>#', $response['body']);
+        $this->assertMatchesRegularExpression('#<div data-childcare-hint>#', $response['body']);
+        $this->assertMatchesRegularExpression('#<div class="col-12" data-info-box>#', $response['body'], 'Infobox sichtbar');
     }
 
     public function testRegistrationStoresChildrenInChildcare(): void
@@ -141,8 +143,9 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertSame(2, substr_count($body, 'Zielgruppe: Jugendliche'), 'Ankreuzen und Aufteilung');
         $this->assertMatchesRegularExpression('#data-target-slot="group_2"#', $body);
         $this->assertMatchesRegularExpression('#data-target-slot=""#', $body, 'Programmpunkt ohne Zielgruppe');
-        $this->assertMatchesRegularExpression('#<div class="col-12" data-target-hint>#', $body, 'Vorbelegung 1 Erwachsene: betroffen');
-        $this->assertStringContainsString('Bei „Jugendstunde“ nehmen nur Personen der Zielgruppe teil (Jugendliche).', $body);
+        $this->assertMatchesRegularExpression('#<div data-target-hint hidden>#', $body, 'Vorbelegung 1 Erwachsene, niemand aus der Zielgruppe: kein Hinweis');
+        $this->assertMatchesRegularExpression('#<div class="col-12" data-info-box hidden>#', $body);
+        $this->assertStringContainsString('Bei „Jugendstunde“ nehmen nur Personen der Zielgruppe teil (Jugendliche).', $body, 'im Markup, für JS');
         $this->assertStringContainsString('data-target-none hidden', $body, 'Hinweis „niemand“ ohne JS verborgen');
         $this->assertStringContainsString('Niemand aus deiner Anmeldung gehört zur Zielgruppe.', $body);
         $this->assertStringNotContainsString('name="split[' . $jugend . '][group_1]"', $body, 'nur Felder der Zielgruppe');
@@ -151,13 +154,38 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#id="attend-' . $jugend . '"\s+name="attend\[' . $jugend . '\]"\s+value="1"\s*>#', $body, 'ohne JS nicht gesperrt');
     }
 
-    public function testNoTargetHintWhenNobodyIsAffected(): void
+    public function testTargetHintOnlyWhenTargetPersonAndOthersAreEntered(): void
     {
         $this->withTarget();
 
+        // nur Zielgruppe (Jugendliche) → niemand außerhalb betroffen
         $response = $this->submit(['first_name' => '', 'group_1' => '0', 'group_2' => '2', 'group_5' => '0']);
-
         $this->assertStringContainsString('data-target-hint hidden', $response['body']);
+
+        // nur Erwachsene → niemand aus der Zielgruppe (Häkchen wird per JS ausgegraut, Hinweis wäre überflüssig)
+        $response = $this->submit(['first_name' => '', 'group_1' => '2', 'group_2' => '0', 'group_5' => '0']);
+        $this->assertStringContainsString('data-target-hint hidden', $response['body']);
+
+        // beide → Hinweis sichtbar
+        $response = $this->submit(['first_name' => '', 'group_1' => '2', 'group_2' => '1', 'group_5' => '0']);
+        $this->assertMatchesRegularExpression('#<div data-target-hint>#', $response['body']);
+        $this->assertMatchesRegularExpression('#<li data-target-groups="group_2">\s*Bei „Jugendstunde“#', $response['body']);
+        $this->assertMatchesRegularExpression('#<div class="col-12" data-info-box>#', $response['body']);
+    }
+
+    public function testChildcareAndTargetHintsShareOneInfoBox(): void
+    {
+        $this->withChildcare();
+        $db = db();
+        $db->prepare("UPDATE event_slots SET target_groups = 'group_2' WHERE id = ?")->execute([$this->event['slots'][1]['id']]);
+        $this->event = event_find((int) $this->event['id']);
+
+        $body = $this->submit(['first_name' => '', 'group_1' => '2', 'group_2' => '1', 'group_4' => '1', 'group_5' => '0'])['body'];
+
+        $this->assertSame(1, substr_count($body, 'data-info-box'), 'eine gemeinsame Box');
+        $box = substr($body, strpos($body, 'data-info-box'));
+        $this->assertLessThan(strpos($box, 'data-target-hint'), strpos($box, 'data-childcare-hint'), 'beide Hinweise in der Box');
+        $this->assertSame(1, substr_count($body, 'alert alert-info small'), 'nur eine Infobox statt zwei');
     }
 
     public function testRegistrationCountsOnlyTargetGroupsAtTargetSlot(): void
