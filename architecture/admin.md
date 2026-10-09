@@ -46,6 +46,18 @@ Validierung (serverseitig, Fehler verhindern das Speichern):
   gewählt sind** –, mindestens eine Pflicht. Anzeige mit den Gruppennamen
   („A“, „A und B“, „A, B und C“). Die Kinderbetreuung ist wie der Ablauf
   gesperrt, sobald es Anmeldungen gibt.
+  Je Programmpunkt Schalter **„Zielgruppe festlegen“**; wenn an, Auswahl aus
+  den bei der Veranstaltung gewählten Personengruppen (mindestens eine), für
+  die der Programmpunkt gilt. Anzeige „Zielgruppe: <Namen>“ (wie bei der
+  Kinderbetreuung verbunden). Ebenfalls gesperrt, sobald es Anmeldungen gibt.
+  **Zielgruppe und Kinderbetreuung schließen sich aus:** im Formular wird der
+  jeweils andere Schalter gesperrt; serverseitig Fehler „Programmpunkt n:
+  Zielgruppe und Kinderbetreuung sind nicht kombinierbar.“ Wird auf
+  Veranstaltungsebene eine Personengruppe abgewählt, fällt sie aus der
+  Zielgruppe heraus; bleibt keine Gruppe übrig, Fehler „Programmpunkt n:
+  Zielgruppe auswählen.“ Sind alle gewählten Personengruppen Zielgruppe, wird
+  keine Zielgruppe gespeichert (gleiche Wirkung, kein Hinweis).
+  Zählweise siehe [§5.4](registration-form.md).
   **Sobald mindestens eine Anmeldung existiert, ist der Ablauf gesperrt**
   (nur Anzeige mit Hinweis). Änderungen am Programm nach Eröffnung der
   Anmeldung sind in Version 1 nicht vorgesehen.
@@ -154,6 +166,9 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
   Programmpunkte mit Betreuung, betreute Kindergruppen, Kinder in der
   Betreuung je Kindergruppe (– = keine Betreuung für diese Gruppe), Summe;
   nur bestätigte Anmeldungen.
+- Bei Programmpunkten mit Zielgruppe stehen in der Tabelle „Anwesenheit je
+  Programmpunkt“ (Admin und Team-Seite) die Gruppen außerhalb der
+  Zielgruppe als „–“, dazu der Hinweis „Zielgruppe: <Namen>“.
 - Auswahl der Veranstaltung per Dropdown (`?event=<id>`); ohne Auswahl die
   aktive, sonst die neueste. Programmpunkte mobil als Block je Punkt.
 - Belegung als gestapelter Balken: bestätigte Personen (blau, rot bei
@@ -194,7 +209,7 @@ geheimem Link `/konferenz/team/?k=<Schlüssel>`.
 - `admin/help.php`: erklärt Admins die Logik im Hintergrund und die
   Auswirkungen von Einstellungen, gruppiert nach Aspekt (Ablauf,
   Veranstaltungen, Kontingent/automatische Bestätigung, Personengruppen, bevorzugte Orte,
-  Programmpunkte/Kinderbetreuung, Anfragen, E-Mails, Absage, Infoseite/
+  Programmpunkte/Zielgruppe/Kinderbetreuung, Anfragen, E-Mails, Absage, Infoseite/
   Formular, Auswertung/Team-Zugang, Texte, Spamschutz, Datum/Datenschutz)
   mit Inhaltsverzeichnis. Feste deutsche Texte (nicht konfigurierbar);
   Grenzwerte (99 Personen, Spamschutz-Zeiten, Rate-Limit) werden aus Code

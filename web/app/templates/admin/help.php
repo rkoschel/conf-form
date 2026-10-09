@@ -11,7 +11,7 @@ $sections = [
     'kontingent' => 'Kontingent und automatische Bestätigung',
     'gruppen' => 'Personengruppen',
     'orte' => 'Bevorzugte Orte',
-    'programm' => 'Programmpunkte und Kinderbetreuung',
+    'programm' => 'Programmpunkte, Zielgruppe und Kinderbetreuung',
     'anfragen' => 'Anfragen verwalten',
     'mails' => 'E-Mails',
     'absage' => 'Absage durch Teilnehmer',
@@ -67,8 +67,8 @@ $sections = [
       <dt>Veranstalter (Name, E-Mail)</dt>
       <dd>Die E-Mail-Adresse ist die <strong>Antwortadresse</strong> aller Mails zu dieser Veranstaltung. Der Name erscheint in der Grußformel (Platzhalter <code>{organizer}</code>); ohne Namen wird die Ersatz-Unterschrift aus den Einstellungen verwendet.</dd>
 
-      <dt>Ablauf, Kinderbetreuung und Auswahl der Personengruppen</dt>
-      <dd>Änderbar, solange es <strong>keine Anmeldungen</strong> gibt. Sobald die erste Anmeldung eingegangen ist, sind Programmpunkte, Kinderbetreuung und die Auswahl der Personengruppen gesperrt, weil die gespeicherten Angaben der Teilnehmer sonst nicht mehr passen würden. Die <strong>Namen</strong> der Gruppen und alle anderen Felder bleiben änderbar.</dd>
+      <dt>Ablauf, Zielgruppe, Kinderbetreuung und Auswahl der Personengruppen</dt>
+      <dd>Änderbar, solange es <strong>keine Anmeldungen</strong> gibt. Sobald die erste Anmeldung eingegangen ist, sind Programmpunkte, Zielgruppe, Kinderbetreuung und die Auswahl der Personengruppen gesperrt, weil die gespeicherten Angaben der Teilnehmer sonst nicht mehr passen würden. Die <strong>Namen</strong> der Gruppen und alle anderen Felder bleiben änderbar.</dd>
 
       <dt>Löschen</dt>
       <dd>Löscht die Veranstaltung mit <strong>allen</strong> Anmeldungen, Programmpunkt-Angaben und dem Mail-Protokoll – endgültig, ohne Mail an die Teilnehmer.</dd>
@@ -138,13 +138,32 @@ $sections = [
   </section>
 
   <section id="programm" class="help-section">
-    <h2 class="h4">Programmpunkte und Kinderbetreuung</h2>
+    <h2 class="h4">Programmpunkte, Zielgruppe und Kinderbetreuung</h2>
     <dl>
       <dt>Voraussichtliche Anwesenheit</dt>
       <dd>Standard: je Programmpunkt ein Häkchen, das für die ganze Gruppe gilt. Anfangs ist <strong>kein</strong> Programmpunkt ausgewählt, damit bewusst entschieden wird; ohne mindestens einen Programmpunkt lässt sich die Anmeldung nicht absenden (auch nicht im Admin-Bearbeiten). Ob Teilnehmer zusätzlich individuell aufteilen dürfen, stellst du je Veranstaltung ein („Individuelle Aufteilung auf Programmpunkte erlauben“, jederzeit änderbar; bestehende Aufteilungen bleiben erhalten und sind im Bearbeiten weiter sichtbar). Mit „Anzahl individuell aufteilen“ geben Teilnehmer je Programmpunkt die Anzahl pro Personengruppe an (höchstens die oben angegebene Anzahl). Ändert man oben eine Anzahl, passt sich die Aufteilung an: Beim Verringern werden zu hohe Werte gekappt, beim Erhöhen wachsen Felder mit, die auf dem bisherigen Maximum standen; bewusst kleinere Werte und Kinder in der Betreuung (0) bleiben. Gespeichert wird immer die Anzahl je Programmpunkt und Personengruppe.</dd>
 
       <dt>Kinderbetreuung</dt>
       <dd>Je Programmpunkt einstellbar mit den betreuten Kindergruppen der Veranstaltung. Infoseite und Formular zeigen dann „Parallel Kinderbetreuung für …“ mit den Namen dieser Gruppen.</dd>
+
+      <dt>Zielgruppe</dt>
+      <dd>
+        Je Programmpunkt kannst du mit „Zielgruppe festlegen“ bestimmen, für welche Personengruppen er gilt (mindestens eine der bei der Veranstaltung gewählten Gruppen).
+        Wählst du alle Gruppen, gilt der Programmpunkt für alle – dann wird nichts gespeichert und es erscheint kein Hinweis.
+        Infoseite und Formular zeigen „Zielgruppe: …“ mit den Namen der Gruppen.
+        <strong>Zielgruppe und Kinderbetreuung schließen sich aus:</strong> Wenn einer der beiden Schalter an ist, ist der andere gesperrt.
+        Wählst du bei der Veranstaltung eine Personengruppe ab, fällt sie auch aus den Zielgruppen heraus; bleibt keine übrig, meldet das Formular „Zielgruppe auswählen“.
+        Die Zielgruppe hat keinen Einfluss auf Kontingent, öffentliche Belegung und Mails.
+      </dd>
+
+      <dt>Zielgruppe im Anmeldeformular</dt>
+      <dd>
+        Bei einem Programmpunkt mit Zielgruppe zählen nur Personen dieser Gruppen; die übrigen Personen der Anmeldung zählen dort <strong>nirgends</strong> (auch nicht in einer Betreuung).
+        Das Formular erklärt das unter den Anzahlen, aber nur, wenn eingetragene Personen betroffen sind.
+        Gehört <strong>niemand</strong> aus der Anmeldung zur Zielgruppe, ist das Häkchen ausgegraut und abgewählt („Niemand aus deiner Anmeldung gehört zur Zielgruppe.“); es wird nicht automatisch wieder angekreuzt, sobald jemand passt.
+        In der individuellen Aufteilung gibt es dort nur Felder der Zielgruppe.
+        Serverseitig gilt dasselbe (auch im Admin-Bearbeiten): Angekreuzt, aber niemand aus der Zielgruppe → 0 beim Programmpunkt, kein Fehler; ein solcher Programmpunkt zählt nicht für „mindestens ein Programmpunkt“.
+      </dd>
 
       <dt>Wer wird wo gezählt?</dt>
       <dd>
@@ -170,7 +189,7 @@ $sections = [
             </tr>
           </tbody>
         </table>
-        In der Aufteilung sind betreute Kindergruppen deshalb mit 0 vorbelegt.
+        In der Aufteilung sind betreute Kindergruppen deshalb mit 0 vorbelegt. Bei einem Programmpunkt mit Zielgruppe zählen nur deren Gruppen (siehe oben); eine Betreuung gibt es dort nicht.
       </dd>
     </dl>
   </section>
@@ -241,7 +260,7 @@ $sections = [
     <h2 class="h4">Infoseite und Anmeldeformular</h2>
     <dl>
       <dt>Infoseite</dt>
-      <dd>Zeigt Titel, Datum, Ort, Frist, Beschreibung, Ablauf (mit Kinderbetreuung) und den Link zur allgemeinen Info-Seite. Solange die Anmeldung offen ist, kommen die Belegung und der Button „Anmelden“ dazu.</dd>
+      <dd>Zeigt Titel, Datum, Ort, Frist, Beschreibung, Ablauf (mit Kinderbetreuung bzw. Zielgruppe) und den Link zur allgemeinen Info-Seite. Solange die Anmeldung offen ist, kommen die Belegung und der Button „Anmelden“ dazu.</dd>
 
       <dt>Belegung</dt>
       <dd>Bestätigt / Warteliste / frei – <strong>nur in ganzen Prozent</strong> der Kapazität (alle Personengruppen), nie mit absoluten Zahlen. Steht „frei“ bei 0 %, erscheint der Hinweis „ausgebucht“ aus den Einstellungen; anmelden bleibt möglich (Warteliste).</dd>
@@ -260,7 +279,7 @@ $sections = [
           <li><strong>Gesamtbelegung:</strong> bestätigte Personen aller Gruppen; zusätzlich offene Anfragen (gelb), um zu sehen, wie voll es würde, wenn alle bestätigt würden.</li>
           <li><strong>Je Personengruppe:</strong> ein Balken pro gewählter Gruppe mit bestätigten und offenen Personen, im selben Maßstab wie die Gesamtbelegung (Kapazität).</li>
           <li><strong>Anfragen nach Status</strong> und <strong>Personen je Ort:</strong> alle Personen; je Ort bestätigte und offene getrennt.</li>
-          <li><strong>Programmpunkte und Kinderbetreuung:</strong> nur bestätigte Anmeldungen.</li>
+          <li><strong>Programmpunkte und Kinderbetreuung:</strong> nur bestätigte Anmeldungen. Bei einem Programmpunkt mit Zielgruppe stehen die Gruppen außerhalb der Zielgruppe als „–“.</li>
         </ul>
       </dd>
 
