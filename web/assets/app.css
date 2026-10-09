@@ -288,3 +288,36 @@
   justify-content: flex-end;
   padding: 0.5rem 1rem;
 }
+
+/* Team-Seite: drei klar abgegrenzte Bereiche (zugesagt / Belegung / Status) */
+.stats-area {
+  margin-bottom: 1.75rem;
+  padding: 1.25rem 1.5rem 0.5rem;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-top: 4px solid var(--stats-area-accent, var(--bs-secondary));
+  border-radius: 0.75rem;
+}
+
+.stats-area-confirmed {
+  --stats-area-accent: var(--bs-success);
+}
+
+.stats-area-occupancy {
+  --stats-area-accent: var(--bs-primary);
+}
+
+.stats-area-status {
+  --stats-area-accent: var(--bs-secondary);
+}
+
+.stats-area-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Kacheln im Bereich heben sich leicht von der Fläche ab */
+.stats-area .card {
+  background: var(--bs-tertiary-bg);
+}

@@ -63,6 +63,54 @@ final class TeamPageTest extends HttpTestCase
         $this->assertSame('noindex, nofollow', $response['headers']['x-robots-tag'] ?? null);
     }
 
+    public function testShowsThreeSeparatedAreasWithTheirContent(): void
+    {
+        $key = team_key_generate();
+        $this->activeEvent('Bereiche');
+        $id = (int) db()->query('SELECT id FROM events')->fetchColumn();
+        db()->prepare("INSERT INTO event_slots (event_id, time, label, childcare) VALUES (?, '10:00', 'Vortrag', 'group_4')")->execute([$id]);
+        db()->prepare(
+            "INSERT INTO registrations (event_id, created_at, first_name, last_name, congregation, group_1, status, cancel_token)
+             VALUES (?, ?, 'Eva', 'Offen', 'Hamm', 2, 'pending', ?)"
+        )->execute([$id, now_utc(), bin2hex(random_bytes(32))]);
+
+        $body = $this->get('/team/?k=' . $key)['body'];
+
+        $this->assertSame(3, substr_count($body, '<section class="stats-area '), 'drei Bereiche');
+        $areas = array_slice(explode('<section class="stats-area ', $body), 1);
+
+        // 1. zugesagte Anmeldungen: Anwesenheit und Kinderbetreuung je Programmpunkt
+        $this->assertStringContainsString('Zugesagte Anmeldungen', $areas[0]);
+        $this->assertStringContainsString('Voraussichtliche Anwesenheit je Programmpunkt', $areas[0]);
+        $this->assertStringContainsString('Kinderbetreuung je Programmpunkt', $areas[0]);
+        $this->assertStringNotContainsString('Anfragen nach Status', $areas[0]);
+        $this->assertDoesNotMatchRegularExpression('#/ 50#', $areas[0]);
+
+        // 2. Gesamtbelegung und Anmeldungen: die zwei Kacheln
+        $this->assertStringContainsString('Gesamtbelegung und Anmeldungen', $areas[1]);
+        $this->assertMatchesRegularExpression('#7 <span[^>]*>/ 50</span>#', $areas[1]);
+        $this->assertStringContainsString('Personen je Ort', $areas[1]);
+        $this->assertStringNotContainsString('Voraussichtliche Anwesenheit je Programmpunkt', $areas[1]);
+        $this->assertStringNotContainsString('<th>Status</th>', $areas[1]);
+
+        // 3. Anfragen nach Status
+        $this->assertStringContainsString('Anfragen nach Status', $areas[2]);
+        $this->assertStringContainsString('<th>Status</th>', $areas[2]);
+        $this->assertStringNotContainsString('Personen je Ort', $areas[2]);
+        $this->assertSame(1, substr_count($body, '<th>Status</th>'), 'Tabelle nur einmal');
+        $this->assertSame(1, substr_count($body, '>Anfragen nach Status<'), 'Überschrift nur einmal');
+    }
+
+    public function testAdminStatsKeepsItsOwnLayoutWithoutAreas(): void
+    {
+        $this->activeEvent('Admin bleibt');
+
+        $body = $this->get('/admin/stats.php')['body'];
+
+        $this->assertStringNotContainsString('stats-area', $body);
+        $this->assertGreaterThan(strpos($body, 'Gesamtbelegung'), strpos($body, 'Anfragen nach Status'), 'bisherige Reihenfolge');
+    }
+
     public function testWithoutActiveEventShowsNotice(): void
     {
         $key = team_key_generate();
@@ -70,5 +118,6 @@ final class TeamPageTest extends HttpTestCase
         $body = $this->get('/team/?k=' . $key)['body'];
 
         $this->assertStringContainsString('Derzeit ist keine Veranstaltung aktiv.', $body);
+        $this->assertStringNotContainsString('stats-area', $body, 'ohne Veranstaltung keine Bereiche');
     }
 }

@@ -3,12 +3,20 @@
  * Inhalt der Auswertung (SPEC §7.7): Kacheln und Tabellen. Genutzt von
  * admin/stats.php und der Team-Seite (SPEC §7.8). Erwartet $event, $stats
  * (stats_for_event()) und optional $emptyText.
+ *
+ * Optional $section wählt einen Teil aus (Team-Seite zeigt die Bereiche einzeln):
+ * 'confirmed' = zugesagte Anmeldungen (Anwesenheit und Kinderbetreuung je
+ * Programmpunkt), 'occupancy' = Gesamtbelegung und Anmeldungen (Kacheln),
+ * 'status' = Anfragen nach Status. Ohne oder bei ungültigem Wert: alles in der
+ * bisherigen Reihenfolge (Admin).
  */
 ?>
 <?php if ($event === null): ?>
   <p class="text-body-secondary"><?= e($emptyText ?? 'Noch keine Veranstaltungen angelegt.') ?></p>
 <?php else: ?>
   <?php
+  $section = in_array($section ?? 'all', ['confirmed', 'occupancy', 'status'], true) ? $section : 'all';
+  $show = fn (string $name): bool => $section === 'all' || $section === $name;
   $used = $stats['quota_used'];
   $pending = $stats['quota_pending'];
   $max = $stats['quota_max'];
@@ -34,6 +42,7 @@
   };
   ?>
 
+  <?php if ($show('occupancy')): ?>
   <div class="row g-3 mb-4">
     <div class="col-lg-8">
       <div class="card h-100">
@@ -126,9 +135,14 @@
     </div>
   </div>
 
+  <?php endif ?>
+
+  <?php if ($show('status')): ?>
   <div class="row g-4 mb-4">
     <div class="col-lg-6">
-      <h2 class="h5">Anfragen nach Status</h2>
+      <?php if ($section === 'all'): ?>
+        <h2 class="h5">Anfragen nach Status</h2>
+      <?php endif ?>
       <table class="table table-sm">
         <thead>
           <tr><th>Status</th><th class="text-end">Anmeldungen</th><th class="text-end">Personen</th></tr>
@@ -151,6 +165,9 @@
 
   </div>
 
+  <?php endif ?>
+
+  <?php if ($show('confirmed')): ?>
   <h2 class="h5">Voraussichtliche Anwesenheit je Programmpunkt</h2>
   <?php if (!$stats['slots']): ?>
     <p class="text-body-secondary">Für diese Veranstaltung ist kein Ablauf angelegt.</p>
@@ -275,5 +292,6 @@
         Nur bestätigte Anmeldungen.<span class="d-none d-md-inline"> – = für diese Gruppe keine Betreuung.</span>
       </p>
     <?php endif ?>
+  <?php endif ?>
   <?php endif ?>
 <?php endif ?>

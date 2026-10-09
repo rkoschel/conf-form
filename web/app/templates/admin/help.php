@@ -287,7 +287,7 @@ $sections = [
       </dd>
 
       <dt>Team-Zugang</dt>
-      <dd>Ein geheimer Link (Einstellungen → Team-Zugang) zeigt Mitarbeitern die Auswertung der <strong>aktiven</strong> Veranstaltung ohne Login, nur lesend, mit absoluten Zahlen. „Neuen Link erzeugen“ macht den alten sofort ungültig, „Deaktivieren“ schaltet den Zugang ab. Ohne gültigen Link meldet die Seite „nicht gefunden“.</dd>
+      <dd>Ein geheimer Link (Einstellungen → Team-Zugang) zeigt Mitarbeitern die Auswertung der <strong>aktiven</strong> Veranstaltung ohne Login, nur lesend, mit absoluten Zahlen. „Neuen Link erzeugen“ macht den alten sofort ungültig, „Deaktivieren“ schaltet den Zugang ab. Ohne gültigen Link meldet die Seite „nicht gefunden“. Die Seite hat drei abgegrenzte Bereiche: <strong>Zugesagte Anmeldungen</strong> (Anwesenheit und Kinderbetreuung je Programmpunkt, nur bestätigte), <strong>Gesamtbelegung und Anmeldungen</strong> und <strong>Anfragen nach Status</strong>. Die Auswertung im Admin ist anders angeordnet.</dd>
     </dl>
   </section>
 

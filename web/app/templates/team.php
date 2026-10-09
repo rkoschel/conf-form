@@ -8,4 +8,24 @@
   <h1 class="h3 mb-4">Auswertung</h1>
 <?php endif ?>
 
-<?php require __DIR__ . '/stats_content.php' ?>
+<?php if ($event === null): ?>
+  <?php require __DIR__ . '/stats_content.php' ?>
+<?php else: ?>
+  <?php
+  // Drei klar abgegrenzte Bereiche (SPEC §7.8); stats_content.php zeigt je Bereich nur den passenden Teil
+  $areas = [
+      'confirmed' => ['Zugesagte Anmeldungen', 'Nur bestätigte Anmeldungen: Anwesenheit und Kinderbetreuung je Programmpunkt.'],
+      'occupancy' => ['Gesamtbelegung und Anmeldungen', 'Belegung des Kontingents und Zahl der Anmeldungen.'],
+      'status' => ['Anfragen nach Status', 'Alle Anfragen nach Status, auch offene, stornierte und abgelehnte.'],
+  ];
+  ?>
+  <?php foreach ($areas as $section => [$areaTitle, $areaHint]): ?>
+    <section class="stats-area stats-area-<?= e($section) ?>" aria-labelledby="area-<?= e($section) ?>">
+      <header class="stats-area-header">
+        <h2 class="h4 mb-1" id="area-<?= e($section) ?>"><?= e($areaTitle) ?></h2>
+        <p class="small text-body-secondary mb-0"><?= e($areaHint) ?></p>
+      </header>
+      <?php require __DIR__ . '/stats_content.php' ?>
+    </section>
+  <?php endforeach ?>
+<?php endif ?>
