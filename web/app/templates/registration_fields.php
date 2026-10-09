@@ -77,13 +77,17 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
         <div class="alert alert-info small mb-0 vstack gap-2">
           <?php if ($childcareSlots): ?>
             <div data-childcare-hint<?= $childcareHintVisible ? '' : ' hidden' ?>>
-              Kinder werden bei diesen Programmpunkten automatisch für die Kinderbetreuung berücksichtigt:
               <ul class="mb-0">
-                <?php foreach ($childcareSlots as $slot): ?>
-                  <li data-childcare-groups="<?= e(implode(' ', $slot['childcare'])) ?>"<?= $childcareVisible($slot) ? '' : ' hidden' ?>>
-                    <?= e($slot['time']) ?> Uhr <?= e($slot['label']) ?>: <?= e(childcare_names($slot['childcare'], $groups)) ?>
-                  </li>
-                <?php endforeach ?>
+                <li>
+                  Kinder werden bei diesen Programmpunkten automatisch für die Kinderbetreuung berücksichtigt:
+                  <ul class="mb-0">
+                    <?php foreach ($childcareSlots as $slot): ?>
+                      <li data-childcare-groups="<?= e(implode(' ', $slot['childcare'])) ?>"<?= $childcareVisible($slot) ? '' : ' hidden' ?>>
+                        <?= e($slot['time']) ?> Uhr <?= e($slot['label']) ?>: <?= e(childcare_names($slot['childcare'], $groups)) ?>
+                      </li>
+                    <?php endforeach ?>
+                  </ul>
+                </li>
               </ul>
             </div>
           <?php endif ?>
@@ -92,7 +96,7 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
               <ul class="mb-0">
                 <?php foreach ($targetSlots as $slot): ?>
                   <li data-target-groups="<?= e(implode(' ', $targetOf($slot))) ?>"<?= $targetAffected($slot) ? '' : ' hidden' ?>>
-                    Bei „<?= e($slot['label']) ?>“ nehmen nur Personen der Zielgruppe teil (<?= e(group_names_join($targetOf($slot), $groups)) ?>).
+                    <?= e($slot['label']) ?> wurde für <?= e(group_names_join($targetOf($slot), $groups)) ?> aktiviert.
                   </li>
                 <?php endforeach ?>
               </ul>

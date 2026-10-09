@@ -91,6 +91,11 @@ final class RegisterPageTest extends HttpTestCase
 
         $this->assertSame(2, substr_count($body, 'Parallel Kinderbetreuung für Kindergruppe 2 und Kindergruppe 3'), 'Ankreuzen und Aufteilung');
         $this->assertMatchesRegularExpression('#<div data-childcare-hint hidden>#', $body, 'ohne Kinder kein Hinweis');
+        $this->assertMatchesRegularExpression(
+            '#<div data-childcare-hint[^>]*>\s*<ul class="mb-0">\s*<li>\s*Kinder werden bei diesen Programmpunkten automatisch für die Kinderbetreuung berücksichtigt:\s*<ul class="mb-0">#',
+            $body,
+            'Einleitung mit Aufzählungszeichen, Programmpunkte als Unterliste'
+        );
         $this->assertMatchesRegularExpression('#<div class="col-12" data-info-box hidden>#', $body, 'ohne Hinweise keine Infobox');
         $this->assertStringContainsString('10:00 Uhr Vortrag: Kindergruppe 2 und Kindergruppe 3', $body);
         $this->assertStringContainsString('data-childcare-split-hint hidden', $body);
@@ -145,7 +150,8 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#data-target-slot=""#', $body, 'Programmpunkt ohne Zielgruppe');
         $this->assertMatchesRegularExpression('#<div data-target-hint hidden>#', $body, 'Vorbelegung 1 Erwachsene, niemand aus der Zielgruppe: kein Hinweis');
         $this->assertMatchesRegularExpression('#<div class="col-12" data-info-box hidden>#', $body);
-        $this->assertStringContainsString('Bei „Jugendstunde“ nehmen nur Personen der Zielgruppe teil (Jugendliche).', $body, 'im Markup, für JS');
+        $this->assertStringContainsString('Jugendstunde wurde für Jugendliche aktiviert.', $body, 'im Markup, für JS');
+        $this->assertStringNotContainsString('nehmen nur Personen der Zielgruppe teil', $body, 'alter Wortlaut');
         $this->assertStringContainsString('data-target-none hidden', $body, 'Hinweis „niemand“ ohne JS verborgen');
         $this->assertStringContainsString('Niemand aus deiner Anmeldung gehört zur Zielgruppe.', $body);
         $this->assertStringNotContainsString('name="split[' . $jugend . '][group_1]"', $body, 'nur Felder der Zielgruppe');
@@ -169,7 +175,7 @@ final class RegisterPageTest extends HttpTestCase
         // beide → Hinweis sichtbar
         $response = $this->submit(['first_name' => '', 'group_1' => '2', 'group_2' => '1', 'group_5' => '0']);
         $this->assertMatchesRegularExpression('#<div data-target-hint>#', $response['body']);
-        $this->assertMatchesRegularExpression('#<li data-target-groups="group_2">\s*Bei „Jugendstunde“#', $response['body']);
+        $this->assertMatchesRegularExpression('#<li data-target-groups="group_2">\s*Jugendstunde wurde für Jugendliche aktiviert\.#', $response['body']);
         $this->assertMatchesRegularExpression('#<div class="col-12" data-info-box>#', $response['body']);
     }
 
