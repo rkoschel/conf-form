@@ -31,6 +31,7 @@ final class MigrationTest extends TestCase
 
         $this->assertSame(max(array_keys(DB_MIGRATIONS)), db_version($pdo));
         $this->assertContains('childcare', $this->columns($pdo, 'event_slots'));
+        $this->assertContains('target_groups', $this->columns($pdo, 'event_slots'));
         $this->assertContains('childcare_group_5', $this->columns($pdo, 'registration_slots'));
     }
 
@@ -53,7 +54,7 @@ final class MigrationTest extends TestCase
 
         $this->assertSame(max(array_keys(DB_MIGRATIONS)), db_version($pdo));
         $slot = $pdo->query('SELECT * FROM event_slots')->fetch();
-        $this->assertSame(['Vortrag', ''], [$slot['label'], $slot['childcare']]);
+        $this->assertSame(['Vortrag', '', ''], [$slot['label'], $slot['childcare'], $slot['target_groups']], 'ohne Zielgruppe = alle');
         $attendance = $pdo->query('SELECT * FROM registration_slots')->fetch();
         $this->assertSame([2, 5, 0], [(int) $attendance['group_1'], (int) $attendance['group_5'], (int) $attendance['childcare_group_4']]);
         $registration = $pdo->query('SELECT * FROM registrations')->fetch();

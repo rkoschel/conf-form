@@ -134,8 +134,8 @@ final class EventValidationTest extends TestCase
 
         $this->assertSame([], $errors);
         $this->assertSame([
-            ['time' => '09:30', 'label' => 'Begrüßung', 'childcare' => []],
-            ['time' => '14:00', 'label' => 'Nachmittag', 'childcare' => []],
+            ['time' => '09:30', 'label' => 'Begrüßung', 'childcare' => [], 'target_groups' => []],
+            ['time' => '14:00', 'label' => 'Nachmittag', 'childcare' => [], 'target_groups' => []],
         ], $data['slots']);
     }
 
@@ -177,6 +177,72 @@ final class EventValidationTest extends TestCase
         ]));
 
         $this->assertSame('Programmpunkt 2: Kindergruppen für die Kinderbetreuung auswählen.', $errors['slots']);
+    }
+
+    public function testParsesTargetGroups(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'slots' => [
+                ['time' => '10:00', 'label' => 'Mit', 'target' => '1', 'target_groups' => ['group_2', 'group_1', 'x']],
+                ['time' => '14:00', 'label' => 'Aus', 'target' => '', 'target_groups' => ['group_2']],
+                ['time' => '16:00', 'label' => 'Kinder', 'target' => '1', 'target_groups' => ['group_5', 'group_3']],
+            ],
+        ]));
+
+        $this->assertSame([], $errors);
+        $this->assertSame(['group_1', 'group_2'], $data['slots'][0]['target_groups'], 'feste Reihenfolge, Unbekanntes verworfen');
+        $this->assertSame([], $data['slots'][1]['target_groups'], 'ohne Schalter für alle');
+        $this->assertSame(['group_3', 'group_5'], $data['slots'][2]['target_groups'], 'auch Kindergruppen möglich');
+    }
+
+    public function testTargetRequiresAtLeastOneGroup(): void
+    {
+        [, $errors] = event_validate($this->input([
+            'slots' => [
+                ['time' => '10:00', 'label' => 'A', 'target' => '1', 'target_groups' => []],
+                ['time' => '11:00', 'label' => 'B', 'target' => '1'],
+                ['time' => '12:00', 'label' => 'C', 'target' => '1', 'target_groups' => ['group_2']],
+            ],
+        ]));
+
+        $this->assertSame('Programmpunkt 1, 2: Zielgruppe auswählen.', $errors['slots']);
+    }
+
+    public function testTargetAndChildcareCannotBeCombined(): void
+    {
+        [, $errors] = event_validate($this->input([
+            'slots' => [
+                ['time' => '10:00', 'label' => 'A', 'target' => '1', 'target_groups' => ['group_2'], 'childcare' => '1', 'childcare_groups' => ['group_4']],
+                ['time' => '14:00', 'label' => 'B', 'target' => '1', 'target_groups' => ['group_2']],
+            ],
+        ]));
+
+        $this->assertSame('Programmpunkt 1: Zielgruppe und Kinderbetreuung sind nicht kombinierbar.', $errors['slots']);
+    }
+
+    public function testAllChosenGroupsAsTargetStoresNoTarget(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'person_groups' => ['group_1', 'group_2'],
+            'slots' => [['time' => '10:00', 'label' => 'A', 'target' => '1', 'target_groups' => ['group_2', 'group_1']]],
+        ]));
+
+        $this->assertSame([], $errors);
+        $this->assertSame([], $data['slots'][0]['target_groups'], 'alle gewählten Gruppen = keine Einschränkung');
+    }
+
+    public function testTargetOnlyForSelectedGroups(): void
+    {
+        [$data, $errors] = event_validate($this->input([
+            'person_groups' => ['group_1', 'group_2', 'group_3'],
+            'slots' => [
+                ['time' => '10:00', 'label' => 'A', 'target' => '1', 'target_groups' => ['group_2', 'group_4']],
+                ['time' => '14:00', 'label' => 'B', 'target' => '1', 'target_groups' => ['group_5']],
+            ],
+        ]));
+
+        $this->assertSame(['group_2'], $data['slots'][0]['target_groups'], 'nicht gewählte Gruppe verworfen');
+        $this->assertSame('Programmpunkt 2: Zielgruppe auswählen.', $errors['slots']);
     }
 
     public function testAllowSplitSwitch(): void

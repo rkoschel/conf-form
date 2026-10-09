@@ -49,6 +49,11 @@ const DB_MIGRATIONS = [
         'ALTER TABLE events ADD COLUMN allow_split INTEGER NOT NULL DEFAULT 1',
         "ALTER TABLE registrations ADD COLUMN message TEXT NOT NULL DEFAULT ''",
     ],
+    // Zielgruppe je Programmpunkt (SPEC §5.1, §7.1): Personengruppen, für die
+    // der Programmpunkt gilt; '' = alle
+    5 => [
+        "ALTER TABLE event_slots ADD COLUMN target_groups TEXT NOT NULL DEFAULT ''",
+    ],
 ];
 
 /** Mindestversion für ALTER TABLE … RENAME COLUMN (Migration 3) */

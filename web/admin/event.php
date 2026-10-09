@@ -11,7 +11,9 @@ if ($id !== null && $event === null) {
 $slotsLocked = $id !== null && event_has_registrations($id);
 $lockedGroups = $slotsLocked ? $event['groups'] : null;
 $lockedSlots = $slotsLocked
-    ? array_map(fn ($s) => ['time' => $s['time'], 'label' => $s['label'], 'childcare' => $s['childcare']], $event['slots'])
+    ? array_map(fn ($s) => [
+        'time' => $s['time'], 'label' => $s['label'], 'childcare' => $s['childcare'], 'target_groups' => $s['target_groups'],
+    ], $event['slots'])
     : null;
 
 $errors = [];
@@ -31,7 +33,7 @@ if (is_post()) {
         'organizer_email' => post_string('organizer_email'),
         'active' => isset($_POST['active']),
         'allow_split' => isset($_POST['allow_split']),
-        'slots' => post_rows('slots', ['time', 'label', 'childcare'], ['childcare_groups']),
+        'slots' => post_rows('slots', ['time', 'label', 'childcare', 'target'], ['childcare_groups', 'target_groups']),
         'person_groups' => array_values(array_filter((array) ($_POST['person_groups'] ?? []), 'is_string')),
         'group_names' => array_filter((array) ($_POST['group_names'] ?? []), 'is_string'),
     ];
