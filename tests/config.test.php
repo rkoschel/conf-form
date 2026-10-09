@@ -24,6 +24,7 @@ return [
     ],
     'privacy_url' => 'https://example.org/datenschutz/',
     'info_url' => 'https://example.org/info/',
+    'home_url' => 'https://example.org/hauptseite/',
     'rate_limit' => [
         'max_attempts' => 10,
         'window_minutes' => 60,

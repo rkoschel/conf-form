@@ -110,3 +110,4 @@ Dauerhaft relevante Schnittstellen werden zusätzlich unten eingetragen.
 | §8 | `DB_MIGRATIONS`, `db_upgrade()` in `web/app/db.php` | Schemaänderungen nur als neue Migration anhängen (`PRAGMA user_version`), `schema.sql` zusätzlich auf neuesten Stand bringen |
 | – | `format_utc_datetime()`, `parse_date_de()`, `parse_time()` in `helpers.php`; `admin_selected_event()` in `admin.php`; `templates/registration_fields.php` | Datum/Uhrzeit TT.MM.JJJJ / 24 h; gemeinsames Formular Anmeldung + Admin-Bearbeiten |
 | §9 | `app_url()` in `web/app/mailer.php`, Config `app_url` | absolute Links in Mails (Absage-Link) |
+| §3, §2 | `home_url()`, `home_url_value()` in `web/app/helpers.php`; Config `home_url`; `templates/public_bar.php` (von `layout.php` eingebunden) | feste Leiste „Zurück zur Hauptseite“ auf allen öffentlichen Seiten; nur http(s)-URL oder Pfad ab Wurzel, sonst `/` |

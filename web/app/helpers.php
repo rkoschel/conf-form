@@ -12,6 +12,26 @@ function url(string $path = ''): string
     return rtrim((string) config('base_url'), '/') . '/' . ltrim($path, '/');
 }
 
+/**
+ * Link zur Hauptseite des Veranstalters für die Leiste auf den öffentlichen
+ * Seiten (Config `home_url`). Fehlt der Wert oder ist er ungültig: die Wurzel
+ * der Domain ('/'), dort liegt die Hauptseite im selben Webroot.
+ */
+function home_url(): string
+{
+    return home_url_value(config('home_url'));
+}
+
+/** Nur http(s)-URLs und Pfade ab Wurzel ('/…', nicht '//…') sind erlaubt, sonst '/' */
+function home_url_value(mixed $configured): string
+{
+    $url = is_string($configured) ? trim($configured) : '';
+    if (preg_match('#^https?://[^\s]+$#i', $url) || preg_match('#^/(?!/)[^\s]*$#', $url)) {
+        return $url;
+    }
+    return '/';
+}
+
 /** URL einer Datei unter assets/, mit Cache-Busting über die Änderungszeit */
 function asset(string $path): string
 {

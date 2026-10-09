@@ -259,6 +259,9 @@ $sections = [
   <section id="oeffentlich" class="help-section">
     <h2 class="h4">Infoseite und Anmeldeformular</h2>
     <dl>
+      <dt>Leiste „Zurück zur Hauptseite“</dt>
+      <dd>Auf allen öffentlichen Seiten (nicht im Admin) steht oben eine feste Leiste, die beim Scrollen sichtbar bleibt. Sie enthält nur den Button „Zurück zur Hauptseite“. Das Ziel ist <code>home_url</code> in der Konfiguration (<code>config.php</code> auf dem Server, nicht hier einstellbar); ohne Eintrag führt der Button zur Wurzel der Domain.</dd>
+
       <dt>Infoseite</dt>
       <dd>Zeigt Titel, Datum, Ort, Frist, Beschreibung, Ablauf (mit Kinderbetreuung bzw. Zielgruppe) und den Link zur allgemeinen Info-Seite. Solange die Anmeldung offen ist, kommen die Belegung und der Button „Anmelden“ dazu.</dd>
 
