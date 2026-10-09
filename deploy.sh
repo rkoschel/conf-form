@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deployment per lftp über FTPS (siehe SPEC §2.1).
+# Deployment per lftp über FTPS (siehe SPEC §2.1, architecture/operations.md).
 #
 #   ./deploy.sh              Tests, web/ nach FTP_APP_DIR spiegeln, Smoke-Test
 #   ./deploy.sh --dry-run    nur anzeigen, was passieren würde

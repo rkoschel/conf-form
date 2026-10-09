@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke-Test gegen die deployte Installation (siehe SPEC §11).
+# Smoke-Test gegen die deployte Installation (siehe SPEC §11, architecture/testing.md).
 # Prüft Erreichbarkeit, Zugriffssperren und Header von außen.
 #
 #   tests/smoke.sh https://christen-in-hamm.de/konferenz
@@ -60,7 +60,7 @@ check "/team/?k=0000000000000000000000000000000000000000" 404
 
 echo "Nicht deployt:"
 for p in /config.example.php /config.prod.php /config.local.php /deploy.env /deploy.sh \
-         /test.sh /README.md /SPEC.md /.git/HEAD /dev/router.php /tests/smoke.sh /tools/install.sh; do
+         /test.sh /README.md /architecture/overview.md /CLAUDE.md /.git/HEAD /dev/router.php /tests/smoke.sh /tools/install.sh; do
     check "$p" 404
 done
 

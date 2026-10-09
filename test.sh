@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Lint, statische Analyse und Tests (siehe SPEC §11).
+# Lint, statische Analyse und Tests (siehe SPEC §11, architecture/testing.md).
 #
 #   ./test.sh                       alles
 #   ./test.sh --testsuite unit      Argumente gehen an PHPUnit

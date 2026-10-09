@@ -1,11 +1,16 @@
 # Hinweise für Agents
 
-Fachliche Grundlage ist `SPEC.md` (im Repo). Tests: `./test.sh` (siehe SPEC §11).
+Fachliche Grundlage ist die Spezifikation in `architecture/`: Einstieg und
+Übersicht in `architecture/overview.md`, die Abschnitte stehen in Einzeldateien.
+„SPEC §n“ (in Code, Kommentaren und hier) meint Abschnitt n; welche Datei
+ihn enthält, zeigt die Tabelle in `overview.md`. Wer Verhalten ändert, passt
+die betroffene Datei mit an. Tests: `./test.sh` (siehe SPEC §11,
+`architecture/testing.md`).
 
 ## Keine sensiblen Daten im Repo
 
 **Das Repo ist öffentlich** (GitHub `rkoschel/conf-form`). Alles, was
-committet wird – auch `SPEC.md`, `CLAUDE.md`, Kommentare, Testdaten und
+committet wird – auch `architecture/`, `CLAUDE.md`, Kommentare, Testdaten und
 Commit-Nachrichten –, ist für jeden lesbar und bleibt in der Git-Historie.
 Niemals hinein dürfen:
 
@@ -38,7 +43,7 @@ Arbeitet bereits ein Agent im Hauptverzeichnis auf `main`, arbeiten weitere
 Agents **nicht** dort, sondern in einem eigenen git worktree:
 
 1. Prüfen, woran der andere Agent arbeitet (`git status`, `git diff`, neue
-   Dateien) und welche SPEC-Abschnitte er abdeckt.
+   Dateien) und welche SPEC-Abschnitte (`architecture/`) er abdeckt.
 2. Nur Teile übernehmen, die sich nicht überschneiden: bevorzugt neue Dateien
    unter `web/app/` mit eigenen Tests. Nicht anfassen, was der andere Agent
    gerade ändert oder bald braucht (z. B. gemeinsame Fachlogik wie die
