@@ -20,13 +20,18 @@ $hasCount = fn (string $group): bool => (int) ($form[$group] ?? 0) > 0;
 // Programmpunkte mit Zielgruppe (SPEC §5.1); [] = für alle
 $targetOf = fn (array $slot): array => array_values(array_intersect($slot['target_groups'] ?? [], array_keys($groups)));
 $targetSlots = array_values(array_filter($event['slots'], fn ($slot) => $targetOf($slot) !== []));
-// Eingetragene Personen, die bei dem Programmpunkt nicht zur Zielgruppe gehören
-$targetAffected = fn (array $slot): bool => (bool) array_filter(
-    array_keys($groups),
-    fn ($group) => $hasCount($group) && !in_array($group, $targetOf($slot), true)
-);
+// Hinweis „nur Personen der Zielgruppe“: nur wenn mindestens eine Person der Zielgruppe
+// eingetragen ist (sonst ist der Programmpunkt ausgegraut) und außerdem Personen
+// eingetragen sind, die dort nicht zur Zielgruppe gehören
+$targetAffected = fn (array $slot): bool => (bool) array_filter($targetOf($slot), $hasCount)
+    && array_filter(
+        array_keys($groups),
+        fn ($group) => $hasCount($group) && !in_array($group, $targetOf($slot), true)
+    );
 // Sichtbarkeit der Hinweise ohne JS; form.js aktualisiert sie beim Tippen
 $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childcare'], $hasCount);
+$targetHintVisible = (bool) array_filter($targetSlots, $targetAffected);
+$childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
 ?>
   <fieldset class="row g-3">
     <legend class="h5">Kontakt</legend>
@@ -66,30 +71,33 @@ $childcareVisible = fn (array $slot): bool => (bool) array_filter($slot['childca
     <?php if (isset($errors['persons'])): ?>
       <div class="col-12 text-danger small"><?= e($errors['persons']) ?></div>
     <?php endif ?>
-    <?php if ($targetSlots): ?>
-      <div class="col-12" data-target-hint<?= array_filter($targetSlots, $targetAffected) ? '' : ' hidden' ?>>
-        <div class="alert alert-info small mb-0">
-          <ul class="mb-0">
-            <?php foreach ($targetSlots as $slot): ?>
-              <li data-target-groups="<?= e(implode(' ', $targetOf($slot))) ?>"<?= $targetAffected($slot) ? '' : ' hidden' ?>>
-                Bei „<?= e($slot['label']) ?>“ nehmen nur Personen der Zielgruppe teil (<?= e(group_names_join($targetOf($slot), $groups)) ?>).
-              </li>
-            <?php endforeach ?>
-          </ul>
-        </div>
-      </div>
-    <?php endif ?>
-    <?php if ($childcareSlots): ?>
-      <div class="col-12" data-childcare-hint<?= array_filter($childcareSlots, $childcareVisible) ? '' : ' hidden' ?>>
-        <div class="alert alert-info small mb-0">
-          Kinder werden bei diesen Programmpunkten automatisch für die Kinderbetreuung berücksichtigt:
-          <ul class="mb-0">
-            <?php foreach ($childcareSlots as $slot): ?>
-              <li data-childcare-groups="<?= e(implode(' ', $slot['childcare'])) ?>"<?= $childcareVisible($slot) ? '' : ' hidden' ?>>
-                <?= e($slot['time']) ?> Uhr <?= e($slot['label']) ?>: <?= e(childcare_names($slot['childcare'], $groups)) ?>
-              </li>
-            <?php endforeach ?>
-          </ul>
+    <?php if ($targetSlots || $childcareSlots): ?>
+      <?php /* gemeinsame Infobox für Kinderbetreuung und Zielgruppe; form.js blendet Teile und Box ein/aus */ ?>
+      <div class="col-12" data-info-box<?= $targetHintVisible || $childcareHintVisible ? '' : ' hidden' ?>>
+        <div class="alert alert-info small mb-0 vstack gap-2">
+          <?php if ($childcareSlots): ?>
+            <div data-childcare-hint<?= $childcareHintVisible ? '' : ' hidden' ?>>
+              Kinder werden bei diesen Programmpunkten automatisch für die Kinderbetreuung berücksichtigt:
+              <ul class="mb-0">
+                <?php foreach ($childcareSlots as $slot): ?>
+                  <li data-childcare-groups="<?= e(implode(' ', $slot['childcare'])) ?>"<?= $childcareVisible($slot) ? '' : ' hidden' ?>>
+                    <?= e($slot['time']) ?> Uhr <?= e($slot['label']) ?>: <?= e(childcare_names($slot['childcare'], $groups)) ?>
+                  </li>
+                <?php endforeach ?>
+              </ul>
+            </div>
+          <?php endif ?>
+          <?php if ($targetSlots): ?>
+            <div data-target-hint<?= $targetHintVisible ? '' : ' hidden' ?>>
+              <ul class="mb-0">
+                <?php foreach ($targetSlots as $slot): ?>
+                  <li data-target-groups="<?= e(implode(' ', $targetOf($slot))) ?>"<?= $targetAffected($slot) ? '' : ' hidden' ?>>
+                    Bei „<?= e($slot['label']) ?>“ nehmen nur Personen der Zielgruppe teil (<?= e(group_names_join($targetOf($slot), $groups)) ?>).
+                  </li>
+                <?php endforeach ?>
+              </ul>
+            </div>
+          <?php endif ?>
         </div>
       </div>
     <?php endif ?>

@@ -55,15 +55,22 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
 - **Zielgruppe** (siehe [§7.1](admin.md), Zählweise [§5.4](registration-form.md)):
   Programmpunkte mit Zielgruppe zeigen den Hinweis „Zielgruppe: <Namen>“.
   Unter den Anzahlen steht je Programmpunkt mit Zielgruppe **nur dann** eine
-  Zeile, wenn eingetragene Personen betroffen sind (eine eingetragene Gruppe
-  gehört bei dem Programmpunkt nicht zur Zielgruppe): „Bei „Jugendstunde“
-  nehmen nur Personen der Zielgruppe teil (Jugendliche).“ Gehört **niemand**
-  aus der Anmeldung zur Zielgruppe eines Programmpunkts, ist dessen Häkchen
-  ausgegraut und abgewählt, mit Hinweis „Niemand aus deiner Anmeldung gehört
-  zur Zielgruppe.“; es wird nicht automatisch wieder angekreuzt, sobald jemand
-  passt. In der individuellen Aufteilung erscheinen bei dem Programmpunkt nur
-  Felder der Zielgruppe. Ohne JS prüft nur der Server (siehe §5.4). Die
-  Texte duzen wie das übrige Formular und sind fest, nicht einstellbar.
+  Zeile, wenn mindestens eine Person der Zielgruppe eingetragen ist **und**
+  außerdem Personen eingetragen sind, die dort nicht zur Zielgruppe gehören:
+  „Bei „Jugendstunde“ nehmen nur Personen der Zielgruppe teil (Jugendliche).“
+  Gehört **niemand** aus der Anmeldung zur Zielgruppe eines Programmpunkts,
+  ist dessen Häkchen ausgegraut und abgewählt, mit Hinweis „Niemand aus deiner
+  Anmeldung gehört zur Zielgruppe.“. Kommt jemand aus der Zielgruppe dazu
+  (Übergang „niemand“ → „jemand“ durch eine Eingabe in den Anzahlen), wird das
+  Häkchen **automatisch angekreuzt**; ein bewusst abgewähltes Häkchen bleibt
+  beim Weitertippen aus. Beim Laden der Seite (auch einer bestehenden Anmeldung
+  im Admin-Bearbeiten) wird nichts automatisch angekreuzt. In der
+  individuellen Aufteilung erscheinen bei dem Programmpunkt nur Felder der
+  Zielgruppe. Ohne JS prüft nur der Server (siehe §5.4). Die Texte duzen wie
+  das übrige Formular und sind fest, nicht einstellbar.
+- **Gemeinsame Infobox:** Die Hinweise zur Kinderbetreuung und zur Zielgruppe
+  stehen unter den Anzahlen in **einer** Infobox (zwei Abschnitte). Die Box ist
+  nur sichtbar, wenn mindestens einer der beiden Hinweise sichtbar ist.
 - Sofortprüfung beim Tippen (JS, zusätzlich zur Prüfung auf dem Server):
   Anzahlen müssen ganze Zahlen ab 0 sein; in der Aufteilung höchstens die
   oben eingestellte Anzahl der Gruppe („Höchstens n (Anzahl oben)“).

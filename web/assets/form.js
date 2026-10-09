@@ -51,6 +51,15 @@ if (form) {
   // Vorbelegung der Aufteilung: Anzahl oben, betreute Kindergruppen 0 (SPEC §5.4)
   const splitDefault = (el) => (childcareOf(el).includes(el.dataset.splitGroup) ? 0 : count(el.dataset.splitGroup));
 
+  // Gemeinsame Infobox für Kinderbetreuung und Zielgruppe: nur sichtbar, wenn
+  // mindestens einer der beiden Hinweise sichtbar ist
+  const updateInfoBox = () => {
+    const box = form.querySelector('[data-info-box]');
+    if (box) {
+      box.hidden = [...box.querySelectorAll('[data-childcare-hint], [data-target-hint]')].every((hint) => hint.hidden);
+    }
+  };
+
   // Hinweise zur Kinderbetreuung: unter den Anzahlen je Programmpunkt mit
   // passenden Kindern, in der Aufteilung bei eingetragenen betreuten Kindern
   const updateChildcareHints = () => {
@@ -64,6 +73,7 @@ if (form) {
       });
       hint.hidden = !any;
     }
+    updateInfoBox();
     form.querySelectorAll('[data-childcare-split-hint]').forEach((splitHint) => {
       const slot = splitHint.closest('[data-childcare-slot]');
       splitHint.hidden = !childcareOf(splitHint).some((group) => {
@@ -73,23 +83,28 @@ if (form) {
     });
   };
 
-  // Zielgruppen (SPEC §5.1): Hinweiszeilen unter den Anzahlen nur für betroffene
-  // Programmpunkte; Häkchen eines Programmpunkts ausgrauen (und abwählen), wenn
-  // niemand aus der Anmeldung zur Zielgruppe gehört. Wird nicht automatisch
-  // wieder angekreuzt, sobald jemand passt. Ohne JS prüft nur der Server.
+  // Zielgruppen (SPEC §5.1): Hinweiszeilen unter den Anzahlen nur, wenn Personen der
+  // Zielgruppe eingetragen sind und außerdem Personen, die dort nicht dazugehören.
+  // Häkchen eines Programmpunkts ausgrauen (und abwählen), wenn niemand aus der
+  // Anmeldung zur Zielgruppe gehört; kommt jemand aus der Zielgruppe dazu, wird es
+  // automatisch angekreuzt – nur beim Übergang „niemand“ → „jemand“ und nur durch eine
+  // Eingabe in den Anzahlen (autoCheck), nie beim Laden der Seite oder beim Tippen in
+  // anderen Feldern. Ohne JS prüft nur der Server.
   const allGroups = () => [...form.querySelectorAll('[data-count]')].map((input) => input.dataset.count);
-  const updateTargets = () => {
+  const updateTargets = (autoCheck = false) => {
     const hint = form.querySelector('[data-target-hint]');
     if (hint) {
       let any = false;
       hint.querySelectorAll('[data-target-groups]').forEach((item) => {
         const target = item.dataset.targetGroups.split(' ');
-        const show = allGroups().some((group) => count(group) > 0 && !target.includes(group));
+        const show = target.some((group) => count(group) > 0)
+          && allGroups().some((group) => count(group) > 0 && !target.includes(group));
         item.hidden = !show;
         any = any || show;
       });
       hint.hidden = !any;
     }
+    updateInfoBox();
     form.querySelectorAll('[data-target-slot]').forEach((slot) => {
       const target = slot.dataset.targetSlot.split(' ').filter(Boolean);
       if (target.length === 0) {
@@ -98,9 +113,12 @@ if (form) {
       const nobody = !target.some((group) => count(group) > 0);
       const checkbox = slot.querySelector('[data-attend] input');
       if (checkbox) {
+        const wasNobody = checkbox.disabled;
         checkbox.disabled = nobody;
         if (nobody) {
           checkbox.checked = false;
+        } else if (autoCheck && wasNobody) {
+          checkbox.checked = true;
         }
       }
       slot.querySelector('[data-target-none]').hidden = !nobody;
@@ -217,7 +235,7 @@ if (form) {
       growSplit(input.dataset.count, parseInt(input.dataset.previous, 10), current);
       input.dataset.previous = String(current);
       updateSplit();
-      updateTargets();
+      updateTargets(true);
     });
   });
   splitGroups().forEach((el) => {
