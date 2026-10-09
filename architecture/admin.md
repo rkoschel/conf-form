@@ -196,6 +196,14 @@ geheimem Link `/konferenz/team/?k=<Schlüssel>`.
   und „Stand“ (Uhrzeit des Abrufs); Inhalt wie die Admin-Auswertung (§7.7,
   mit absoluten Zahlen), ohne Veranstaltungsauswahl und Admin-Navigation;
   ohne aktive Veranstaltung ein Hinweis.
+- **Drei klar abgegrenzte Bereiche** (je ein Feld mit Rahmen, Titel,
+  Kurzbeschreibung und farbiger Kopfkante), in dieser Reihenfolge:
+  1. **Zugesagte Anmeldungen** (grün): Anwesenheit je Programmpunkt und
+     Kinderbetreuung je Programmpunkt (nur bestätigte Anmeldungen),
+  2. **Gesamtbelegung und Anmeldungen** (blau): die Kacheln „Gesamtbelegung“
+     (inkl. Balken je Personengruppe) und „Anmeldungen“ (inkl. Personen je Ort),
+  3. **Anfragen nach Status** (grau): Tabelle nach Status.
+  Die Admin-Auswertung (§7.7) behält ihre bisherige Anordnung ohne Bereiche.
 - Fehlender, falscher oder deaktivierter Schlüssel → **404**. Header
   `Cache-Control: no-store`, `X-Robots-Tag: noindex, nofollow`; der
   Schlüssel geht wegen `Referrer-Policy: same-origin` nicht an fremde Seiten.
