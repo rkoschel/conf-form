@@ -10,6 +10,7 @@
 </head>
 <body class="public-page">
   <?php $narrow = empty($wide) ? ' page-narrow' : '' /* $wide: volle Breite, z. B. Team-Auswertung */ ?>
+  <?php require __DIR__ . '/public_bar.php' ?>
   <main class="container pt-4 pb-4<?= $narrow ?>">
     <?= $content ?>
   </main>

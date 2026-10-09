@@ -88,4 +88,9 @@ Inhalt (Vorlage: `config.example.php`):
 - `app_secret` – zufälliger Schlüssel für HMAC (Zeitstempel, IP-Hash)
 - `smtp` – Host, Port, Verschlüsselung, Benutzer, Passwort, Absender-Adresse/-Name
 - `privacy_url` – Link zur Datenschutzerklärung
+- `info_url` – Link „Weitere Informationen“ auf der Infoseite
+- `home_url` – Ziel des Buttons „Zurück zur Hauptseite“ in der Leiste auf allen
+  öffentlichen Seiten (siehe §3): `http(s)`-URL oder Pfad ab Wurzel (`/…`, nicht
+  `//…`). Fehlt der Wert oder ist er ungültig, gilt `/` (Wurzel der Domain, dort
+  liegt die Hauptseite des Veranstalters im selben Webroot); es gibt keinen Fehler.
 - `rate_limit` – max. Absendeversuche und Zeitfenster (Standard: 10 pro 60 Min.)

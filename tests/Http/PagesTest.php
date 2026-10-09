@@ -36,6 +36,32 @@ final class PagesTest extends HttpTestCase
         $this->assertArrayNotHasKey('x-powered-by', $response['headers']);
     }
 
+    /** @return array<string, array{string}> */
+    public static function barPages(): array
+    {
+        return ['Infoseite' => ['/'], 'Anmeldung' => ['/register/'], 'Absage' => ['/cancel/'], 'Fehlerseite' => ['/team/']];
+    }
+
+    #[DataProvider('barPages')]
+    public function testPublicPagesHaveStickyBarWithHomeButton(string $path): void
+    {
+        $body = $this->get($path)['body'];
+
+        $this->assertMatchesRegularExpression(
+            '#<header class="public-bar[^"]*">.*?<a href="https://example\.org/hauptseite/" class="btn[^"]*"[^>]*referrerpolicy="no-referrer"[^>]*>.*?Zurück zur Hauptseite.*?</a>.*?</header>#s',
+            $body
+        );
+        $this->assertLessThan(strpos($body, '<main'), strpos($body, '<header class="public-bar">'), 'Leiste steht über dem Inhalt');
+        $this->assertSame(1, substr_count($body, '<header class="public-bar">'), 'nur eine Leiste');
+        $this->assertSame(1, substr_count(substr($body, strpos($body, '<header'), strpos($body, '</header>') - strpos($body, '<header')), '<a '), 'in der Leiste nur ein Link');
+        $this->assertGreaterThan(strpos($body, '</main>'), strpos($body, 'data-theme-value'), 'Theme-Auswahl bleibt im Footer');
+    }
+
+    public function testAdminHasNoPublicBar(): void
+    {
+        $this->assertStringNotContainsString('public-bar', $this->get('/admin/')['body']);
+    }
+
     public function testInfoPageSetsNoCookie(): void
     {
         $this->assertArrayNotHasKey('set-cookie', $this->get('/')['headers']);

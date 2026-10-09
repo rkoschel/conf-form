@@ -14,6 +14,15 @@ Teil der Spezifikation, Übersicht: [overview.md](overview.md).
 Jede URL ist ein Verzeichnis mit eigener `index.php` (kein mod_rewrite nötig).
 Alle Links werden aus `base_url` gebildet.
 
+**Leiste auf allen öffentlichen Seiten** (Infoseite, Anmeldung, Absage,
+Ergebnis- und Fehlerseiten, Team-Seite; nicht im Admin): oben eine feste Leiste
+mit **nur einem Button** rechts, „Zurück zur Hauptseite“, Ziel `home_url` aus der
+Konfiguration (§2). Die Leiste bleibt beim Scrollen sichtbar (`position: sticky`)
+und ist wie die Karten abgesetzt (Rahmen, Rundung, weicher Schatten; hell und
+dunkel). Der Link trägt `referrerpolicy="no-referrer"`, damit die aktuelle URL
+(z. B. der Team-Schlüssel) nicht an die Hauptseite weitergegeben wird. Die
+Auswahl des Farbschemas bleibt im Footer.
+
 ## 4. Infoseite `/konferenz/`
 
 - **Keine Veranstaltung aktiv:** nur der in den Admin-Einstellungen

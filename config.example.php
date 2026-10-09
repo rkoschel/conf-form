@@ -38,6 +38,10 @@ return [
     'privacy_url' => 'https://christen-in-hamm.de/datenschutzerklaerung/',
     'info_url' => 'https://christen-in-hamm.de/info/',
 
+    // Ziel des Buttons „Zurück zur Hauptseite“ in der Leiste auf allen öffentlichen
+    // Seiten: http(s)-URL oder Pfad ab Wurzel. Fehlt der Wert: '/' (Wurzel der Domain)
+    'home_url' => 'https://christen-in-hamm.de/',
+
     'rate_limit' => [
         'max_attempts' => 10,
         'window_minutes' => 60,

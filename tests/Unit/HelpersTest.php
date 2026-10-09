@@ -64,6 +64,20 @@ final class HelpersTest extends TestCase
         $this->assertSame('<script>', normalize_line(' <script> '), 'HTML bleibt Text, escaped wird bei der Ausgabe');
     }
 
+    public function testHomeUrlAllowsOnlyHttpUrlsAndRootRelativePaths(): void
+    {
+        $this->assertSame('https://example.org/', home_url_value('https://example.org/'));
+        $this->assertSame('http://example.org/x?y=1', home_url_value('  http://example.org/x?y=1  '));
+        $this->assertSame('/start/', home_url_value('/start/'));
+        $this->assertSame('/', home_url_value('/'));
+        $this->assertSame('https://example.org/hauptseite/', home_url(), 'aus der Konfiguration');
+
+        foreach ([null, '', '   ', 'javascript:alert(1)', 'data:text/html,x', '//evil.example', 'ftp://example.org',
+            'mailto:a@example.org', 'example.org', 'https://exa mple.org', ['https://example.org/'], 42] as $invalid) {
+            $this->assertSame('/', home_url_value($invalid), 'Rückfall auf die Wurzel: ' . json_encode($invalid));
+        }
+    }
+
     public function testParsesPersonGroups(): void
     {
         $this->assertSame(person_groups_default(), person_groups_parse(''), 'leer = alle mit Standardnamen');
