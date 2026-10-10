@@ -21,7 +21,7 @@ foreach (array_keys($sections) as $section) {
 }
 $tabs['mailversand'] = 'Mailversand';
 $tabs['team'] = 'Team-Zugang';
-$firstTab = $mailTest !== null ? 'mailversand' : array_key_first($tabs);
+$firstTab = $mailTab ? 'mailversand' : array_key_first($tabs);
 
 // Höhe nach dem längeren von Standardtext und eigenem Text (ca. 70 Zeichen je Zeile)
 $rows = function (string $key, string $default) use ($values): int {
@@ -112,8 +112,8 @@ $rows = function (string $key, string $default) use ($values): int {
   <div class="tab-pane<?= $firstTab === 'mailversand' ? ' active' : '' ?>" id="pane-mailversand" role="tabpanel"
        aria-labelledby="tab-mailversand" tabindex="0">
     <p class="mt-0">
-      Prüft, ob der Mailversand vom Server aus funktioniert. Die Einstellungen stehen in der Konfigurationsdatei
-      auf dem Server und lassen sich hier nicht ändern.
+      Server und Absender für alle Mails stehen in der Konfigurationsdatei auf dem Server und lassen sich hier
+      nicht ändern. Mit der Testmail unten prüfst du, ob der Versand vom Server aus funktioniert.
     </p>
     <dl class="row small mb-3">
       <?php foreach ($mailConfig as $label => $value): ?>
@@ -121,6 +121,28 @@ $rows = function (string $key, string $default) use ($values): int {
         <dd class="col-sm-8 mb-1"><?= e($value) ?></dd>
       <?php endforeach ?>
     </dl>
+    <h2 class="h6 fw-semibold border-top pt-3 mt-4">Benachrichtigung bei neuen Anmeldungen</h2>
+    <form method="post" action="#mailversand" class="mb-4">
+      <?= csrf_field() ?>
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" role="switch" id="admin_notify" name="admin_notify" value="1"
+               <?= $notify['enabled'] ? 'checked' : '' ?>>
+        <label class="form-check-label" for="admin_notify">Bei jeder neuen Anmeldung eine E-Mail schicken</label>
+      </div>
+      <label for="admin_notify_email" class="form-label">An</label>
+      <input type="email" class="form-control<?= $notifyError !== null ? ' is-invalid' : '' ?>" id="admin_notify_email"
+             name="admin_notify_email" value="<?= e($notify['email']) ?>" placeholder="name@example.org">
+      <?php if ($notifyError !== null): ?>
+        <div class="invalid-feedback"><?= e($notifyError) ?></div>
+      <?php endif ?>
+      <div class="form-text">
+        Enthält Name, Kontakt, Personen, Programmpunkte, Nachricht und Status der Anmeldung sowie einen Link in den
+        Admin. Antworten gehen direkt an den Teilnehmer.
+      </div>
+      <button type="submit" name="action" value="admin_notify_save" class="btn btn-outline-primary mt-2">Speichern</button>
+    </form>
+
+    <h2 class="h6 fw-semibold border-top pt-3">Testmail</h2>
     <form method="post" action="#mailversand" class="mb-3">
       <?= csrf_field() ?>
       <label for="mail_test_to" class="form-label">Testmail senden an</label>

@@ -197,3 +197,36 @@ function places_parse(string $text): array
     }
     return array_values($places);
 }
+
+/**
+ * Benachrichtigung des Admins bei jeder neuen Anmeldung (SPEC §7.5, §9):
+ * Schalter und Empfängeradresse, global in settings.
+ *
+ * @return array{enabled: bool, email: string}
+ */
+function admin_notify_settings(): array
+{
+    return [
+        'enabled' => setting_get('admin_notify') === '1',
+        'email' => setting_get('admin_notify_email'),
+    ];
+}
+
+/** Speichert die Benachrichtigung; Adresse wird vorher geprüft (admin_notify_validate()). */
+function admin_notify_set(bool $enabled, string $email): void
+{
+    setting_set('admin_notify', $enabled ? '1' : '0');
+    setting_set('admin_notify_email', $email);
+}
+
+/** Fehlermeldung oder null; eingeschaltet braucht eine gültige Adresse, ausgeschaltet darf sie leer sein. */
+function admin_notify_validate(bool $enabled, string $email): ?string
+{
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return 'Bitte eine gültige E-Mail-Adresse angeben.';
+    }
+    if ($enabled && $email === '') {
+        return 'Für die Benachrichtigung bitte eine E-Mail-Adresse angeben.';
+    }
+    return null;
+}

@@ -158,6 +158,10 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
   und wird nirgends gespeichert; die Testmail steht nicht im Mail-Protokoll
   der Anmeldungen. Zweck: Fehler beim Versand vom Server aus finden
   (Port gesperrt, Zertifikat, Anmeldung).
+  Außerdem im selben Tab: **Benachrichtigung bei neuen Anmeldungen**
+  (Schalter, Standard aus, und Empfängeradresse; eingeschaltet ist eine
+  gültige Adresse Pflicht, beim Ausschalten bleibt die Adresse erhalten).
+  Inhalt siehe [§9](mails.md).
 
 ### 7.6 Löschen einer Anmeldung
 

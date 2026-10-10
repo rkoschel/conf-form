@@ -5,6 +5,9 @@ admin_init();
 
 $mailTest = null;
 $mailTestTo = '';
+$notify = admin_notify_settings();
+$notifyError = null;
+$mailTab = false;
 if (is_post()) {
     csrf_check();
 
@@ -25,11 +28,24 @@ if (is_post()) {
             $mailTest = filter_var($mailTestTo, FILTER_VALIDATE_EMAIL)
                 ? mail_test($mailTestTo)
                 : ['ok' => false, 'error' => 'Bitte eine gültige E-Mail-Adresse angeben.', 'log' => []];
+            $mailTab = true;
+            break;
+        case 'admin_notify_save':
+            $notify = ['enabled' => isset($_POST['admin_notify']), 'email' => post_string('admin_notify_email')];
+            $notifyError = admin_notify_validate($notify['enabled'], $notify['email']);
+            if ($notifyError === null) {
+                admin_notify_set($notify['enabled'], $notify['email']);
+                flash('success', $notify['enabled']
+                    ? 'Benachrichtigung bei neuen Anmeldungen eingeschaltet.'
+                    : 'Benachrichtigung bei neuen Anmeldungen ausgeschaltet.');
+                redirect('admin/settings.php#mailversand');
+            }
+            $mailTab = true;
             break;
     }
 }
 
-if (is_post() && $mailTest === null) {
+if (is_post() && !$mailTab) {
     preferred_places_set(places_parse(post_string('preferred_places')));
     foreach (array_keys(SETTING_TEXTS) as $key) {
         setting_text_set($key, post_string($key));
@@ -54,6 +70,9 @@ admin_render('settings', [
     'values' => $values,
     'teamUrl' => team_url(),
     'mailTest' => $mailTest,
+    'mailTab' => $mailTab,
+    'notify' => $notify,
+    'notifyError' => $notifyError,
     'mailTestTo' => $mailTestTo,
     'mailConfig' => mail_config_summary(),
 ]);

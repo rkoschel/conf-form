@@ -9,7 +9,7 @@ die Übersetzung in deutsche UI-Texte erfolgt zentral an einer Stelle im Code.
 
 ```sql
 CREATE TABLE settings (
-  key   TEXT PRIMARY KEY,                       -- z. B. inactive_text, preferred_places
+  key   TEXT PRIMARY KEY,                       -- z. B. inactive_text, preferred_places, admin_notify
   value TEXT NOT NULL DEFAULT ''
 );
 

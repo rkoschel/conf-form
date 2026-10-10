@@ -166,4 +166,26 @@ final class AdminSettingsTest extends HttpTestCase
         $this->assertStringContainsString('Testmail fehlgeschlagen: Bitte eine gültige E-Mail-Adresse angeben.', $response['body']);
         $this->assertStringNotContainsString('class="mail-test-log', $response['body']);
     }
+
+    public function testAdminNotifyCanBeSwitchedOnAndOff(): void
+    {
+        $save = fn (array $fields) => $this->post('/admin/settings.php', [
+            'csrf' => $this->csrfToken('/admin/settings.php'), 'action' => 'admin_notify_save',
+        ] + $fields);
+
+        $invalid = $save(['admin_notify' => '1', 'admin_notify_email' => '']);
+        $this->assertSame(200, $invalid['status']);
+        $this->assertStringContainsString('Für die Benachrichtigung bitte eine E-Mail-Adresse angeben.', $invalid['body']);
+        $this->assertMatchesRegularExpression('#class="tab-pane active" id="pane-mailversand"#', $invalid['body']);
+
+        $this->assertSame('/admin/settings.php#mailversand', $save(['admin_notify' => '1', 'admin_notify_email' => 'admin@example.org'])['headers']['location'] ?? null);
+        $body = $this->get('/admin/settings.php')['body'];
+        $this->assertStringContainsString('Benachrichtigung bei neuen Anmeldungen eingeschaltet.', $body);
+        $this->assertMatchesRegularExpression('#id="admin_notify" name="admin_notify" value="1"\s+checked#', $body);
+        $this->assertStringContainsString('value="admin@example.org"', $body);
+
+        $save(['admin_notify_email' => 'admin@example.org']);
+        db($this->serverDb());
+        $this->assertSame(['enabled' => false, 'email' => 'admin@example.org'], admin_notify_settings(), 'Adresse bleibt beim Ausschalten');
+    }
 }

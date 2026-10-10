@@ -52,6 +52,7 @@ if (is_post()) {
                 $registration,
                 $event
             );
+            mail_admin_notify($registration, $event);
             $_SESSION['register_result'] = $registration['status'];
             redirect('register/');
         }

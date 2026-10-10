@@ -12,6 +12,60 @@ final class MailerTest extends DbTestCase
         @unlink($this->logFile);
     }
 
+    public function testAdminNotifyIsOffByDefault(): void
+    {
+        [$registration, $event] = $this->fixture();
+
+        $this->assertFalse(mail_admin_notify($registration, $event + ['slots' => []]));
+        $this->assertFileDoesNotExist($this->logFile);
+    }
+
+    public function testAdminNotifySendsDetailsWithReplyToParticipant(): void
+    {
+        admin_notify_set(true, 'admin@example.org');
+        [$registration, $event] = $this->fixture(['message' => 'Wir bringen Kuchen mit.', 'status' => 'pending']);
+        db()->prepare("INSERT INTO event_slots (event_id, time, label, childcare) VALUES (?, '10:00', 'Vormittag', 'group_5')")->execute([$event['id']]);
+        $slotId = (int) db()->lastInsertId();
+        db()->prepare('INSERT INTO registration_slots (registration_id, slot_id, group_1, childcare_group_5) VALUES (?, ?, 2, 1)')
+            ->execute([$registration['id'], $slotId]);
+        $event['slots'] = event_slots((int) $event['id']);
+
+        $this->assertTrue(mail_admin_notify($registration, $event));
+
+        $log = file_get_contents($this->logFile);
+        $this->assertStringContainsString('To: admin@example.org', $log);
+        $this->assertStringContainsString('Reply-To: anna@example.org', $log);
+        $this->assertStringContainsString('Subject: Neue Anmeldung (offen): Anna Muster', $log);
+        $this->assertStringContainsString('Heimatversammlung: Hamm', $log);
+        $this->assertStringContainsString('E-Mail: anna@example.org', $log);
+        $this->assertStringContainsString('Erwachsene: 2', $log);
+        $this->assertStringContainsString('10:00 Vormittag: 2 (+ 1 in der Kinderbetreuung)', $log);
+        $this->assertStringContainsString("Nachricht:\nWir bringen Kuchen mit.", $log);
+        $this->assertStringContainsString('https://example.org/konferenz/admin/registration.php?id=' . $registration['id'], $log);
+        $this->assertSame(0, (int) db()->query('SELECT COUNT(*) FROM mail_log')->fetchColumn(), 'nicht im Mail-Protokoll der Teilnehmer');
+    }
+
+    public function testAdminNotifyWithoutParticipantEmailShowsPhone(): void
+    {
+        admin_notify_set(true, 'admin@example.org');
+        [$registration, $event] = $this->fixture(['email' => null, 'no_email' => 1, 'phone' => '02381 123456']);
+
+        $this->assertTrue(mail_admin_notify($registration, $event + ['slots' => []]));
+
+        $log = file_get_contents($this->logFile);
+        $this->assertStringContainsString('Telefon: 02381 123456 (keine E-Mail-Adresse)', $log);
+        $this->assertStringNotContainsString('Reply-To:', $log);
+        $this->assertStringNotContainsString('Nachricht:', $log, 'ohne Nachricht kein Abschnitt');
+    }
+
+    public function testAdminNotifyValidation(): void
+    {
+        $this->assertNull(admin_notify_validate(false, ''), 'aus ohne Adresse ist ok');
+        $this->assertNotNull(admin_notify_validate(true, ''));
+        $this->assertNotNull(admin_notify_validate(false, 'kaputt'));
+        $this->assertNull(admin_notify_validate(true, 'admin@example.org'));
+    }
+
     public function testMailTestSendsAndReturnsProtocol(): void
     {
         $result = mail_test('anna@example.org');

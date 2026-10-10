@@ -48,6 +48,60 @@ function mail_registration(string $type, array $registration, array $event): boo
 }
 
 /**
+ * Benachrichtigt den Admin über eine neue Anmeldung, falls in den
+ * Einstellungen eingeschaltet (SPEC §7.5, §9). Antworten gehen an den
+ * Teilnehmer. Fehler werden nur ins PHP-Fehlerlog geschrieben – die
+ * Anmeldung selbst ist davon nie betroffen. Nicht im Mail-Protokoll der
+ * Anmeldungen (das gilt nur für Mails an Teilnehmer).
+ *
+ * @param array<string, mixed> $registration Zeile aus registrations
+ * @param array<string, mixed> $event        Veranstaltung inkl. slots
+ * @return bool true, wenn die Mail verschickt wurde
+ */
+function mail_admin_notify(array $registration, array $event): bool
+{
+    $notify = admin_notify_settings();
+    if (!$notify['enabled'] || !filter_var($notify['email'], FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+    try {
+        $vars = mail_vars($registration, $event);
+        $vars['status_label'] = STATUS_LABELS[$registration['status']] ?? (string) $registration['status'];
+        $vars['congregation_label'] = setting_text('congregation_label');
+        $vars['admin_url'] = app_url('admin/registration.php?id=' . (int) $registration['id']);
+        $counts = registration_slot_counts((int) $registration['id']);
+        $vars['slots'] = [];
+        foreach ($event['slots'] ?? [] as $slot) {
+            $slotCounts = $counts[(int) $slot['id']] ?? [];
+            $present = array_sum(array_intersect_key($slotCounts, PERSON_GROUPS));
+            $childcare = array_sum(array_filter(
+                $slotCounts,
+                fn ($key) => str_starts_with((string) $key, 'childcare_'),
+                ARRAY_FILTER_USE_KEY
+            ));
+            if ($present > 0 || $childcare > 0) {
+                $vars['slots'][] = $slot['time'] . ' ' . $slot['label'] . ': ' . $present
+                    . ($childcare > 0 ? ' (+ ' . $childcare . ' in der Kinderbetreuung)' : '');
+            }
+        }
+        $mail = mail_render('admin_notify', $vars);
+        $email = trim((string) ($registration['email'] ?? ''));
+        mail_send(
+            $notify['email'],
+            '',
+            $mail['subject'],
+            $mail['body'],
+            $email,
+            $registration['first_name'] . ' ' . $registration['last_name']
+        );
+        return true;
+    } catch (Throwable $e) {
+        error_log('Admin-Benachrichtigung fehlgeschlagen: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
  * Variablen für die Mail-Templates.
  *
  * @return array<string, mixed>
