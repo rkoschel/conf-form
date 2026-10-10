@@ -243,6 +243,7 @@ $sections = [
       <li>Absender ist das konfigurierte Postfach, <strong>Antworten</strong> gehen an die Veranstalter-E-Mail der Veranstaltung.</li>
       <li>Die Mails enthalten die Eckdaten der Veranstaltung und die angemeldeten Personen; die Texte stellst du unter Einstellungen → E-Mails ein.</li>
       <li>Jeder Versand wird protokolliert: Spalte „Mail“ in den Anfragen zeigt den letzten Versand mit ✓ oder ✗ (Fehlermeldung beim Darüberfahren). Fehlgeschlagene Mails werden <strong>nicht</strong> automatisch wiederholt.</li>
+      <li><strong>Mailversand testen:</strong> Unter Einstellungen → Mailversand schickst du eine Testmail an eine beliebige Adresse. Danach siehst du dort, ob der Mailserver sie angenommen hat, und ein ausführliches Protokoll der Verbindung (Server, Verschlüsselung, Anmeldung, Antworten des Servers). Zugangsdaten sind darin ausgeblendet; das Protokoll wird nicht gespeichert. Die Mail-Einstellungen selbst stehen in der Konfigurationsdatei auf dem Server.</li>
     </ul>
   </section>
 

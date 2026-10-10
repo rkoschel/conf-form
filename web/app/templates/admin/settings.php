@@ -2,8 +2,9 @@
 /*
  * Einstellungen (SPEC §7.5, §7.8) in Tabs. Alle Textfelder gehören per
  * form="settings-form" zu einem Formular (Speichern speichert alle Tabs);
- * der Team-Zugang hat eigene Formulare. Leere Textfelder zeigen den
- * Standardtext grau (placeholder).
+ * Mailversand-Test und Team-Zugang haben eigene Formulare. Leere Textfelder
+ * zeigen den Standardtext grau (placeholder). Nach einer Testmail ist der Tab
+ * „Mailversand“ geöffnet und zeigt das Protokoll.
  */
 $sections = [];
 foreach (SETTING_TEXTS as $key => $text) {
@@ -18,8 +19,9 @@ $tabs = [];
 foreach (array_keys($sections) as $section) {
     $tabs[$tabId($section)] = $section;
 }
+$tabs['mailversand'] = 'Mailversand';
 $tabs['team'] = 'Team-Zugang';
-$firstTab = array_key_first($tabs);
+$firstTab = $mailTest !== null ? 'mailversand' : array_key_first($tabs);
 
 // Höhe nach dem längeren von Standardtext und eigenem Text (ca. 70 Zeichen je Zeile)
 $rows = function (string $key, string $default) use ($values): int {
@@ -106,6 +108,45 @@ $rows = function (string $key, string $default) use ($values): int {
       </div>
     </div>
   <?php endforeach ?>
+
+  <div class="tab-pane<?= $firstTab === 'mailversand' ? ' active' : '' ?>" id="pane-mailversand" role="tabpanel"
+       aria-labelledby="tab-mailversand" tabindex="0">
+    <p class="mt-0">
+      Prüft, ob der Mailversand vom Server aus funktioniert. Die Einstellungen stehen in der Konfigurationsdatei
+      auf dem Server und lassen sich hier nicht ändern.
+    </p>
+    <dl class="row small mb-3">
+      <?php foreach ($mailConfig as $label => $value): ?>
+        <dt class="col-sm-4 fw-normal text-body-secondary"><?= e($label) ?></dt>
+        <dd class="col-sm-8 mb-1"><?= e($value) ?></dd>
+      <?php endforeach ?>
+    </dl>
+    <form method="post" action="#mailversand" class="mb-3">
+      <?= csrf_field() ?>
+      <label for="mail_test_to" class="form-label">Testmail senden an</label>
+      <div class="input-group">
+        <input type="email" class="form-control" id="mail_test_to" name="mail_test_to" required
+               value="<?= e($mailTestTo !== '' ? $mailTestTo : (string) (config('smtp')['from_email'] ?? '')) ?>">
+        <button type="submit" name="action" value="mail_test" class="btn btn-outline-primary">Testmail senden</button>
+      </div>
+    </form>
+    <?php if ($mailTest !== null): ?>
+      <div class="alert <?= $mailTest['ok'] ? 'alert-success' : 'alert-danger' ?>" role="status">
+        <?php if ($mailTest['ok']): ?>
+          Testmail an <?= e($mailTestTo) ?> wurde vom Mailserver angenommen. Bitte den Posteingang (auch Spam) prüfen.
+        <?php else: ?>
+          Testmail fehlgeschlagen: <?= e($mailTest['error']) ?>
+        <?php endif ?>
+      </div>
+      <?php if ($mailTest['log']): ?>
+        <h2 class="h6">Protokoll</h2>
+        <pre class="mail-test-log border rounded p-2 small bg-body-tertiary"><?= e(implode("\n", $mailTest['log'])) ?></pre>
+        <p class="form-text">
+          Das Protokoll erscheint nur hier und wird nicht gespeichert; Zugangsdaten sind ausgeblendet.
+        </p>
+      <?php endif ?>
+    <?php endif ?>
+  </div>
 
   <div class="tab-pane" id="pane-team" role="tabpanel" aria-labelledby="tab-team" tabindex="0">
     <p class="mt-0">

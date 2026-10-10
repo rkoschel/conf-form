@@ -143,9 +143,21 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
 
 - Aufbau der Seite in Tabs: Allgemein (bevorzugte Orte, Text bei inaktiver
   Veranstaltung), Anmeldeformular, Nach dem Absenden, Absage, E-Mails,
-  Team-Zugang (§7.8). „Speichern“ speichert alle Text-Tabs; danach öffnet
+  Mailversand, Team-Zugang (§7.8). „Speichern“ speichert alle Text-Tabs; danach öffnet
   sich wieder der Tab, aus dem gespeichert wurde (auch per Adresse, z. B.
   `#e-mails`).
+- **Mailversand** (Tab, eigenes Formular): zeigt die Mail-Einstellungen aus
+  der Konfiguration (Versandart, Server, Port, Verschlüsselung, Benutzer,
+  Absender; beim Passwort nur „gesetzt“/„fehlt“) – ändern lassen sie sich nur
+  in der Konfigurationsdatei. Button **„Testmail senden“** an eine frei
+  wählbare Adresse (vorbelegt mit dem Absender). Danach öffnet sich der Tab
+  mit Ergebnis und ausführlichem **Protokoll**: PHP-/OpenSSL-Version,
+  aufgelöste Server-IP und der komplette SMTP-Dialog (Verbindung, STARTTLS,
+  Anmeldung, Annahme durch den Server). Zugangsdaten sind im Protokoll
+  ausgeblendet. Das Protokoll erscheint nur auf dieser Seite (kein Redirect)
+  und wird nirgends gespeichert; die Testmail steht nicht im Mail-Protokoll
+  der Anmeldungen. Zweck: Fehler beim Versand vom Server aus finden
+  (Port gesperrt, Zertifikat, Anmeldung).
 
 ### 7.6 Löschen einer Anmeldung
 

@@ -1,8 +1,10 @@
 <?php
-// Einstellungen (SPEC §7.5): bevorzugte Orte, einstellbare Texte, Team-Zugang (§7.8)
+// Einstellungen (SPEC §7.5): bevorzugte Orte, einstellbare Texte, Mailversand-Test, Team-Zugang (§7.8)
 require __DIR__ . '/../app/bootstrap.php';
 admin_init();
 
+$mailTest = null;
+$mailTestTo = '';
 if (is_post()) {
     csrf_check();
 
@@ -17,8 +19,17 @@ if (is_post()) {
             team_key_disable();
             flash('success', 'Team-Zugang deaktiviert.');
             redirect('admin/settings.php#team');
+        case 'mail_test':
+            // Ergebnis direkt anzeigen (kein Redirect): das Protokoll wird nicht gespeichert
+            $mailTestTo = post_string('mail_test_to');
+            $mailTest = filter_var($mailTestTo, FILTER_VALIDATE_EMAIL)
+                ? mail_test($mailTestTo)
+                : ['ok' => false, 'error' => 'Bitte eine gültige E-Mail-Adresse angeben.', 'log' => []];
+            break;
     }
+}
 
+if (is_post() && $mailTest === null) {
     preferred_places_set(places_parse(post_string('preferred_places')));
     foreach (array_keys(SETTING_TEXTS) as $key) {
         setting_text_set($key, post_string($key));
@@ -42,4 +53,7 @@ admin_render('settings', [
     'places' => implode("\n", preferred_places()),
     'values' => $values,
     'teamUrl' => team_url(),
+    'mailTest' => $mailTest,
+    'mailTestTo' => $mailTestTo,
+    'mailConfig' => mail_config_summary(),
 ]);

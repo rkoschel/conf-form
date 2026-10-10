@@ -5,6 +5,7 @@ declare(strict_types=1);
 // 'smtp' = PHPMailer über SMTP, 'log' = nur in config('mail_log_file') schreiben.
 
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 
 /**
  * Schickt die Mail $type zu einer Anmeldung und protokolliert sie in mail_log.
@@ -118,14 +119,19 @@ function app_url(string $path = ''): string
     return $base . '/' . ltrim($path, '/');
 }
 
-/** Verschickt eine Textmail; wirft bei Fehlern eine Exception. */
+/**
+ * Verschickt eine Textmail; wirft bei Fehlern eine Exception.
+ *
+ * @param (Closure(string): void)|null $debug erhält das SMTP-Protokoll zeilenweise (nur Testmail)
+ */
 function mail_send(
     string $to,
     string $toName,
     string $subject,
     string $body,
     string $replyTo = '',
-    string $replyToName = ''
+    string $replyToName = '',
+    ?Closure $debug = null
 ): void {
     if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
         throw new InvalidArgumentException('Ungültige E-Mail-Adresse.');
@@ -135,7 +141,7 @@ function mail_send(
     }
 
     match (config('mail_transport')) {
-        'smtp' => mail_send_smtp($to, $toName, $subject, $body, $replyTo, $replyToName),
+        'smtp' => mail_send_smtp($to, $toName, $subject, $body, $replyTo, $replyToName, $debug),
         'log' => mail_send_log($to, $subject, $body, $replyTo),
         default => throw new RuntimeException('Unbekannter mail_transport.'),
     };
@@ -147,7 +153,8 @@ function mail_send_smtp(
     string $subject,
     string $body,
     string $replyTo,
-    string $replyToName
+    string $replyToName,
+    ?Closure $debug = null
 ): void {
     require_once APP_DIR . '/lib/PHPMailer/Exception.php';
     require_once APP_DIR . '/lib/PHPMailer/PHPMailer.php';
@@ -167,6 +174,10 @@ function mail_send_smtp(
     $mail->CharSet = PHPMailer::CHARSET_UTF8;
     $mail->Encoding = PHPMailer::ENCODING_QUOTED_PRINTABLE;
     $mail->XMailer = ' '; // keinen PHPMailer-Header mit Version senden
+    if ($debug !== null) {
+        $mail->SMTPDebug = SMTP::DEBUG_CONNECTION;
+        $mail->Debugoutput = static fn (string $line) => $debug($line);
+    }
 
     $mail->setFrom((string) $smtp['from_email'], (string) $smtp['from_name']);
     $mail->addAddress($to, $toName);
@@ -191,4 +202,102 @@ function mail_send_log(string $to, string $subject, string $body, string $replyT
     if (file_put_contents((string) config('mail_log_file'), $entry, FILE_APPEND | LOCK_EX) === false) {
         throw new RuntimeException('Mail-Log nicht beschreibbar.');
     }
+}
+
+/**
+ * Testmail aus den Einstellungen (SPEC §7.5): schickt eine kurze Mail an $to
+ * und liefert ein ausführliches Protokoll (Umgebung, SMTP-Dialog). Das
+ * Protokoll wird nur angezeigt, nicht gespeichert; Zugangsdaten sind darin
+ * ausgeblendet (mail_debug_collector()).
+ *
+ * @return array{ok: bool, error: ?string, log: list<string>}
+ */
+function mail_test(string $to): array
+{
+    $log = [];
+    $smtp = (array) config('smtp');
+    $transport = (string) config('mail_transport');
+    $log[] = 'PHP ' . PHP_VERSION . ', OpenSSL ' . (extension_loaded('openssl') ? OPENSSL_VERSION_TEXT : 'nicht geladen');
+    $log[] = 'mail_transport: ' . $transport;
+    if ($transport === 'smtp') {
+        $host = (string) ($smtp['host'] ?? '');
+        $ip = $host !== '' ? gethostbyname($host) : '';
+        $log[] = 'SMTP: ' . $host . ':' . (int) ($smtp['port'] ?? 0)
+            . ' (' . ($ip !== '' && $ip !== $host ? 'IP ' . $ip : 'Name nicht auflösbar') . '), Verschlüsselung '
+            . (($smtp['encryption'] ?? '') === 'ssl' ? 'SSL/TLS' : 'STARTTLS');
+    } elseif ($transport === 'log') {
+        $log[] = 'Kein echter Versand: Mail wird in ' . (string) config('mail_log_file') . ' geschrieben.';
+    }
+    $log[] = '';
+
+    $error = null;
+    try {
+        mail_send(
+            $to,
+            '',
+            'Testmail Konferenz-Anmeldung',
+            "Dies ist eine Testmail aus den Einstellungen der Konferenz-Anmeldung.\n\n"
+                . 'Gesendet am ' . gmdate('d.m.Y, H:i') . " Uhr (UTC).\n",
+            '',
+            '',
+            mail_debug_collector($log)
+        );
+    } catch (Throwable $e) {
+        $error = $e->getMessage();
+    }
+    return ['ok' => $error === null, 'error' => $error, 'log' => $log];
+}
+
+/**
+ * Sammelt PHPMailer-Debugzeilen in $log und blendet Zugangsdaten aus: die
+ * Antworten des Clients auf Server-Rückfragen (334, AUTH LOGIN) und Daten
+ * hinter AUTH PLAIN/LOGIN.
+ *
+ * @param list<string> $log
+ * @return Closure(string): void
+ */
+function mail_debug_collector(array &$log): Closure
+{
+    $secretNext = false;
+    return static function (string $line) use (&$log, &$secretNext): void {
+        foreach (preg_split('/\r?\n/', rtrim($line)) ?: [] as $part) {
+            $part = rtrim($part);
+            if ($part === '') {
+                continue;
+            }
+            if (preg_match('/^(\S+\s+)?CLIENT -> SERVER:/', $part)) {
+                if ($secretNext) {
+                    $part = preg_replace('/(CLIENT -> SERVER:).*/', '$1 [Zugangsdaten ausgeblendet]', $part);
+                    $secretNext = false;
+                } elseif (preg_match('/AUTH\s+(PLAIN|LOGIN|CRAM-MD5|XOAUTH2)\s+\S/i', $part)) {
+                    $part = preg_replace('/(AUTH\s+\S+)\s+.*/i', '$1 [Zugangsdaten ausgeblendet]', $part);
+                }
+            } elseif (preg_match('/SERVER -> CLIENT:\s*334\b/', $part)) {
+                $secretNext = true;
+            }
+            $log[] = (string) $part;
+        }
+    };
+}
+
+/**
+ * Mail-Einstellungen zur Anzeige im Admin (ohne Passwort).
+ *
+ * @return array<string, string> Bezeichnung → Wert
+ */
+function mail_config_summary(): array
+{
+    $smtp = (array) config('smtp');
+    $transport = (string) config('mail_transport');
+    if ($transport !== 'smtp') {
+        return ['Versand' => $transport === 'log' ? 'kein echter Versand (nur Log-Datei)' : $transport];
+    }
+    return [
+        'Versand' => 'SMTP',
+        'Server' => (string) ($smtp['host'] ?? '') . ':' . (int) ($smtp['port'] ?? 0),
+        'Verschlüsselung' => ($smtp['encryption'] ?? '') === 'ssl' ? 'SSL/TLS' : 'STARTTLS',
+        'Benutzer' => (string) ($smtp['username'] ?? ''),
+        'Passwort' => (string) ($smtp['password'] ?? '') !== '' ? 'gesetzt' : 'fehlt',
+        'Absender' => trim((string) ($smtp['from_name'] ?? '') . ' <' . (string) ($smtp['from_email'] ?? '') . '>'),
+    ];
 }

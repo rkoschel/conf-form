@@ -113,7 +113,7 @@ final class AdminSettingsTest extends HttpTestCase
     {
         $body = $this->get('/admin/settings.php')['body'];
 
-        foreach (['allgemein', 'anmeldeformular', 'nach-dem-absenden', 'absage', 'e-mails', 'team'] as $tab) {
+        foreach (['allgemein', 'anmeldeformular', 'nach-dem-absenden', 'absage', 'e-mails', 'mailversand', 'team'] as $tab) {
             $this->assertStringContainsString('id="tab-' . $tab . '"', $body);
             $this->assertStringContainsString('id="pane-' . $tab . '"', $body);
         }
@@ -134,5 +134,36 @@ final class AdminSettingsTest extends HttpTestCase
         $this->assertSame('/admin/settings.php#team', $this->post('/admin/settings.php', [
             'csrf' => $this->csrfToken('/admin/settings.php'), 'action' => 'team_disable',
         ])['headers']['location'] ?? null);
+    }
+
+    public function testMailTestShowsResultAndProtocolInMailTab(): void
+    {
+        $body = $this->get('/admin/settings.php')['body'];
+        $this->assertStringContainsString('value="test@example.org"', $body, 'Absender als Vorschlag');
+        $this->assertStringContainsString('kein echter Versand (nur Log-Datei)', $body);
+
+        $response = $this->post('/admin/settings.php', [
+            'csrf' => $this->csrfToken('/admin/settings.php'), 'action' => 'mail_test', 'mail_test_to' => 'anna@example.org',
+            'congregation_label' => 'Darf nicht gespeichert werden',
+        ]);
+
+        $this->assertSame(200, $response['status'], 'kein Redirect, Protokoll wird nicht gespeichert');
+        $this->assertStringContainsString('Testmail an anna@example.org wurde vom Mailserver angenommen.', $response['body']);
+        $this->assertStringContainsString('class="mail-test-log', $response['body']);
+        $this->assertStringContainsString('mail_transport: log', $response['body']);
+        $this->assertMatchesRegularExpression('#class="tab-pane active" id="pane-mailversand"#', $response['body']);
+        db($this->serverDb());
+        $this->assertNotSame('Darf nicht gespeichert werden', setting_get('congregation_label'), 'Texte bleiben unberührt');
+    }
+
+    public function testMailTestRejectsInvalidAddress(): void
+    {
+        $response = $this->post('/admin/settings.php', [
+            'csrf' => $this->csrfToken('/admin/settings.php'), 'action' => 'mail_test', 'mail_test_to' => 'kaputt',
+        ]);
+
+        $this->assertSame(200, $response['status']);
+        $this->assertStringContainsString('Testmail fehlgeschlagen: Bitte eine gültige E-Mail-Adresse angeben.', $response['body']);
+        $this->assertStringNotContainsString('class="mail-test-log', $response['body']);
     }
 }

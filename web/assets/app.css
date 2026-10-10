@@ -321,3 +321,11 @@
 .stats-area .card {
   background: var(--bs-tertiary-bg);
 }
+
+/* Protokoll der Testmail (Einstellungen → Mailversand): lange Zeilen umbrechen */
+.mail-test-log {
+  max-height: 28rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

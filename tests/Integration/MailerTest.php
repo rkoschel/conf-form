@@ -12,6 +12,46 @@ final class MailerTest extends DbTestCase
         @unlink($this->logFile);
     }
 
+    public function testMailTestSendsAndReturnsProtocol(): void
+    {
+        $result = mail_test('anna@example.org');
+
+        $this->assertTrue($result['ok']);
+        $this->assertNull($result['error']);
+        $this->assertStringContainsString('mail_transport: log', implode("\n", $result['log']));
+        $log = file_get_contents($this->logFile);
+        $this->assertStringContainsString('To: anna@example.org', $log);
+        $this->assertStringContainsString('Subject: Testmail Konferenz-Anmeldung', $log);
+        $this->assertSame(0, (int) db()->query('SELECT COUNT(*) FROM mail_log')->fetchColumn(), 'nicht im Mail-Protokoll der Anmeldungen');
+    }
+
+    public function testDebugCollectorHidesCredentials(): void
+    {
+        $log = [];
+        $collect = mail_debug_collector($log);
+        foreach ([
+            "SERVER -> CLIENT: 250 AUTH PLAIN LOGIN\n",
+            "CLIENT -> SERVER: AUTH LOGIN\n",
+            "SERVER -> CLIENT: 334 VXNlcm5hbWU6\n",
+            "CLIENT -> SERVER: dXNlckBleGFtcGxlLm9yZw==\n",
+            "SERVER -> CLIENT: 334 UGFzc3dvcmQ6\n",
+            "CLIENT -> SERVER: c2VjcmV0\n",
+            "SERVER -> CLIENT: 235 2.7.0 Authentication successful\n",
+            "CLIENT -> SERVER: AUTH PLAIN AHVzZXIAc2VjcmV0\n",
+            "CLIENT -> SERVER: MAIL FROM:<test@example.org>\n",
+        ] as $line) {
+            $collect($line);
+        }
+
+        $text = implode("\n", $log);
+        $this->assertStringNotContainsString('dXNlckBleGFtcGxlLm9yZw==', $text);
+        $this->assertStringNotContainsString('c2VjcmV0', $text);
+        $this->assertStringNotContainsString('AHVzZXIAc2VjcmV0', $text);
+        $this->assertSame(3, substr_count($text, '[Zugangsdaten ausgeblendet]'));
+        $this->assertStringContainsString('CLIENT -> SERVER: AUTH LOGIN', $text, 'Befehl selbst bleibt sichtbar');
+        $this->assertStringContainsString('MAIL FROM:<test@example.org>', $text, 'nach der Anmeldung wieder sichtbar');
+    }
+
     public function testSendsConfirmationAndLogsSuccess(): void
     {
         [$registration, $event] = $this->fixture();
