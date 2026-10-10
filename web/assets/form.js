@@ -135,7 +135,10 @@ if (form) {
   // Aufteilung: nur Personengruppen mit Personen zeigen, max. = Gruppenzahl.
   // Sinkt die Anzahl oben, werden zu hohe Werte angepasst.
   const updateSplit = () => {
+    // Ohne Aufteilung (bei der Veranstaltung ausgeschaltet) trotzdem die
+    // Kinderbetreuungs-Hinweise aktualisieren
     if (!customSplit) {
+      updateChildcareHints();
       return;
     }
     form.querySelectorAll('[data-attend]').forEach((el) => { el.hidden = customSplit.checked; });
