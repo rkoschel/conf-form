@@ -18,7 +18,9 @@ conf-form/                         (Repo)
 │   │   ├── events.php             Liste der Veranstaltungen
 │   │   ├── event.php              Anlegen / Bearbeiten / Löschen
 │   │   ├── stats.php              Auswertung
-│   │   └── settings.php           Einstellungen (bevorzugte Orte, Texte)
+│   │   ├── settings.php           Einstellungen (bevorzugte Orte, Texte, Mailversand, Team-Zugang)
+│   │   ├── help.php               Hilfe
+│   │   └── changes.php            Versionshinweise und SBOM
 │   ├── assets/
 │   │   ├── app.css
 │   │   ├── form.js                Anmeldeformular (Aufteilung, „keine E-Mail“)
@@ -28,7 +30,7 @@ conf-form/                         (Repo)
 │       ├── bootstrap.php          Config laden, Session, Autoload
 │       ├── db.php                 PDO, foreign_keys, Auto-Init aus schema.sql
 │       ├── schema.sql
-│       ├── *.php                  mailer, spam, csrf, registrations, events, …
+│       ├── *.php                  mailer, spam, csrf, registrations, events, changelog, sbom, …
 │       ├── templates/             Seiten-Layouts und Mail-Templates
 │       └── lib/PHPMailer/         eingecheckt (PHPMailer.php, SMTP.php, Exception.php)
 ├── dev/router.php                 nur lokal: sperrt app/ beim PHP-Server

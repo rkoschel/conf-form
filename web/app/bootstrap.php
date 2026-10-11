@@ -17,6 +17,8 @@ require APP_DIR . '/mailer.php';
 require APP_DIR . '/stats.php';
 require APP_DIR . '/registration_admin.php';
 require APP_DIR . '/team.php';
+require APP_DIR . '/changelog.php';
+require APP_DIR . '/sbom.php';
 
 function config(?string $key = null): mixed
 {

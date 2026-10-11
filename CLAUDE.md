@@ -74,6 +74,16 @@ Agents **nicht** dort, sondern in einem eigenen git worktree:
 Wer Verhalten ändert (Statusregeln, Zählweisen, Mails, Sperren, Texte …),
 passt dort den betroffenen Abschnitt mit an.
 
+## Versionshinweise mitpflegen
+
+`web/app/changelog.php` (`CHANGELOG`, SPEC §7.10) wird im Admin unter
+„Versionshinweise“ angezeigt. Jede nutzersichtbare Änderung bekommt dort
+einen kurzen Punkt aus Sicht der Admins (Neu / Geändert / Behoben): in der
+obersten Version, solange sie noch nicht deployt ist, sonst in einer neuen
+Version (Nummer erhöhen, Datum). Kommt eine Fremdkomponente dazu oder ändert
+sich ein Entwicklungswerkzeug in `tools/install.sh`, auch `web/app/sbom.php`
+anpassen.
+
 ## Schnittstellen untereinander mitteilen
 
 Entsteht Code, den ein anderer Agent für seinen SPEC-Abschnitt nutzen soll,
@@ -112,4 +122,5 @@ Dauerhaft relevante Schnittstellen werden zusätzlich unten eingetragen.
 | §8 | `DB_MIGRATIONS`, `db_upgrade()` in `web/app/db.php` | Schemaänderungen nur als neue Migration anhängen (`PRAGMA user_version`), `schema.sql` zusätzlich auf neuesten Stand bringen |
 | – | `format_utc_datetime()`, `parse_date_de()`, `parse_time()` in `helpers.php`; `admin_selected_event()` in `admin.php`; `templates/registration_fields.php` | Datum/Uhrzeit TT.MM.JJJJ / 24 h; gemeinsames Formular Anmeldung + Admin-Bearbeiten |
 | §9 | `app_url()` in `web/app/mailer.php`, Config `app_url` | absolute Links in Mails (Absage-Link) |
+| §7.10 | `CHANGELOG`, `CHANGELOG_SECTIONS`, `app_version()` in `web/app/changelog.php`; `sbom_components()`, `sbom_runtime()`, `sbom_cyclonedx()`, `SBOM_DEV_TOOLS` in `web/app/sbom.php`; Seite `web/admin/changes.php` | Versionshinweise und SBOM (Versionen/Prüfsummen live aus den Dateien, CycloneDX-Download) |
 | §3, §2 | `home_url()`, `home_url_value()` in `web/app/helpers.php`; Config `home_url`; `templates/public_bar.php` (von `layout.php` eingebunden) | feste Leiste „Zurück zur Hauptseite“ auf allen öffentlichen Seiten; nur http(s)-URL oder Pfad ab Wurzel, sonst `/` |

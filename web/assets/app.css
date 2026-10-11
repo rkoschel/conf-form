@@ -406,3 +406,17 @@ tr.details-open > td {
   left: 1rem;
   max-width: calc(100vw - 4rem);
 }
+
+/* Versionshinweise: SBOM aufklappbar, Prüfsummen umbrechen */
+.sbom > summary {
+  cursor: pointer;
+}
+.sbom-files > td {
+  border-top: 0;
+  padding-top: 0;
+}
+.sbom-hash {
+  font-family: var(--bs-font-monospace);
+  font-size: 0.8em;
+  word-break: break-all;
+}

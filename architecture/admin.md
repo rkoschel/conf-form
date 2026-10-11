@@ -250,7 +250,7 @@ geheimem Link `/konferenz/team/?k=<Schlüssel>`.
 ### 7.9 Menü und Hilfe
 
 - Reihenfolge im Admin-Menü: Veranstaltungen, Anfragen, Auswertungen,
-  Einstellungen, Hilfe.
+  Einstellungen, Hilfe, Versionshinweise (§7.10).
 - `admin/help.php`: erklärt Admins die Logik im Hintergrund und die
   Auswirkungen von Einstellungen, gruppiert nach Aspekt (Ablauf,
   Veranstaltungen, Kontingent/automatische Bestätigung, Personengruppen, bevorzugte Orte,
@@ -259,3 +259,26 @@ geheimem Link `/konferenz/team/?k=<Schlüssel>`.
   mit Inhaltsverzeichnis. Feste deutsche Texte (nicht konfigurierbar);
   Grenzwerte (99 Personen, Spamschutz-Zeiten, Rate-Limit) werden aus Code
   bzw. Config gelesen. Bei Änderungen an der Logik die Hilfe mitpflegen.
+
+### 7.10 Versionshinweise und SBOM
+
+- `admin/changes.php` (Menü „Versionshinweise“): Changelog, neueste Version
+  zuerst, oben „Aktuelle Version x vom TT.MM.JJJJ“. Je Version Nummer, Datum
+  und Abschnitte „Neu“, „Geändert“, „Behoben“ mit kurzen Punkten aus Sicht
+  der Admins (keine Technik-Interna). Die Daten stehen in
+  `web/app/changelog.php` (`CHANGELOG`); die aktuelle Version ist der oberste
+  Eintrag (`app_version()`). Versionsnummern `Major.Minor`; jede
+  nutzersichtbare Änderung bekommt einen Punkt – in der obersten Version,
+  solange sie noch nicht deployt ist, sonst in einer neuen.
+- Darunter **aufklappbar** (zu Beginn zugeklappt) die Software-Stückliste
+  (SBOM):
+  - *Auf dem Server:* Bootstrap und PHPMailer mit Version, Lizenz, Zweck,
+    Link und SHA-256 je ausgelieferter Datei. Version und Prüfsummen werden
+    zur Laufzeit aus den Dateien gelesen (bleiben nach Updates aktuell).
+  - *Laufzeitumgebung:* PHP-, SQLite- und OpenSSL-Version des Servers.
+  - *Nur für die Entwicklung (nicht auf dem Server):* PHPUnit und PHPStan mit
+    Version, Lizenz und Prüfsumme wie in `tools/install.sh` (ein Test prüft
+    die Übereinstimmung).
+  - Download als **CycloneDX 1.5 (JSON)** über
+    `admin/changes.php?download=sbom` (Server-Komponenten `scope: required`,
+    Entwicklungswerkzeuge `excluded`, Laufzeitumgebung als Eigenschaften).

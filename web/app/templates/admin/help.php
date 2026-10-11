@@ -25,6 +25,7 @@ $sections = [
 <div class="page-narrow">
   <h1 class="h3 mb-3">Hilfe</h1>
   <p class="lead">Was im Hintergrund passiert und welche Auswirkungen Einstellungen haben.</p>
+  <p>Was sich zuletzt geändert hat, steht unter <a href="<?= e(url('admin/changes.php')) ?>">Versionshinweise</a> (aktuelle Version <?= e(app_version()) ?>), dort auch die Liste der verwendeten Fremdkomponenten (SBOM).</p>
 
   <nav class="card mb-5" aria-label="Inhalt">
     <div class="card-body">
