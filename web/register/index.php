@@ -52,7 +52,7 @@ if (is_post()) {
                 $registration,
                 $event
             );
-            registration_log_status((int) $registration['id'], $registration['status'], mail_outcome($registration, true, $sent));
+            registration_log_status((int) $registration['id'], $registration['status'], mail_outcome($registration, true, $sent), 'registration');
             mail_admin_notify($registration, $event);
             $_SESSION['register_result'] = $registration['status'];
             redirect('register/');

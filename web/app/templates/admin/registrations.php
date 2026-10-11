@@ -143,7 +143,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
             <tr class="registration-details" id="details-<?= (int) $row['id'] ?>" hidden>
               <td colspan="7">
                 <div class="row g-3">
-                  <div class="col-lg-8">
+                  <div class="col-xl-7">
                     <div class="small fw-semibold mb-1">
                       Programmpunkte
                       <span class="fw-normal text-body-secondary">
@@ -195,25 +195,28 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
                       </div>
                     <?php endif ?>
                   </div>
-                  <div class="col-lg-4">
+                  <div class="col-xl-5">
                     <div class="small fw-semibold mb-1">Verlauf</div>
                     <?php if (!$row['status_log']): ?>
                       <p class="small text-body-secondary mb-0">Noch keine Einträge.</p>
                     <?php else: ?>
-                      <table class="table table-sm small mb-0 tabular-nums registration-details-table">
+                      <div class="table-responsive">
+                      <table class="table table-sm small mb-0 tabular-nums text-nowrap registration-details-table">
                         <thead>
-                          <tr><th>Datum</th><th>Status</th><th>E-Mail</th></tr>
+                          <tr><th>Datum</th><th>Aktion</th><th>Status</th><th>E-Mail</th></tr>
                         </thead>
                         <tbody>
                           <?php foreach ($row['status_log'] as $entry): ?>
                             <tr>
-                              <td class="text-nowrap"><?= e(format_utc_datetime($entry['changed_at'], $event['timezone'])) ?></td>
+                              <td><?= e(format_utc_datetime($entry['changed_at'], $event['timezone'])) ?></td>
+                              <td><?= e(STATUS_LOG_ACTIONS[$entry['action']] ?? $entry['action']) ?></td>
                               <td><?= e(STATUS_LABELS[$entry['status']] ?? $entry['status']) ?></td>
                               <td><?= $entry['mail'] === 'sent' ? 'ja' : ($entry['mail'] === 'failed' ? '<span class="text-danger-emphasis">fehlgeschlagen</span>' : 'nein') ?></td>
                             </tr>
                           <?php endforeach ?>
                         </tbody>
                       </table>
+                      </div>
                     <?php endif ?>
                   </div>
                   <?php if (($row['message'] ?? '') !== ''): ?>

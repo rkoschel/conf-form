@@ -46,9 +46,9 @@ final class CancelPageTest extends HttpTestCase
         $this->assertSame(303, $response['status']);
         $this->assertSame('/cancel/?t=' . $registration['cancel_token'] . '&done=1', $response['headers']['location']);
         $this->assertSame('cancelled', registration_find($registration['id'])['status']);
-        $log = db()->prepare('SELECT status, mail FROM status_log WHERE registration_id = ?');
+        $log = db()->prepare('SELECT status, mail, action FROM status_log WHERE registration_id = ?');
         $log->execute([$registration['id']]);
-        $this->assertSame([['status' => 'cancelled', 'mail' => 'none']], $log->fetchAll(PDO::FETCH_ASSOC), 'Verlauf: Absage ohne Mail');
+        $this->assertSame([['status' => 'cancelled', 'mail' => 'none', 'action' => 'participant_cancel']], $log->fetchAll(PDO::FETCH_ASSOC), 'Verlauf: Absage per Link ohne Mail');
         $this->assertStringContainsString('Deine Teilnahme ist abgesagt', $this->get($response['headers']['location'])['body']);
     }
 

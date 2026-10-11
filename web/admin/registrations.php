@@ -42,7 +42,7 @@ if (is_post()) {
                     ? flash('success', 'E-Mail an ' . $registration['email'] . ' gesendet.')
                     : flash('danger', 'E-Mail an ' . $registration['email'] . ' konnte nicht gesendet werden (siehe Mail-Status).');
             }
-            registration_log_status((int) $registration['id'], $newStatus, mail_outcome($registration, $sendMail, $sent));
+            registration_log_status((int) $registration['id'], $newStatus, mail_outcome($registration, $sendMail, $sent), 'admin_status');
             break;
         case 'delete':
             registration_delete((int) $registration['id']);

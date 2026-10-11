@@ -343,8 +343,8 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertSame(0, $slots[$this->event['slots'][1]['id']]['group_1']);
 
         $this->assertSame(
-            [['status' => 'confirmed', 'mail' => 'sent']],
-            db()->query('SELECT status, mail FROM status_log')->fetchAll(PDO::FETCH_ASSOC),
+            [['status' => 'confirmed', 'mail' => 'sent', 'action' => 'registration']],
+            db()->query('SELECT status, mail, action FROM status_log')->fetchAll(PDO::FETCH_ASSOC),
             'Verlauf: Eingang mit Mail'
         );
         $mail = db()->query('SELECT type, success FROM mail_log')->fetch();

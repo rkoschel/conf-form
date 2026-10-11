@@ -95,7 +95,9 @@ CREATE TABLE status_log (                       -- Verlauf je Anmeldung (§7.2)
   status          TEXT NOT NULL CHECK (status IN
                     ('pending','confirmed','cancelled','rejected')),
   mail            TEXT NOT NULL DEFAULT 'none'  -- sent | failed | none
-                    CHECK (mail IN ('sent','failed','none'))
+                    CHECK (mail IN ('sent','failed','none')),
+  action          TEXT NOT NULL DEFAULT 'admin_status'
+                    CHECK (action IN ('registration','admin_status','admin_edit','participant_cancel'))
 );
 CREATE INDEX status_log_registration ON status_log(registration_id);
 
@@ -120,7 +122,10 @@ CREATE INDEX rate_limit_lookup ON rate_limit(ip_hash, created_at);
   Version 6: Tabelle status_log, für bestehende Anmeldungen aus mail_log
   gefüllt – Eingangs-Mails als Status „bestätigt“ bzw. „offen“, Admin-Mails
   mit ihrem Status, success → sent/failed; Statuswechsel ohne Mail vor
-  Version 6 sind nicht rekonstruierbar).
+  Version 6 sind nicht rekonstruierbar;
+  Version 7: status_log.action – vorhandene Einträge: erster Eintrag je
+  Anmeldung bis 60 s nach dem Eingang = Anmeldung, „storniert“ = Absage per
+  Link, sonst Statuswechsel).
 - Existiert die DB-Datei nicht, wird sie beim ersten Aufruf aus
   `schema.sql` angelegt.
 - Technische Zeitstempel (`created_at`, `sent_at`) in UTC; Anzeige in der

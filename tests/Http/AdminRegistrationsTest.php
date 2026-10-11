@@ -159,8 +159,22 @@ final class AdminRegistrationsTest extends HttpTestCase
 
         $body = $this->get('/admin/registrations.php?q=Verlauf')['body'];
         $history = substr($body, (int) strpos($body, 'Verlauf</div>', (int) strpos($body, 'id="details-' . $id . '"')), 3000);
-        preg_match_all('#<td class="text-nowrap">[^<]+</td>\s*<td>([^<]+)</td>\s*<td>(.*?)</td>#s', $history, $m, PREG_SET_ORDER);
-        $this->assertSame([['bestätigt', 'ja'], ['abgelehnt', 'nein'], ['offen', 'nein']], array_map(fn ($r) => [$r[1], $r[2]], $m));
+        preg_match_all('#<td>[^<]+</td>\s*<td>([^<]+)</td>\s*<td>([^<]+)</td>\s*<td>(.*?)</td>#s', $history, $m, PREG_SET_ORDER);
+        $this->assertSame([
+            ['Statuswechsel', 'bestätigt', 'ja'],
+            ['Statuswechsel', 'abgelehnt', 'nein'],
+            ['Bearbeitet', 'offen', 'nein'],
+        ], array_map(fn ($r) => [$r[1], $r[2], $r[3]], $m));
+
+        // Bearbeiten ohne Statusänderung gibt ebenfalls einen Eintrag
+        $this->post("/admin/registration.php?id=$id", [
+            'csrf' => $this->csrfToken("/admin/registration.php?id=$id"),
+            'status' => 'pending', 'first_name' => 'Vera', 'last_name' => 'Verlauf', 'congregation' => 'Soest',
+            'email' => 'vera@example.org', 'group_1' => '1', 'attend' => [self::$slots['Vormittag'] => '1'],
+        ]);
+        $log = $this->serverDb()->prepare('SELECT action, status FROM status_log WHERE registration_id = ? ORDER BY id DESC LIMIT 1');
+        $log->execute([$id]);
+        $this->assertSame(['action' => 'admin_edit', 'status' => 'pending'], $log->fetch(PDO::FETCH_ASSOC));
     }
 
     public function testListShowsMessage(): void

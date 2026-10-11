@@ -88,7 +88,9 @@ CREATE TABLE IF NOT EXISTS status_log (
   registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
   changed_at      TEXT NOT NULL,                -- UTC, ISO 8601
   status          TEXT NOT NULL CHECK (status IN ('pending','confirmed','cancelled','rejected')),
-  mail            TEXT NOT NULL DEFAULT 'none' CHECK (mail IN ('sent','failed','none'))
+  mail            TEXT NOT NULL DEFAULT 'none' CHECK (mail IN ('sent','failed','none')),
+  action          TEXT NOT NULL DEFAULT 'admin_status'
+                    CHECK (action IN ('registration','admin_status','admin_edit','participant_cancel'))
 );
 CREATE INDEX IF NOT EXISTS status_log_registration ON status_log(registration_id);
 

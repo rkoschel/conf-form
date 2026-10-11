@@ -110,13 +110,14 @@ hervorgehoben), Status, Mail-Status, Aktionen.
   dieser Anmeldung), Summe beim Programmpunkt und – falls die Veranstaltung
   Kinderbetreuung hat – Kinder in der Betreuung; „–“ für Gruppen außerhalb
   der Zielgruppe bzw. Programmpunkte ohne Betreuung; Hinweis, ob
-  angekreuzt oder individuell aufgeteilt. Rechts der **Verlauf**: je
-  Statusänderung Datum/Uhrzeit (Zeitzone der Veranstaltung), Status und
-  E-Mail (ja / nein / fehlgeschlagen), älteste zuerst. Einträge entstehen bei
-  der Anmeldung (Status nach der automatischen Entscheidung, Eingangs-Mail),
-  bei Bestätigen/Ablehnen in der Liste (mit oder ohne Mail), bei einer
-  Statusänderung im Bearbeiten (ohne Mail) und bei der Absage per Link
-  (ohne Mail); gespeichert in `status_log` (§8). Darunter die ganze
+  angekreuzt oder individuell aufgeteilt. Rechts der **Verlauf**: je Eintrag
+  Datum/Uhrzeit (Zeitzone der Veranstaltung), Aktion, Status danach und
+  E-Mail (ja / nein / fehlgeschlagen), älteste zuerst. Aktionen:
+  „Anmeldung“ (Status nach der automatischen Entscheidung, Eingangs-Mail),
+  „Statuswechsel“ (Bestätigen/Ablehnen in der Liste, mit oder ohne
+  Mail), „Bearbeitet“ (**jedes** Speichern im Bearbeiten-Formular,
+  auch ohne Statusänderung; ohne Mail) und „Absage per Link“ (Teilnehmer über
+  den Link in der Mail; ohne Mail); gespeichert in `status_log` (§8). Darunter die ganze
   Nachricht, dann Bearbeiten und Löschen. Alle Daten werden mit der Liste
   geladen (je eine Abfrage für Aufteilung und Verlauf aller Anmeldungen);
   auf dem Handy bleiben die Details in Bildschirmbreite.

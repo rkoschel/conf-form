@@ -415,22 +415,26 @@ function registration_cancel(int $id): bool
     if ($stmt->rowCount() === 0) {
         return false;
     }
-    registration_log_status($id, 'cancelled', 'none');
+    registration_log_status($id, 'cancelled', 'none', 'participant_cancel');
     return true;
 }
 
 /**
- * Verlauf (SPEC §7.2): Status nach einer Änderung und ob dazu eine Mail ging.
- * $mail: 'sent' | 'failed' | 'none' (siehe mail_outcome()).
+ * Verlauf (SPEC §7.2): was passiert ist ($action, siehe STATUS_LOG_ACTIONS),
+ * der Status danach und ob dazu eine Mail ging ($mail: 'sent' | 'failed' |
+ * 'none', siehe mail_outcome()).
  */
-function registration_log_status(int $id, string $status, string $mail): void
+function registration_log_status(int $id, string $status, string $mail, string $action): void
 {
     registration_assert_status($status);
     if (!in_array($mail, ['sent', 'failed', 'none'], true)) {
         throw new InvalidArgumentException('Unbekanntes Mail-Ergebnis: ' . $mail);
     }
-    db()->prepare('INSERT INTO status_log (registration_id, changed_at, status, mail) VALUES (?, ?, ?, ?)')
-        ->execute([$id, now_utc(), $status, $mail]);
+    if (!isset(STATUS_LOG_ACTIONS[$action])) {
+        throw new InvalidArgumentException('Unbekannte Aktion: ' . $action);
+    }
+    db()->prepare('INSERT INTO status_log (registration_id, changed_at, status, mail, action) VALUES (?, ?, ?, ?, ?)')
+        ->execute([$id, now_utc(), $status, $mail, $action]);
 }
 
 /** Mail-Ergebnis für den Verlauf: keine (nicht gewünscht oder keine Adresse), gesendet, fehlgeschlagen */
@@ -446,12 +450,12 @@ function mail_outcome(array $registration, bool $requested, bool $sent): string
 /**
  * Verlauf aller Anmeldungen einer Veranstaltung, älteste Einträge zuerst.
  *
- * @return array<int, list<array{changed_at: string, status: string, mail: string}>> registration_id → Einträge
+ * @return array<int, list<array{changed_at: string, status: string, mail: string, action: string}>> registration_id → Einträge
  */
 function status_log_for_event(int $eventId): array
 {
     $stmt = db()->prepare(
-        'SELECT l.registration_id, l.changed_at, l.status, l.mail
+        'SELECT l.registration_id, l.changed_at, l.status, l.mail, l.action
          FROM status_log l JOIN registrations r ON r.id = l.registration_id
          WHERE r.event_id = ? ORDER BY l.changed_at, l.id'
     );
@@ -462,6 +466,7 @@ function status_log_for_event(int $eventId): array
             'changed_at' => (string) $row['changed_at'],
             'status' => (string) $row['status'],
             'mail' => (string) $row['mail'],
+            'action' => (string) $row['action'],
         ];
     }
     return $log;

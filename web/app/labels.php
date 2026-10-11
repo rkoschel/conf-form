@@ -23,6 +23,14 @@ const PERSON_GROUP_TYPES = [
     'kids' => 'Kindergruppe',
 ];
 
+/** Aktionen im Verlauf einer Anmeldung (status_log.action, SPEC §7.2) */
+const STATUS_LOG_ACTIONS = [
+    'registration' => 'Anmeldung',
+    'admin_status' => 'Statuswechsel',
+    'admin_edit' => 'Bearbeitet',
+    'participant_cancel' => 'Absage per Link',
+];
+
 /** Status einer Anmeldung, in der Reihenfolge der UI (SPEC §7.2) */
 const STATUS_LABELS = [
     'pending' => 'offen',

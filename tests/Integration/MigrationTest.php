@@ -116,10 +116,42 @@ final class MigrationTest extends TestCase
         $pdo = db_connect($this->path);
 
         $this->assertSame([
-            ['changed_at' => '2027-01-01T00:00:01Z', 'status' => 'pending', 'mail' => 'sent'],
-            ['changed_at' => '2027-01-05T10:00:00Z', 'status' => 'confirmed', 'mail' => 'failed'],
-        ], $pdo->query('SELECT changed_at, status, mail FROM status_log ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
-        $this->assertSame(6, (int) $pdo->query('PRAGMA user_version')->fetchColumn());
+            ['changed_at' => '2027-01-01T00:00:01Z', 'status' => 'pending', 'mail' => 'sent', 'action' => 'registration'],
+            ['changed_at' => '2027-01-05T10:00:00Z', 'status' => 'confirmed', 'mail' => 'failed', 'action' => 'admin_status'],
+        ], $pdo->query('SELECT changed_at, status, mail, action FROM status_log ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+        $this->assertSame(max(array_keys(DB_MIGRATIONS)), (int) $pdo->query('PRAGMA user_version')->fetchColumn());
+    }
+
+    public function testStatusLogActionsAreDerivedForExistingEntries(): void
+    {
+        // Stand nach Migration 6: Verlauf ohne Aktion
+        $old = new PDO('sqlite:' . $this->path);
+        $old->exec(file_get_contents(ROOT_DIR . '/tests/fixtures/schema_v0.sql'));
+        foreach (range(1, 6) as $version) {
+            foreach (DB_MIGRATIONS[$version] as $sql) {
+                $old->exec($sql);
+            }
+        }
+        $old->exec('PRAGMA user_version = 6');
+        $old->exec("INSERT INTO events (id, title, date, location, registration_deadline, max_participants)
+                    VALUES (1, 'Alt', '2027-05-01', 'Hamm', '2027-04-15T23:59', 10)");
+        $old->exec("INSERT INTO registrations (id, event_id, created_at, first_name, last_name, congregation, group_1, status, cancel_token) VALUES
+                    (1, 1, '2027-01-01T00:00:00Z', 'Max', 'Muster', 'Hamm', 2, 'cancelled', 'abc'),
+                    (2, 1, '2027-01-01T00:00:00Z', 'Mia', 'Muster', 'Hamm', 1, 'confirmed', 'def')");
+        $old->exec("INSERT INTO status_log (registration_id, changed_at, status, mail) VALUES
+                    (1, '2027-01-01T00:00:02Z', 'pending', 'sent'),
+                    (1, '2027-01-03T08:00:00Z', 'confirmed', 'none'),
+                    (1, '2027-01-04T09:00:00Z', 'cancelled', 'none'),
+                    (2, '2027-01-02T12:00:00Z', 'confirmed', 'sent')");
+        $old = null;
+
+        $pdo = db_connect($this->path);
+
+        $this->assertSame(
+            ['registration', 'admin_status', 'participant_cancel', 'admin_status'],
+            $pdo->query('SELECT action FROM status_log ORDER BY id')->fetchAll(PDO::FETCH_COLUMN),
+            'erster Eintrag kurz nach dem Eingang = Anmeldung, sonst nicht'
+        );
     }
 
     public function testPreferredPlacesOfAllEventsBecomeGlobal(): void

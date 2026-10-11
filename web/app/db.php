@@ -71,6 +71,17 @@ const DB_MIGRATIONS = [
                 CASE success WHEN 1 THEN 'sent' ELSE 'failed' END
          FROM mail_log ORDER BY id",
     ],
+    // Verlauf mit Aktion (SPEC §7.2): Anmeldung, Statuswechsel/Bearbeitung durch
+    // den Admin, Absage per Link. Vorhandene Einträge: erster Eintrag kurz nach
+    // dem Eingang = Anmeldung, „storniert“ = Absage per Link, sonst Statuswechsel
+    7 => [
+        "ALTER TABLE status_log ADD COLUMN action TEXT NOT NULL DEFAULT 'admin_status'
+            CHECK (action IN ('registration','admin_status','admin_edit','participant_cancel'))",
+        "UPDATE status_log SET action = 'registration'
+         WHERE id IN (SELECT MIN(l.id) FROM status_log l GROUP BY l.registration_id)
+           AND (julianday(changed_at) - julianday((SELECT created_at FROM registrations r WHERE r.id = status_log.registration_id))) * 86400 < 60",
+        "UPDATE status_log SET action = 'participant_cancel' WHERE status = 'cancelled'",
+    ],
 ];
 
 /** Mindestversion für ALTER TABLE … RENAME COLUMN (Migration 3) */
