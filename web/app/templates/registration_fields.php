@@ -155,8 +155,8 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
           <div class="border rounded p-3" data-childcare-slot="<?= e(implode(' ', $slot['childcare'] ?? [])) ?>"
                data-target-slot="<?= e(implode(' ', $targetOf($slot))) ?>">
             <div class="form-check" data-attend<?= $customSplit ? ' hidden' : '' ?>>
-              <input class="form-check-input" type="checkbox" id="attend-<?= $slotId ?>"
-                     name="attend[<?= $slotId ?>]" value="1" <?= !empty($attend[$slotId]) ? 'checked' : '' ?>>
+              <input class="form-check-input" type="checkbox" data-slot-name="<?= e($slot['time'] . ' Uhr ' . $slot['label']) ?>"
+                     id="attend-<?= $slotId ?>" name="attend[<?= $slotId ?>]" value="1" <?= !empty($attend[$slotId]) ? 'checked' : '' ?>>
               <label class="form-check-label" for="attend-<?= $slotId ?>">
                 <span class="fw-semibold"><?= e($slot['time']) ?> Uhr</span> <?= e($slot['label']) ?>
                 <?php if (!empty($slot['childcare'])): ?>
@@ -225,6 +225,29 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
             <div class="modal-footer">
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Aufteilung behalten</button>
               <button type="button" class="btn btn-primary" data-split-reset-confirm>Zurücksetzen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <?php endif ?>
+      <?php if ($targetSlots): ?>
+      <?php /* Rückfrage beim Absenden, wenn nur automatisch angekreuzte Zielgruppen-Programmpunkte
+               gewählt sind (form.js) */ ?>
+      <div class="modal fade" id="auto-attend-modal" tabindex="-1" aria-labelledby="auto-attend-title" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title h5" id="auto-attend-title">Programmpunkte prüfen</h2>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+              <p>Ausgewählt sind bisher nur Programmpunkte, die wir passend zu deinen Angaben automatisch angekreuzt haben:</p>
+              <ul data-auto-attend-list></ul>
+              <p class="mb-0">Bitte prüfe, ob du noch weitere Programmpunkte auswählen möchtest.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-auto-attend-review>Auswahl prüfen</button>
+              <button type="button" class="btn btn-primary" data-auto-attend-confirm>Trotzdem absenden</button>
             </div>
           </div>
         </div>

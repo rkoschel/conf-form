@@ -126,8 +126,11 @@ if (form) {
         checkbox.disabled = nobody;
         if (nobody) {
           checkbox.checked = false;
+          delete checkbox.dataset.autoChecked;
         } else if (autoCheck && wasNobody) {
           checkbox.checked = true;
+          // merken: nicht selbst gewählt (Rückfrage beim Absenden)
+          checkbox.dataset.autoChecked = '1';
         }
       }
       slot.querySelector('[data-target-none]').hidden = !nobody;
@@ -281,6 +284,44 @@ if (form) {
   form.addEventListener('change', updateAttendError);
   form.addEventListener('input', updateAttendError);
 
+  // Rückfrage, wenn nur automatisch angekreuzte Zielgruppen-Programmpunkte
+  // gewählt sind (niemand hat selbst etwas ausgewählt). Eine eigene Änderung
+  // an einem Häkchen gilt als bewusste Auswahl. Nach „Trotzdem absenden“ wird
+  // nicht erneut gefragt.
+  const attendInputs = () => [...form.querySelectorAll('[data-attend] input')];
+  attendInputs().forEach((input) => {
+    input.addEventListener('change', () => { delete input.dataset.autoChecked; });
+  });
+  const onlyAutoChecked = () => {
+    if (customSplit && customSplit.checked) {
+      return [];
+    }
+    const checked = attendInputs().filter((input) => input.checked);
+    return checked.length > 0 && checked.every((input) => input.dataset.autoChecked === '1') ? checked : [];
+  };
+  let autoConfirmed = false;
+  const autoModalElement = form.querySelector('#auto-attend-modal');
+  const autoModal = () => (autoModalElement && window.bootstrap
+    ? window.bootstrap.Modal.getOrCreateInstance(autoModalElement)
+    : null);
+  const submitConfirmed = () => {
+    autoConfirmed = true;
+    if (form.requestSubmit) {
+      form.requestSubmit();
+    } else {
+      form.submit();
+    }
+  };
+  form.querySelector('[data-auto-attend-confirm]')?.addEventListener('click', () => {
+    autoModal()?.hide();
+    submitConfirmed();
+  });
+  autoModalElement?.addEventListener('hidden.bs.modal', () => {
+    if (!autoConfirmed) {
+      form.querySelector('[data-attend] input:not(:disabled)')?.focus();
+    }
+  });
+
   form.addEventListener('submit', (event) => {
     const invalid = [...form.querySelectorAll('[data-count]')].filter((input) => !checkNumber(input));
     if (customSplit && customSplit.checked) {
@@ -298,6 +339,23 @@ if (form) {
     if (invalid.length > 0) {
       event.preventDefault();
       invalid[0].focus();
+      return;
+    }
+    const auto = autoConfirmed ? [] : onlyAutoChecked();
+    if (auto.length > 0) {
+      event.preventDefault();
+      const modal = autoModal();
+      if (modal) {
+        form.querySelector('[data-auto-attend-list]').replaceChildren(...auto.map((input) => {
+          const item = document.createElement('li');
+          item.textContent = input.dataset.slotName;
+          return item;
+        }));
+        modal.show();
+      } else if (window.confirm('Ausgewählt sind nur automatisch angekreuzte Programmpunkte: '
+        + auto.map((input) => input.dataset.slotName).join(', ') + '. Trotzdem absenden?')) {
+        submitConfirmed();
+      }
     }
   });
 

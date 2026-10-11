@@ -80,7 +80,18 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
   (Übergang „niemand“ → „jemand“ durch eine Eingabe in den Anzahlen), wird das
   Häkchen **automatisch angekreuzt**; ein bewusst abgewähltes Häkchen bleibt
   beim Weitertippen aus. Beim Laden der Seite (auch einer bestehenden Anmeldung
-  im Admin-Bearbeiten) wird nichts automatisch angekreuzt. In der
+  im Admin-Bearbeiten) wird nichts automatisch angekreuzt.
+  **Rückfrage beim Absenden:** Sind nur automatisch angekreuzte Programmpunkte
+  ausgewählt (niemand hat selbst ein Häkchen gesetzt oder geändert), erscheint
+  vor dem Absenden ein Dialog „Programmpunkte prüfen“ mit der Liste dieser
+  Programmpunkte („Ausgewählt sind bisher nur Programmpunkte, die wir passend
+  zu deinen Angaben automatisch angekreuzt haben: … Bitte prüfe, ob du noch
+  weitere Programmpunkte auswählen möchtest.“) und den Knöpfen „Auswahl
+  prüfen“ (schließt, Fokus auf die Programmpunkte) und „Trotzdem absenden“
+  (schickt ab, ohne erneut zu fragen). Jede eigene Änderung an einem Häkchen
+  gilt als bewusste Auswahl. Nicht bei eingeschalteter individueller
+  Aufteilung; nur im Browser (ohne JS gibt es kein automatisches Ankreuzen).
+  In der
   individuellen Aufteilung erscheinen bei dem Programmpunkt nur Felder der
   Zielgruppe. Ohne JS prüft nur der Server (siehe §5.4). Die Texte duzen wie
   das übrige Formular und sind fest, nicht einstellbar.

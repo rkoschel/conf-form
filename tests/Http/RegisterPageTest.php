@@ -187,6 +187,8 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertStringContainsString('name="split[' . $jugend . '][group_2]"', $body);
         $this->assertStringContainsString('name="split[' . $vortrag . '][group_1]"', $body);
         $this->assertMatchesRegularExpression('#id="attend-' . $jugend . '"\s+name="attend\[' . $jugend . '\]"\s+value="1"\s*>#', $body, 'ohne JS nicht gesperrt');
+        $this->assertStringContainsString('id="auto-attend-modal"', $body, 'Rückfrage bei nur automatisch angekreuzten Programmpunkten');
+        $this->assertStringContainsString('data-slot-name="14:00 Uhr Jugendstunde"', $body);
     }
 
     public function testTargetHintOnlyWhenTargetPersonAndOthersAreEntered(): void
