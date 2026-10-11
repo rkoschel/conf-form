@@ -286,7 +286,7 @@ if (form) {
 
   // Rückfrage, wenn nur automatisch angekreuzte Zielgruppen-Programmpunkte
   // gewählt sind (niemand hat selbst etwas ausgewählt). Eine eigene Änderung
-  // an einem Häkchen gilt als bewusste Auswahl. Nach „Trotzdem absenden“ wird
+  // an einem Häkchen gilt als bewusste Auswahl. Nach „Weiter und absenden“ wird
   // nicht erneut gefragt.
   const attendInputs = () => [...form.querySelectorAll('[data-attend] input')];
   attendInputs().forEach((input) => {

@@ -246,8 +246,8 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
               <p class="mb-0">Bitte prüfe, ob du noch weitere Programmpunkte auswählen möchtest.</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-auto-attend-review>Auswahl prüfen</button>
-              <button type="button" class="btn btn-primary" data-auto-attend-confirm>Trotzdem absenden</button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-auto-attend-review>Zurück und weitere auswählen</button>
+              <button type="button" class="btn btn-primary" data-auto-attend-confirm>Weiter und absenden</button>
             </div>
           </div>
         </div>

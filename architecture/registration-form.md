@@ -86,8 +86,8 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
   vor dem Absenden ein Dialog „Programmpunkte prüfen“ mit der Liste dieser
   Programmpunkte („Ausgewählt sind bisher nur Programmpunkte, die wir passend
   zu deinen Angaben automatisch angekreuzt haben: … Bitte prüfe, ob du noch
-  weitere Programmpunkte auswählen möchtest.“) und den Knöpfen „Auswahl
-  prüfen“ (schließt, Fokus auf die Programmpunkte) und „Trotzdem absenden“
+  weitere Programmpunkte auswählen möchtest.“) und den Knöpfen „Zurück und weitere
+  auswählen“ (schließt, Fokus auf die Programmpunkte) und „Weiter und absenden“
   (schickt ab, ohne erneut zu fragen). Jede eigene Änderung an einem Häkchen
   gilt als bewusste Auswahl. Nicht bei eingeschalteter individueller
   Aufteilung; nur im Browser (ohne JS gibt es kein automatisches Ankreuzen).
