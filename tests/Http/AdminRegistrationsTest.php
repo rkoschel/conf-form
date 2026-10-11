@@ -106,11 +106,12 @@ final class AdminRegistrationsTest extends HttpTestCase
         $raw = substr($body, (int) $start, (int) strpos($body, '</table>', (int) strpos($body, 'Nachricht</div>', (int) $start)) - (int) $start);
         $details = preg_replace('/\s+/', ' ', $raw);
         $this->assertStringContainsString('individuell aufgeteilt', $details);
-        $this->assertMatchesRegularExpression('#<th class="text-end">Erwachsene</th> <th class="text-end">Kindergruppe 3</th> <th class="text-end">Summe</th>#', $details, 'nur Gruppen mit Personen');
+        $this->assertMatchesRegularExpression('#<th class="text-end text-nowrap">Erwachsene</th> <th class="text-end text-nowrap">Kindergruppe 3</th> <th class="text-end">Summe</th>#', $details, 'nur Gruppen mit Personen');
         $this->assertStringNotContainsString('>Jugendliche</th>', $details);
         $this->assertMatchesRegularExpression('#10:00 Vormittag</td> <td class="text-end">2</td> <td class="text-end">1</td> <td class="text-end fw-semibold">3</td>#', $details);
         $this->assertMatchesRegularExpression('#14:00 Nachmittag</td> <td class="text-end">1</td> <td class="text-end">0</td> <td class="text-end fw-semibold">1</td>#', $details);
-        $this->assertMatchesRegularExpression('#Gesamt</dt> <dd[^>]*>3</dd>#', $details);
+        $this->assertStringNotContainsString('>Personen</div>', $details, 'nur die Programmpunkt-Tabelle');
+        $this->assertStringContainsString('Verlauf</div> <p class="small text-body-secondary mb-0">Noch keine Einträge.</p>', $details);
         $this->assertStringContainsString("Zeile 1\nZeile 2", $raw, 'ganze Nachricht');
     }
 
@@ -139,9 +140,27 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->assertStringContainsString('disabled title="Bereits abgelehnt">Ablehnen</button>', $actions($rejected));
         $this->assertMatchesRegularExpression('#btn-outline-success"[^>]*data-action="confirm"#', $actions($rejected));
 
-        // Bearbeiten (pink) und Löschen in den Details
+        // Bearbeiten (orange) und Löschen in den Details
         $details = substr($body, (int) strpos($body, 'id="details-' . $pending . '"'), 6000);
-        $this->assertMatchesRegularExpression('#href="/admin/registration.php\?id=' . $pending . '" class="btn btn-sm btn-outline-pink">Bearbeiten</a>\s*<button type="button" class="btn btn-sm btn-outline-danger"\s+data-bs-toggle="modal" data-bs-target="\#delete-registration-modal"\s+data-id="' . $pending . '"#', $details);
+        $this->assertMatchesRegularExpression('#href="/admin/registration.php\?id=' . $pending . '" class="btn btn-sm btn-outline-orange">Bearbeiten</a>\s*<button type="button" class="btn btn-sm btn-outline-danger"\s+data-bs-toggle="modal" data-bs-target="\#delete-registration-modal"\s+data-id="' . $pending . '"#', $details);
+    }
+
+    public function testHistoryLogsStatusChangesWithMailOutcome(): void
+    {
+        $id = $this->registration(['first_name' => 'Vera', 'last_name' => 'Verlauf']);
+
+        $this->action($id, 'confirm', '1');
+        $this->action($id, 'reject', '0');
+        $this->post("/admin/registration.php?id=$id", [
+            'csrf' => $this->csrfToken("/admin/registration.php?id=$id"),
+            'status' => 'pending', 'first_name' => 'Vera', 'last_name' => 'Verlauf', 'congregation' => 'Unna',
+            'email' => 'vera@example.org', 'group_1' => '1', 'attend' => [self::$slots['Vormittag'] => '1'],
+        ]);
+
+        $body = $this->get('/admin/registrations.php?q=Verlauf')['body'];
+        $history = substr($body, (int) strpos($body, 'Verlauf</div>', (int) strpos($body, 'id="details-' . $id . '"')), 3000);
+        preg_match_all('#<td class="text-nowrap">[^<]+</td>\s*<td>([^<]+)</td>\s*<td>(.*?)</td>#s', $history, $m, PREG_SET_ORDER);
+        $this->assertSame([['bestätigt', 'ja'], ['abgelehnt', 'nein'], ['offen', 'nein']], array_map(fn ($r) => [$r[1], $r[2]], $m));
     }
 
     public function testListShowsMessage(): void

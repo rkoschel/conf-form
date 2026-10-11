@@ -13,7 +13,7 @@ const CHANGELOG = [
         'version' => '1.4',
         'date' => '2026-10-11',
         'new' => [
-            'Anfragen: Knopf „Details“ klappt unter der Anmeldung die Personen je Gruppe und je Programmpunkt (inkl. Kinderbetreuung) sowie die ganze Nachricht auf.',
+            'Anfragen: Knopf „Details“ klappt unter der Anmeldung die Personen je Programmpunkt (inkl. Kinderbetreuung), den Verlauf (Statusänderungen mit Datum und ob eine E-Mail ging) und die ganze Nachricht auf.',
             'Veranstaltungen: Aktivieren und Deaktivieren – in der Liste und beim Speichern mit geändertem Schalter „Aktiv“ – erst nach Bestätigung im Dialog.',
             'Anmeldeformular: Sind nur automatisch angekreuzte Zielgruppen-Programmpunkte gewählt, fragt das Formular vor dem Absenden nach („Zurück und weitere auswählen“ / „Weiter und absenden“).',
             'Bestätigungs- und Wartelisten-Mails nennen die gewählten Programmpunkte mit Personenzahl und Kindern in der Kinderbetreuung.',
@@ -27,7 +27,7 @@ const CHANGELOG = [
             'Admin: Startseite nach der Anmeldung ist „Auswertungen“, ganz links im Menü; der Bereich heißt jetzt „Admin“.',
             'Auswertungen: „Anfragen nach Status“ steht ganz unten.',
             'Veranstaltungen: neue Spalte „Belegung“ mit der bestätigten Belegung in Prozent.',
-            'Anfragen: Knöpfe Bestätigen (grün), Details (blau), Ablehnen (gelb); bereits ausgeführte Aktion grau. Bearbeiten und Löschen unter „Details“.',
+            'Anfragen: Knöpfe Bestätigen (grün), Details (blau), Ablehnen (gelb); bereits ausgeführte Aktion grau. Bearbeiten (orange) und Löschen unter „Details“.',
         ],
     ],
     [

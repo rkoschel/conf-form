@@ -82,6 +82,16 @@ CREATE TABLE IF NOT EXISTS mail_log (
   error           TEXT
 );
 
+-- Verlauf je Anmeldung: Status nach jeder Änderung und ob eine Mail ging (SPEC §7.2)
+CREATE TABLE IF NOT EXISTS status_log (
+  id              INTEGER PRIMARY KEY,
+  registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+  changed_at      TEXT NOT NULL,                -- UTC, ISO 8601
+  status          TEXT NOT NULL CHECK (status IN ('pending','confirmed','cancelled','rejected')),
+  mail            TEXT NOT NULL DEFAULT 'none' CHECK (mail IN ('sent','failed','none'))
+);
+CREATE INDEX IF NOT EXISTS status_log_registration ON status_log(registration_id);
+
 CREATE TABLE IF NOT EXISTS rate_limit (
   ip_hash    TEXT NOT NULL,                     -- HMAC-SHA256(IP, app_secret)
   created_at TEXT NOT NULL                      -- UTC, ISO 8601

@@ -47,11 +47,12 @@ if (is_post()) {
         );
         if (!$errors) {
             $registration = registration_create($event, $data);
-            mail_registration(
+            $sent = mail_registration(
                 $registration['status'] === 'confirmed' ? 'received_confirmed' : 'received_waitlist',
                 $registration,
                 $event
             );
+            registration_log_status((int) $registration['id'], $registration['status'], mail_outcome($registration, true, $sent));
             mail_admin_notify($registration, $event);
             $_SESSION['register_result'] = $registration['status'];
             redirect('register/');

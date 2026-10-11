@@ -93,6 +93,35 @@ final class MigrationTest extends TestCase
         $this->assertSame(2, (int) $pdo->query('SELECT childcare_group_4 FROM registration_slots')->fetchColumn());
     }
 
+    public function testStatusLogIsFilledFromMailLog(): void
+    {
+        // Stand nach Migration 5 mit zwei protokollierten Mails
+        $old = new PDO('sqlite:' . $this->path);
+        $old->exec(file_get_contents(ROOT_DIR . '/tests/fixtures/schema_v0.sql'));
+        foreach (range(1, 5) as $version) {
+            foreach (DB_MIGRATIONS[$version] as $sql) {
+                $old->exec($sql);
+            }
+        }
+        $old->exec('PRAGMA user_version = 5');
+        $old->exec("INSERT INTO events (id, title, date, location, registration_deadline, max_participants)
+                    VALUES (1, 'Alt', '2027-05-01', 'Hamm', '2027-04-15T23:59', 10)");
+        $old->exec("INSERT INTO registrations (id, event_id, created_at, first_name, last_name, congregation, group_1, status, cancel_token)
+                    VALUES (1, 1, '2027-01-01T00:00:00Z', 'Max', 'Muster', 'Hamm', 2, 'confirmed', 'abc')");
+        $old->exec("INSERT INTO mail_log (registration_id, type, sent_at, success) VALUES
+                    (1, 'received_waitlist', '2027-01-01T00:00:01Z', 1),
+                    (1, 'confirmed', '2027-01-05T10:00:00Z', 0)");
+        $old = null;
+
+        $pdo = db_connect($this->path);
+
+        $this->assertSame([
+            ['changed_at' => '2027-01-01T00:00:01Z', 'status' => 'pending', 'mail' => 'sent'],
+            ['changed_at' => '2027-01-05T10:00:00Z', 'status' => 'confirmed', 'mail' => 'failed'],
+        ], $pdo->query('SELECT changed_at, status, mail FROM status_log ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+        $this->assertSame(6, (int) $pdo->query('PRAGMA user_version')->fetchColumn());
+    }
+
     public function testPreferredPlacesOfAllEventsBecomeGlobal(): void
     {
         $old = new PDO('sqlite:' . $this->path);

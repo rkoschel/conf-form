@@ -24,6 +24,10 @@ if (is_post()) {
     }
     if (!$errors) {
         registration_update($id, $data, $status);
+        if ($status !== $registration['status']) {
+            // Statusänderung im Bearbeiten: ohne Mail (SPEC §7.4)
+            registration_log_status($id, $status, 'none');
+        }
         flash('success', 'Anmeldung von ' . $data['first_name'] . ' ' . $data['last_name'] . ' gespeichert.');
         if ($status === 'confirmed' && registration_exceeds_quota($event, $data + ['id' => $id])) {
             flash('warning', 'Hinweis: Mit dieser Anmeldung ist das Kontingent überschritten.');

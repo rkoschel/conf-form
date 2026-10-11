@@ -54,6 +54,23 @@ const DB_MIGRATIONS = [
     5 => [
         "ALTER TABLE event_slots ADD COLUMN target_groups TEXT NOT NULL DEFAULT ''",
     ],
+    // Verlauf je Anmeldung (SPEC §7.2): Statuswechsel mit Mail-Ergebnis.
+    // Bestehende Anmeldungen: Verlauf aus dem Mail-Protokoll, soweit vorhanden
+    6 => [
+        "CREATE TABLE status_log (
+            id              INTEGER PRIMARY KEY,
+            registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+            changed_at      TEXT NOT NULL,
+            status          TEXT NOT NULL CHECK (status IN ('pending','confirmed','cancelled','rejected')),
+            mail            TEXT NOT NULL DEFAULT 'none' CHECK (mail IN ('sent','failed','none'))
+        )",
+        'CREATE INDEX status_log_registration ON status_log(registration_id)',
+        "INSERT INTO status_log (registration_id, changed_at, status, mail)
+         SELECT registration_id, sent_at,
+                CASE type WHEN 'received_confirmed' THEN 'confirmed' WHEN 'received_waitlist' THEN 'pending' ELSE type END,
+                CASE success WHEN 1 THEN 'sent' ELSE 'failed' END
+         FROM mail_log ORDER BY id",
+    ],
 ];
 
 /** Mindestversion für ALTER TABLE … RENAME COLUMN (Migration 3) */

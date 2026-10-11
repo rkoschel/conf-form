@@ -103,16 +103,23 @@ hervorgehoben), Status, Mail-Status, Aktionen.
   immer da; ist der Status schon erreicht (bestätigt bzw. abgelehnt), ist der
   Knopf grau und nicht klickbar („Bereits bestätigt“/„Bereits abgelehnt“).
   Wechselt der Status, wird der andere Knopf wieder farbig. **Bearbeiten**
-  (pink) und **Löschen** (rot) gibt es nur im aufgeklappten Details-Bereich.
+  (orange) und **Löschen** (rot) gibt es nur im aufgeklappten Details-Bereich.
 - **Details** klappt unter der Zeile auf (erneut klicken klappt zu):
-  Personen je Personengruppe der Veranstaltung mit Gesamtzahl; Tabelle je
+  links die Tabelle je
   Programmpunkt mit den Personen je Gruppe (nur Gruppen mit Personen in
   dieser Anmeldung), Summe beim Programmpunkt und – falls die Veranstaltung
   Kinderbetreuung hat – Kinder in der Betreuung; „–“ für Gruppen außerhalb
   der Zielgruppe bzw. Programmpunkte ohne Betreuung; Hinweis, ob
-  angekreuzt oder individuell aufgeteilt; die ganze Nachricht. Alle Daten
-  werden mit der Liste geladen (eine Abfrage für die Aufteilung aller
-  Anmeldungen); auf dem Handy bleiben die Details in Bildschirmbreite.
+  angekreuzt oder individuell aufgeteilt. Rechts der **Verlauf**: je
+  Statusänderung Datum/Uhrzeit (Zeitzone der Veranstaltung), Status und
+  E-Mail (ja / nein / fehlgeschlagen), älteste zuerst. Einträge entstehen bei
+  der Anmeldung (Status nach der automatischen Entscheidung, Eingangs-Mail),
+  bei Bestätigen/Ablehnen in der Liste (mit oder ohne Mail), bei einer
+  Statusänderung im Bearbeiten (ohne Mail) und bei der Absage per Link
+  (ohne Mail); gespeichert in `status_log` (§8). Darunter die ganze
+  Nachricht, dann Bearbeiten und Löschen. Alle Daten werden mit der Liste
+  geladen (je eine Abfrage für Aufteilung und Verlauf aller Anmeldungen);
+  auf dem Handy bleiben die Details in Bildschirmbreite.
 - Filter nach Status, Suche nach Name / Ort / E-Mail.
 - **Dublettenmarkierung:** Hinweis-Symbol bei gleicher E-Mail oder gleichem
   Vor- + Nachnamen innerhalb derselben Veranstaltung (Vergleich

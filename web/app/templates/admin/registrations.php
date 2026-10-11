@@ -143,18 +143,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
             <tr class="registration-details" id="details-<?= (int) $row['id'] ?>" hidden>
               <td colspan="7">
                 <div class="row g-3">
-                  <div class="col-md-4">
-                    <div class="small fw-semibold mb-1">Personen</div>
-                    <dl class="row small mb-0 tabular-nums">
-                      <?php foreach ($eventGroups as $group => $groupName): ?>
-                        <dt class="col-8 fw-normal"><?= e($groupName) ?></dt>
-                        <dd class="col-4 text-end mb-0"><?= (int) $row[$group] ?></dd>
-                      <?php endforeach ?>
-                      <dt class="col-8 border-top pt-1">Gesamt</dt>
-                      <dd class="col-4 text-end border-top pt-1 mb-0 fw-semibold"><?= (int) $row['person_count'] ?></dd>
-                    </dl>
-                  </div>
-                  <div class="col-md-8">
+                  <div class="col-lg-8">
                     <div class="small fw-semibold mb-1">
                       Programmpunkte
                       <span class="fw-normal text-body-secondary">
@@ -170,7 +159,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
                             <tr>
                               <th>Programmpunkt</th>
                               <?php foreach ($rowGroups as $groupName): ?>
-                                <th class="text-end"><?= e($groupName) ?></th>
+                                <th class="text-end text-nowrap"><?= e($groupName) ?></th>
                               <?php endforeach ?>
                               <th class="text-end">Summe</th>
                               <?php if ($eventHasChildcare): ?>
@@ -206,6 +195,27 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
                       </div>
                     <?php endif ?>
                   </div>
+                  <div class="col-lg-4">
+                    <div class="small fw-semibold mb-1">Verlauf</div>
+                    <?php if (!$row['status_log']): ?>
+                      <p class="small text-body-secondary mb-0">Noch keine Einträge.</p>
+                    <?php else: ?>
+                      <table class="table table-sm small mb-0 tabular-nums registration-details-table">
+                        <thead>
+                          <tr><th>Datum</th><th>Status</th><th>E-Mail</th></tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ($row['status_log'] as $entry): ?>
+                            <tr>
+                              <td class="text-nowrap"><?= e(format_utc_datetime($entry['changed_at'], $event['timezone'])) ?></td>
+                              <td><?= e(STATUS_LABELS[$entry['status']] ?? $entry['status']) ?></td>
+                              <td><?= $entry['mail'] === 'sent' ? 'ja' : ($entry['mail'] === 'failed' ? '<span class="text-danger-emphasis">fehlgeschlagen</span>' : 'nein') ?></td>
+                            </tr>
+                          <?php endforeach ?>
+                        </tbody>
+                      </table>
+                    <?php endif ?>
+                  </div>
                   <?php if (($row['message'] ?? '') !== ''): ?>
                     <div class="col-12">
                       <div class="small fw-semibold mb-1">Nachricht</div>
@@ -213,7 +223,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
                     </div>
                   <?php endif ?>
                   <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
-                    <a href="<?= e(url('admin/registration.php?id=' . (int) $row['id'])) ?>" class="btn btn-sm btn-outline-pink">Bearbeiten</a>
+                    <a href="<?= e(url('admin/registration.php?id=' . (int) $row['id'])) ?>" class="btn btn-sm btn-outline-orange">Bearbeiten</a>
                     <button type="button" class="btn btn-sm btn-outline-danger"
                             data-bs-toggle="modal" data-bs-target="#delete-registration-modal"
                             data-id="<?= (int) $row['id'] ?>" data-name="<?= e($name) ?>"

@@ -34,12 +34,15 @@ if (is_post()) {
             if ($exceeds) {
                 flash('warning', 'Hinweis: Mit dieser Bestätigung ist das Kontingent überschritten.');
             }
-            if (post_string('send_mail') === '1' && !$registration['no_email'] && $registration['email']) {
+            $sent = false;
+            $sendMail = post_string('send_mail') === '1';
+            if ($sendMail && !$registration['no_email'] && $registration['email']) {
                 $sent = mail_registration($newStatus, registration_find((int) $registration['id']), $event);
                 $sent
                     ? flash('success', 'E-Mail an ' . $registration['email'] . ' gesendet.')
                     : flash('danger', 'E-Mail an ' . $registration['email'] . ' konnte nicht gesendet werden (siehe Mail-Status).');
             }
+            registration_log_status((int) $registration['id'], $newStatus, mail_outcome($registration, $sendMail, $sent));
             break;
         case 'delete':
             registration_delete((int) $registration['id']);
@@ -55,8 +58,10 @@ $rows = $event !== null ? registration_list((int) $event['id'], $status, $search
 if ($event !== null) {
     $mailStatus = mail_status_for_event((int) $event['id']);
     $slotCounts = registration_slot_counts_for_event((int) $event['id']);
+    $statusLog = status_log_for_event((int) $event['id']);
     foreach ($rows as &$row) {
         $row['slot_counts'] = $slotCounts[(int) $row['id']] ?? [];
+        $row['status_log'] = $statusLog[(int) $row['id']] ?? [];
         // Für den Bestätigen-Dialog: würde die Bestätigung das Kontingent überschreiten?
         $row['exceeds_quota'] = $row['status'] !== 'confirmed' && registration_exceeds_quota($event, $row);
         $row['mail'] = $mailStatus[(int) $row['id']] ?? null;

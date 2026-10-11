@@ -10,7 +10,7 @@ final class SchemaTest extends DbTestCase
 
         $this->assertSame([
             'event_slots', 'events', 'mail_log', 'rate_limit',
-            'registration_slots', 'registrations', 'settings',
+            'registration_slots', 'registrations', 'settings', 'status_log',
         ], $tables);
     }
 

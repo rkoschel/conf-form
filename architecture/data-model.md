@@ -88,6 +88,17 @@ CREATE TABLE mail_log (
   error           TEXT
 );
 
+CREATE TABLE status_log (                       -- Verlauf je Anmeldung (§7.2)
+  id              INTEGER PRIMARY KEY,
+  registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+  changed_at      TEXT NOT NULL,                -- UTC, ISO 8601
+  status          TEXT NOT NULL CHECK (status IN
+                    ('pending','confirmed','cancelled','rejected')),
+  mail            TEXT NOT NULL DEFAULT 'none'  -- sent | failed | none
+                    CHECK (mail IN ('sent','failed','none'))
+);
+CREATE INDEX status_log_registration ON status_log(registration_id);
+
 CREATE TABLE rate_limit (
   ip_hash    TEXT NOT NULL,                     -- HMAC-SHA256(IP, app_secret)
   created_at TEXT NOT NULL                      -- UTC, ISO 8601
@@ -105,7 +116,11 @@ CREATE INDEX rate_limit_lookup ON rate_limit(ip_hash, created_at);
   kids_0_2 → group_1…group_5, childcare_kids_* → childcare_group_3…5,
   events.person_groups; benötigt SQLite ≥ 3.25 für RENAME COLUMN;
   Version 4: events.allow_split, registrations.message;
-  Version 5: event_slots.target_groups).
+  Version 5: event_slots.target_groups;
+  Version 6: Tabelle status_log, für bestehende Anmeldungen aus mail_log
+  gefüllt – Eingangs-Mails als Status „bestätigt“ bzw. „offen“, Admin-Mails
+  mit ihrem Status, success → sent/failed; Statuswechsel ohne Mail vor
+  Version 6 sind nicht rekonstruierbar).
 - Existiert die DB-Datei nicht, wird sie beim ersten Aufruf aus
   `schema.sql` angelegt.
 - Technische Zeitstempel (`created_at`, `sent_at`) in UTC; Anzeige in der
