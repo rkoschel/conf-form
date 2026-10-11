@@ -221,7 +221,7 @@ $sections = [
       <dd>In jeder Zeile: Bestätigen, Details, Ablehnen. Ist eine Anmeldung schon bestätigt bzw. abgelehnt, ist der passende Knopf grau; der andere bleibt nutzbar (z. B. eine bestätigte Anmeldung doch ablehnen). Bearbeiten und Löschen findest du unter „Details“.</dd>
       <dt>Details</dt>
       <dd>Klappt unter der Anmeldung auf: links je Programmpunkt, wer dabei ist (je Gruppe) und wie viele Kinder in der Kinderbetreuung sind; rechts der <strong>Verlauf</strong> mit Datum, Status und ob eine E-Mail ging (ja, nein oder fehlgeschlagen) – von der Anmeldung über Bestätigen/Ablehnen und Änderungen im Bearbeiten bis zur Absage per Link. Darunter die ganze Nachricht sowie Bearbeiten und Löschen. Für Anmeldungen von vor diesem Update ist der Verlauf nur so weit da, wie Mails verschickt wurden.</dd>
-      <dt>Mögliche Dubletten (⚠)</dt>
+      <dt>Mögliche Dubletten (2️⃣)</dt>
       <dd>Markiert werden Anmeldungen derselben Veranstaltung mit gleicher E-Mail-Adresse oder gleichem Vor- und Nachnamen – ohne Rücksicht auf Groß-/Kleinschreibung und Leerzeichen, über alle Status. Das ist nur ein Hinweis; es wird nichts automatisch zusammengeführt.</dd>
 
       <dt>Nachricht an uns</dt>

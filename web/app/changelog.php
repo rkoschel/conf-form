@@ -28,6 +28,7 @@ const CHANGELOG = [
             'Auswertungen: „Anfragen nach Status“ steht ganz unten.',
             'Veranstaltungen: neue Spalte „Belegung“ mit der bestätigten Belegung in Prozent.',
             'Anfragen: Knöpfe Bestätigen (grün), Details (blau), Ablehnen (gelb); bereits ausgeführte Aktion grau. Bearbeiten (orange) und Löschen unter „Details“.',
+            'Anfragen: Mögliche Dubletten mit 2️⃣ vor dem Namen statt ⚠ dahinter.',
         ],
     ],
     [

@@ -202,6 +202,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $body = $this->get('/admin/registrations.php?q=doppelt')['body'];
 
         $this->assertSame(2, substr_count($body, 'aria-label="Mögliche Dublette"'));
+        $this->assertMatchesRegularExpression('#aria-label="Mögliche Dublette">2️⃣</span>\s*Doris Doppelt#', $body, 'Symbol vor dem Namen');
     }
 
     public function testFiltersByStatusAndSearch(): void

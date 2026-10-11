@@ -49,7 +49,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
 
   <p class="small text-body-secondary mb-2">
     <?= count($rows) ?> <?= count($rows) === 1 ? 'Anfrage' : 'Anfragen' ?>
-    · <strong>fett</strong> = bevorzugter Ort · ⚠ = mögliche Dublette
+    · <strong>fett</strong> = bevorzugter Ort · 2️⃣ = mögliche Dublette
   </p>
 
   <?php if (!$rows): ?>
@@ -74,11 +74,11 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
             <tr>
               <td class="text-nowrap small"><?= e(format_utc_datetime($row['created_at'], $event['timezone'])) ?></td>
               <td>
-                <?= e($name) ?>
                 <?php if ($row['is_duplicate']): ?>
-                  <span class="text-warning-emphasis" title="Mögliche Dublette: gleiche E-Mail oder gleicher Name"
-                        aria-label="Mögliche Dublette">⚠</span>
+                  <span title="Mögliche Dublette: gleiche E-Mail oder gleicher Name"
+                        aria-label="Mögliche Dublette">2️⃣</span>
                 <?php endif ?>
+                <?= e($name) ?>
                 <div class="small text-body-secondary"><?= e($row['no_email'] ? 'Tel. ' . $row['phone'] : $row['email']) ?></div>
                 <?php if (($row['message'] ?? '') !== ''): ?>
                   <div class="small text-body-secondary message-preview" title="<?= e($row['message']) ?>">

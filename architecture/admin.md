@@ -121,7 +121,7 @@ hervorgehoben), Status, Mail-Status, Aktionen.
   geladen (je eine Abfrage für Aufteilung und Verlauf aller Anmeldungen);
   auf dem Handy bleiben die Details in Bildschirmbreite.
 - Filter nach Status, Suche nach Name / Ort / E-Mail.
-- **Dublettenmarkierung:** Hinweis-Symbol bei gleicher E-Mail oder gleichem
+- **Dublettenmarkierung:** Symbol 2️⃣ vor dem Namen bei gleicher E-Mail oder gleichem
   Vor- + Nachnamen innerhalb derselben Veranstaltung (Vergleich
   case-insensitive, getrimmt; alle Status zählen mit).
 - Kein CSV-Export in Version 1.
