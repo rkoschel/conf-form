@@ -87,6 +87,33 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->assertStringContainsString('>bestätigt</span>', $body);
     }
 
+    public function testDetailsShowPeoplePerGroupAndSlot(): void
+    {
+        $id = $this->registration(['first_name' => 'Dora', 'last_name' => 'Details', 'group_1' => 2, 'group_5' => 1,
+            'custom_split' => 1, 'message' => "Zeile 1\nZeile 2"]);
+        $this->serverDb()->prepare('INSERT INTO registration_slots (registration_id, slot_id, group_1, group_5) VALUES (?, ?, 2, 1)')
+            ->execute([$id, self::$slots['Vormittag']]);
+        $this->serverDb()->prepare('INSERT INTO registration_slots (registration_id, slot_id, group_1) VALUES (?, ?, 1)')
+            ->execute([$id, self::$slots['Nachmittag']]);
+
+        $body = $this->get('/admin/?q=Details')['body'];
+
+        $this->assertStringContainsString('data-details-toggle', $body);
+        $this->assertStringContainsString('aria-controls="details-' . $id . '">Details</button>', $body);
+        $start = strpos($body, '<tr class="registration-details" id="details-' . $id . '" hidden>');
+        $this->assertNotFalse($start, 'Detailzeile, anfangs zugeklappt');
+        // Suche liefert nur diese Anmeldung: Rest der Tabelle = Details
+        $raw = substr($body, (int) $start, (int) strpos($body, '</table>', (int) strpos($body, 'Nachricht</div>', (int) $start)) - (int) $start);
+        $details = preg_replace('/\s+/', ' ', $raw);
+        $this->assertStringContainsString('individuell aufgeteilt', $details);
+        $this->assertMatchesRegularExpression('#<th class="text-end">Erwachsene</th> <th class="text-end">Kindergruppe 3</th> <th class="text-end">Summe</th>#', $details, 'nur Gruppen mit Personen');
+        $this->assertStringNotContainsString('>Jugendliche</th>', $details);
+        $this->assertMatchesRegularExpression('#10:00 Vormittag</td> <td class="text-end">2</td> <td class="text-end">1</td> <td class="text-end fw-semibold">3</td>#', $details);
+        $this->assertMatchesRegularExpression('#14:00 Nachmittag</td> <td class="text-end">1</td> <td class="text-end">0</td> <td class="text-end fw-semibold">1</td>#', $details);
+        $this->assertMatchesRegularExpression('#Gesamt</dt> <dd[^>]*>3</dd>#', $details);
+        $this->assertStringContainsString("Zeile 1\nZeile 2", $raw, 'ganze Nachricht');
+    }
+
     public function testListShowsMessage(): void
     {
         $this->registration(['first_name' => 'Nina', 'last_name' => 'Nachricht', 'message' => 'Bitte <Rampe> einplanen']);

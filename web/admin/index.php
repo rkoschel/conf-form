@@ -54,7 +54,9 @@ if (is_post()) {
 $rows = $event !== null ? registration_list((int) $event['id'], $status, $search) : [];
 if ($event !== null) {
     $mailStatus = mail_status_for_event((int) $event['id']);
+    $slotCounts = registration_slot_counts_for_event((int) $event['id']);
     foreach ($rows as &$row) {
+        $row['slot_counts'] = $slotCounts[(int) $row['id']] ?? [];
         // Für den Bestätigen-Dialog: würde die Bestätigung das Kontingent überschreiten?
         $row['exceeds_quota'] = $row['status'] !== 'confirmed' && registration_exceeds_quota($event, $row);
         $row['mail'] = $mailStatus[(int) $row['id']] ?? null;

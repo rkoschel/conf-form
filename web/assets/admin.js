@@ -166,3 +166,20 @@ if (settingsTabs && window.bootstrap) {
     tabInput.value = fromHash.id.replace(/^tab-/, '');
   }
 }
+
+// Anfragen: Details einer Anmeldung auf- und zuklappen (Personen je Gruppe und Programmpunkt)
+document.addEventListener('click', (event) => {
+  const toggle = event.target.closest('[data-details-toggle]');
+  if (!toggle) {
+    return;
+  }
+  const row = document.getElementById(toggle.getAttribute('aria-controls'));
+  if (!row) {
+    return;
+  }
+  const open = row.hidden;
+  row.hidden = !open;
+  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  toggle.classList.toggle('active', open);
+  row.previousElementSibling?.classList.toggle('details-open', open);
+});

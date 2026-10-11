@@ -382,6 +382,29 @@ function registration_slot_counts(int $registrationId): array
     return $slots;
 }
 
+/**
+ * Aufteilung aller Anmeldungen einer Veranstaltung in einer Abfrage (Details
+ * in der Anfragen-Liste, SPEC §7.2).
+ *
+ * @return array<int, array<int, array<string, int>>> registration_id → slot_id → wie registration_slot_counts()
+ */
+function registration_slot_counts_for_event(int $eventId): array
+{
+    $stmt = db()->prepare(
+        'SELECT rs.registration_id, rs.slot_id, rs.group_1, rs.group_2, rs.group_3, rs.group_4, rs.group_5,
+                rs.childcare_group_3, rs.childcare_group_4, rs.childcare_group_5
+         FROM registration_slots rs JOIN registrations r ON r.id = rs.registration_id
+         WHERE r.event_id = ?'
+    );
+    $stmt->execute([$eventId]);
+    $counts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $counts[(int) $row['registration_id']][(int) $row['slot_id']] =
+            array_map('intval', array_diff_key($row, ['registration_id' => 0, 'slot_id' => 0]));
+    }
+    return $counts;
+}
+
 /** Absage per Link (§6): nur aus „offen“ oder „bestätigt“. Kein Nachrücken. */
 function registration_cancel(int $id): bool
 {

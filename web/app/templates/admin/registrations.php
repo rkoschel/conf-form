@@ -6,6 +6,9 @@ $statusBadge = [
     'cancelled' => 'text-bg-secondary',
     'rejected' => 'text-bg-danger',
 ];
+// Details je Anmeldung: Personen je Gruppe und je Programmpunkt (aufklappbar, admin.js)
+$eventGroups = $event !== null ? event_groups($event) : [];
+$eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn ($slot) => !empty($slot['childcare']));
 ?>
 <h1 class="h3 mb-3">Anfragen</h1>
 
@@ -118,11 +121,92 @@ $statusBadge = [
                             data-exceeds="<?= $action === 'confirm' && $row['exceeds_quota'] ? '1' : '0' ?>"><?= $label ?></button>
                   <?php endif ?>
                 <?php endforeach ?>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-details-toggle
+                        aria-expanded="false" aria-controls="details-<?= (int) $row['id'] ?>">Details</button>
                 <a href="<?= e(url('admin/registration.php?id=' . (int) $row['id'])) ?>" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
                 <button type="button" class="btn btn-sm btn-outline-danger"
                         data-bs-toggle="modal" data-bs-target="#delete-registration-modal"
                         data-id="<?= (int) $row['id'] ?>" data-name="<?= e($name) ?>"
                         data-count="<?= (int) $row['person_count'] ?>">Löschen</button>
+              </td>
+            </tr>
+            <?php
+            // Spalten: nur Gruppen mit Personen in dieser Anmeldung
+            $rowGroups = array_filter($eventGroups, fn ($group) => (int) $row[$group] > 0, ARRAY_FILTER_USE_KEY);
+            ?>
+            <tr class="registration-details" id="details-<?= (int) $row['id'] ?>" hidden>
+              <td colspan="7">
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="small fw-semibold mb-1">Personen</div>
+                    <dl class="row small mb-0 tabular-nums">
+                      <?php foreach ($eventGroups as $group => $groupName): ?>
+                        <dt class="col-8 fw-normal"><?= e($groupName) ?></dt>
+                        <dd class="col-4 text-end mb-0"><?= (int) $row[$group] ?></dd>
+                      <?php endforeach ?>
+                      <dt class="col-8 border-top pt-1">Gesamt</dt>
+                      <dd class="col-4 text-end border-top pt-1 mb-0 fw-semibold"><?= (int) $row['person_count'] ?></dd>
+                    </dl>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="small fw-semibold mb-1">
+                      Programmpunkte
+                      <span class="fw-normal text-body-secondary">
+                        (<?= $row['custom_split'] ? 'individuell aufgeteilt' : 'angekreuzt, gilt für die ganze Anmeldung' ?>)
+                      </span>
+                    </div>
+                    <?php if (!$event['slots']): ?>
+                      <p class="small text-body-secondary mb-0">Keine Programmpunkte.</p>
+                    <?php else: ?>
+                      <div class="table-responsive">
+                        <table class="table table-sm small mb-0 tabular-nums registration-details-table">
+                          <thead>
+                            <tr>
+                              <th>Programmpunkt</th>
+                              <?php foreach ($rowGroups as $groupName): ?>
+                                <th class="text-end"><?= e($groupName) ?></th>
+                              <?php endforeach ?>
+                              <th class="text-end">Summe</th>
+                              <?php if ($eventHasChildcare): ?>
+                                <th class="text-end">Kinderbetreuung</th>
+                              <?php endif ?>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <?php foreach ($event['slots'] as $slot): ?>
+                              <?php
+                              $counts = $row['slot_counts'][(int) $slot['id']] ?? [];
+                              $target = $slot['target_groups'] ?? [];
+                              $sum = array_sum(array_intersect_key($counts, PERSON_GROUPS));
+                              $care = array_sum(array_filter($counts, fn ($key) => str_starts_with($key, 'childcare_'), ARRAY_FILTER_USE_KEY));
+                              ?>
+                              <tr class="<?= $sum + $care === 0 ? 'text-body-secondary' : '' ?>">
+                                <td><?= e($slot['time']) ?> <?= e($slot['label']) ?></td>
+                                <?php foreach ($rowGroups as $group => $groupName): ?>
+                                  <td class="text-end"><?= $target && !in_array($group, $target, true) ? '–' : (int) ($counts[$group] ?? 0) ?></td>
+                                <?php endforeach ?>
+                                <td class="text-end fw-semibold"><?= $sum ?></td>
+                                <?php if ($eventHasChildcare): ?>
+                                  <td class="text-end"><?= !empty($slot['childcare']) ? $care : '–' ?></td>
+                                <?php endif ?>
+                              </tr>
+                            <?php endforeach ?>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="form-text">
+                        Summe = Personen beim Programmpunkt<?= $eventHasChildcare ? ', ohne Kinder in der Kinderbetreuung' : '' ?>.
+                        „–“ = Gruppe gehört nicht zur Zielgruppe bzw. keine Betreuung.
+                      </div>
+                    <?php endif ?>
+                  </div>
+                  <?php if (($row['message'] ?? '') !== ''): ?>
+                    <div class="col-12">
+                      <div class="small fw-semibold mb-1">Nachricht</div>
+                      <div class="small text-pre-line"><?= e($row['message']) ?></div>
+                    </div>
+                  <?php endif ?>
+                </div>
               </td>
             </tr>
           <?php endforeach ?>

@@ -214,6 +214,8 @@ $sections = [
       <dt>Löschen</dt>
       <dd>Endgültig, inklusive Programmpunkt-Angaben und Mail-Protokoll, ohne E-Mail. Für eine nachvollziehbare Absage besser „Ablehnen“ verwenden.</dd>
 
+      <dt>Details</dt>
+      <dd>Klappt unter der Anmeldung auf: Personen je Gruppe und je Programmpunkt (wer beim Programmpunkt ist, wie viele Kinder in der Kinderbetreuung sind), ob angekreuzt oder individuell aufgeteilt, und die ganze Nachricht. Nochmal klicken klappt wieder zu.</dd>
       <dt>Mögliche Dubletten (⚠)</dt>
       <dd>Markiert werden Anmeldungen derselben Veranstaltung mit gleicher E-Mail-Adresse oder gleichem Vor- und Nachnamen – ohne Rücksicht auf Groß-/Kleinschreibung und Leerzeichen, über alle Status. Das ist nur ein Hinweis; es wird nichts automatisch zusammengeführt.</dd>
 

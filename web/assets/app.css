@@ -386,3 +386,23 @@
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* Anfragen: aufgeklappte Details direkt unter der Zeile, leicht abgesetzt */
+.registration-details > td {
+  background: var(--bs-tertiary-bg);
+  padding: 0.75rem 1rem 1rem;
+}
+tr.details-open > td {
+  border-bottom-color: transparent;
+  background: var(--bs-tertiary-bg);
+}
+.registration-details-table {
+  --bs-table-bg: transparent;
+}
+/* Die Anfragen-Tabelle scrollt auf dem Handy seitlich; die Details bleiben
+   trotzdem in Bildschirmbreite sichtbar (eigene Tabelle scrollt bei Bedarf) */
+.registration-details > td > .row {
+  position: sticky;
+  left: 1rem;
+  max-width: calc(100vw - 4rem);
+}

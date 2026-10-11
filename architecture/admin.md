@@ -84,7 +84,16 @@ hervorgehoben), Status, Mail-Status, Aktionen.
 
 - Status (UI): offen · bestätigt · storniert · abgelehnt
   (DB: `pending` · `confirmed` · `cancelled` · `rejected`)
-- Aktionen: Bestätigen, Ablehnen, Bearbeiten, Löschen.
+- Aktionen: Bestätigen, Ablehnen, **Details**, Bearbeiten, Löschen.
+- **Details** klappt unter der Zeile auf (erneut klicken klappt zu):
+  Personen je Personengruppe der Veranstaltung mit Gesamtzahl; Tabelle je
+  Programmpunkt mit den Personen je Gruppe (nur Gruppen mit Personen in
+  dieser Anmeldung), Summe beim Programmpunkt und – falls die Veranstaltung
+  Kinderbetreuung hat – Kinder in der Betreuung; „–“ für Gruppen außerhalb
+  der Zielgruppe bzw. Programmpunkte ohne Betreuung; Hinweis, ob
+  angekreuzt oder individuell aufgeteilt; die ganze Nachricht. Alle Daten
+  werden mit der Liste geladen (eine Abfrage für die Aufteilung aller
+  Anmeldungen); auf dem Handy bleiben die Details in Bildschirmbreite.
 - Filter nach Status, Suche nach Name / Ort / E-Mail.
 - **Dublettenmarkierung:** Hinweis-Symbol bei gleicher E-Mail oder gleichem
   Vor- + Nachnamen innerhalb derselben Veranstaltung (Vergleich
