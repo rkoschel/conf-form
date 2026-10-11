@@ -18,13 +18,7 @@ Telefon: <?= $registration['phone'] ?> (keine E-Mail-Adresse)
 
 <?php require __DIR__ . '/_people.php' ?>
 
-<?php if ($slots): ?>
-Programmpunkte (Personen beim Programmpunkt):
-<?php foreach ($slots as $line): ?>
-  <?= $line ?>
-
-<?php endforeach ?>
-<?php endif ?>
+<?php require __DIR__ . '/_slots.php' ?>
 <?php if (trim((string) $registration['message']) !== ''): ?>
 
 Nachricht:

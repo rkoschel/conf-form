@@ -7,6 +7,8 @@ Anmeldung bestätigt: <?= $event['title'] ?>
 
 <?php require __DIR__ . '/_people.php' ?>
 
+<?php require __DIR__ . '/_slots.php' ?>
+
 <?php require __DIR__ . '/_cancel.php' ?>
 
 <?php require __DIR__ . '/_signature.php' ?>

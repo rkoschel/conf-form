@@ -69,21 +69,6 @@ function mail_admin_notify(array $registration, array $event): bool
         $vars['status_label'] = STATUS_LABELS[$registration['status']] ?? (string) $registration['status'];
         $vars['congregation_label'] = setting_text('congregation_label');
         $vars['admin_url'] = app_url('admin/registration.php?id=' . (int) $registration['id']);
-        $counts = registration_slot_counts((int) $registration['id']);
-        $vars['slots'] = [];
-        foreach ($event['slots'] ?? [] as $slot) {
-            $slotCounts = $counts[(int) $slot['id']] ?? [];
-            $present = array_sum(array_intersect_key($slotCounts, PERSON_GROUPS));
-            $childcare = array_sum(array_filter(
-                $slotCounts,
-                fn ($key) => str_starts_with((string) $key, 'childcare_'),
-                ARRAY_FILTER_USE_KEY
-            ));
-            if ($present > 0 || $childcare > 0) {
-                $vars['slots'][] = $slot['time'] . ' ' . $slot['label'] . ': ' . $present
-                    . ($childcare > 0 ? ' (+ ' . $childcare . ' in der Kinderbetreuung)' : '');
-            }
-        }
         $mail = mail_render('admin_notify', $vars);
         $email = trim((string) ($registration['email'] ?? ''));
         mail_send(
@@ -126,6 +111,7 @@ function mail_vars(array $registration, array $event): array
         'event_date' => $eventDate,
         'people' => $people,
         'cancel_url' => app_url('cancel/?t=' . $registration['cancel_token']),
+        'slots' => mail_slot_lines($registration, $event),
         // Platzhalter für die einstellbaren Texte (SETTING_TEXTS, 'mail')
         'placeholders' => [
             '{first_name}' => (string) $registration['first_name'],
@@ -136,6 +122,43 @@ function mail_vars(array $registration, array $event): array
             '{organizer}' => $organizer !== '' ? $organizer : setting_text('mail_organizer_fallback'),
         ],
     ];
+}
+
+/**
+ * Besuchte Programmpunkte einer Anmeldung als Textzeilen für Mails (SPEC §9),
+ * z. B. „10:00 Uhr Vortrag: 3 Personen, dazu 1 Kind in der Kinderbetreuung“.
+ * Programmpunkte ohne Personen der Anmeldung entfallen.
+ *
+ * @param array<string, mixed> $registration Zeile aus registrations
+ * @param array<string, mixed> $event        Veranstaltung (slots werden bei Bedarf geladen)
+ * @return list<string>
+ */
+function mail_slot_lines(array $registration, array $event): array
+{
+    $slots = $event['slots'] ?? event_slots((int) $event['id']);
+    $counts = registration_slot_counts((int) $registration['id']);
+    $lines = [];
+    foreach ($slots as $slot) {
+        $slotCounts = $counts[(int) $slot['id']] ?? [];
+        $present = array_sum(array_intersect_key($slotCounts, PERSON_GROUPS));
+        $childcare = array_sum(array_filter(
+            $slotCounts,
+            fn ($key) => str_starts_with((string) $key, 'childcare_'),
+            ARRAY_FILTER_USE_KEY
+        ));
+        if ($present === 0 && $childcare === 0) {
+            continue;
+        }
+        $parts = [];
+        if ($present > 0) {
+            $parts[] = $present . ($present === 1 ? ' Person' : ' Personen');
+        }
+        if ($childcare > 0) {
+            $parts[] = ($present > 0 ? 'dazu ' : '') . $childcare . ($childcare === 1 ? ' Kind' : ' Kinder') . ' in der Kinderbetreuung';
+        }
+        $lines[] = $slot['time'] . ' Uhr ' . $slot['label'] . ': ' . implode(', ', $parts);
+    }
+    return $lines;
 }
 
 /**

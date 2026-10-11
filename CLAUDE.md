@@ -97,7 +97,7 @@ Dauerhaft relevante Schnittstellen werden zusätzlich unten eingetragen.
 | §7 | `admin_init()`, `admin_render()` in `web/app/admin.php` | Admin-Seiten (`no-store`, Session, Layout) |
 | §11 | `DbTestCase::createEvent()`, `rowCount()`; `HttpTestCase` mit Cookies/Session, `csrfToken($path)`, `clearCookies()`, `serverDb()` (mit `db($this->serverDb())` als App-DB setzen) | Test-Hilfen |
 | §5.2 | `spam_fields()`, `spam_check()`, `spam_message()` in `web/app/spam.php` | Honeypot, signierter Zeitstempel, Rate-Limit; bei `SPAM_HONEYPOT` Antwort wie bei Erfolg |
-| §5.3, §7.3, §9 | `mail_registration($type, $registration, $event)` in `web/app/mailer.php` | Mail senden und in `mail_log` protokollieren; ohne E-Mail kein Versand |
+| §5.3, §7.3, §9 | `mail_registration($type, $registration, $event)` in `web/app/mailer.php` | Mail senden und in `mail_log` protokollieren; ohne E-Mail kein Versand; `mail_slot_lines()` liefert die besuchten Programmpunkte als Textzeilen (Partial `templates/mail/_slots.php`) |
 | §7.5, §9 | `mail_test($to)`, `mail_debug_collector(&$log)`, `mail_config_summary()` in `web/app/mailer.php`; `mail_send(…, ?Closure $debug)` | Testmail mit SMTP-Protokoll (Zugangsdaten ausgeblendet, nicht gespeichert), Anzeige der Mail-Einstellungen ohne Passwort; Tab „Mailversand“ in den Einstellungen |
 | §7.5, §9 | `mail_admin_notify($registration, $event)` in `mailer.php`; `admin_notify_settings()`, `admin_notify_set()`, `admin_notify_validate()` in `settings.php`; Template `templates/mail/admin_notify.php` | Benachrichtigung an den Admin bei neuer Anmeldung (ein-/ausschaltbar, Adresse einstellbar); Fehler nur ins PHP-Fehlerlog, nie in `mail_log` |
 | §8 | `STATUS_LABELS`, `MAIL_TYPES` in `web/app/labels.php` | zentrale deutsche Bezeichnungen |
