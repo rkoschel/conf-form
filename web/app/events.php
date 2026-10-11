@@ -462,12 +462,18 @@ function event_slots(int $eventId): array
     );
 }
 
-/** @return list<array<string, mixed>> alle Veranstaltungen, neueste zuerst, mit registration_count */
+/**
+ * @return list<array<string, mixed>> alle Veranstaltungen, neueste zuerst, mit registration_count
+ *     und confirmed_people (bestätigte Personen aller Gruppen, für die Belegung)
+ */
 function event_list(): array
 {
     return db()->query(
-        'SELECT e.*, (SELECT COUNT(*) FROM registrations r WHERE r.event_id = e.id) AS registration_count
-         FROM events e ORDER BY e.date DESC, e.id DESC'
+        "SELECT e.*,
+                (SELECT COUNT(*) FROM registrations r WHERE r.event_id = e.id) AS registration_count,
+                (SELECT COALESCE(SUM(r.group_1 + r.group_2 + r.group_3 + r.group_4 + r.group_5), 0)
+                 FROM registrations r WHERE r.event_id = e.id AND r.status = 'confirmed') AS confirmed_people
+         FROM events e ORDER BY e.date DESC, e.id DESC"
     )->fetchAll();
 }
 

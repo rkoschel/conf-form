@@ -20,7 +20,7 @@ final class PagesTest extends HttpTestCase
             'Infoseite' => ['/'],
             'Anmeldung' => ['/register/'],
             'Absage' => ['/cancel/'],
-            'Admin' => ['/admin/'],
+            'Admin' => ['/admin/stats.php'],
         ];
     }
 
@@ -79,7 +79,7 @@ final class PagesTest extends HttpTestCase
 
     public function testAdminHasNoPublicBar(): void
     {
-        $this->assertStringNotContainsString('public-bar', $this->get('/admin/')['body']);
+        $this->assertStringNotContainsString('public-bar', $this->get('/admin/stats.php')['body']);
     }
 
     public function testInfoPageSetsNoCookie(): void
@@ -98,5 +98,13 @@ final class PagesTest extends HttpTestCase
     {
         $this->assertSame(403, $this->get('/app/schema.sql')['status']);
         $this->assertSame(403, $this->get('/app/bootstrap.php')['status']);
+    }
+
+    public function testAdminStartPageIsStats(): void
+    {
+        $response = $this->get('/admin/');
+
+        $this->assertSame(303, $response['status']);
+        $this->assertSame('/admin/stats.php', $response['headers']['location'] ?? null);
     }
 }

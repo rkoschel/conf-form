@@ -28,7 +28,7 @@ if (is_post()) {
         if ($status === 'confirmed' && registration_exceeds_quota($event, $data + ['id' => $id])) {
             flash('warning', 'Hinweis: Mit dieser Anmeldung ist das Kontingent überschritten.');
         }
-        redirect('admin/?event=' . (int) $event['id']);
+        redirect('admin/registrations.php?event=' . (int) $event['id']);
     }
 } else {
     $form = registration_form_values($registration, registration_slot_counts($id));
@@ -36,7 +36,7 @@ if (is_post()) {
 
 admin_render('registration_form', [
     'title' => 'Anmeldung bearbeiten',
-    'active' => 'admin/',
+    'active' => 'admin/registrations.php',
     'event' => $event,
     'registration' => $registration,
     'form' => $form,

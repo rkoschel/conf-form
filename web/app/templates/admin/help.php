@@ -53,6 +53,8 @@ $sections = [
   <section id="veranstaltungen" class="help-section">
     <h2 class="h4">Veranstaltungen</h2>
     <dl>
+      <dt>Belegung in der Liste</dt>
+      <dd>Bestätigte Personen aller Gruppen in Prozent der maximalen Teilnehmerzahl; über 100 % rot. Offene Anfragen zählen hier nicht (siehe Auswertungen).</dd>
       <dt>Aktiv</dt>
       <dd>Es ist immer höchstens <strong>eine</strong> Veranstaltung aktiv. Aktivierst du eine, werden alle anderen deaktiviert. Infoseite und Anmeldeformular zeigen nur die aktive Veranstaltung. Ist keine aktiv, erscheint der Text aus Einstellungen → Allgemein. Aktivieren und Deaktivieren – in der Liste wie beim Speichern mit geändertem Schalter „Aktiv“ – passiert erst, nachdem du es im Dialog bestätigt hast.</dd>
 

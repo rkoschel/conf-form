@@ -1,8 +1,8 @@
 <?php
 $nav = [
-    'admin/events.php' => 'Veranstaltungen',
-    'admin/' => 'Anfragen',
     'admin/stats.php' => 'Auswertungen',
+    'admin/events.php' => 'Veranstaltungen',
+    'admin/registrations.php' => 'Anfragen',
     'admin/settings.php' => 'Einstellungen',
     'admin/help.php' => 'Hilfe',
     'admin/changes.php' => 'Versionshinweise',
@@ -13,7 +13,7 @@ $nav = [
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= e($title ?? 'Admin') ?> – Konferenz-Admin</title>
+  <title><?= e($title ?? 'Admin') ?> – Admin</title>
   <link rel="stylesheet" href="<?= e(asset('vendor/bootstrap/bootstrap.min.css')) ?>">
   <link rel="stylesheet" href="<?= e(asset('app.css')) ?>">
   <script src="<?= e(asset('theme.js')) ?>"></script>
@@ -21,7 +21,7 @@ $nav = [
 <body>
   <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
     <div class="container">
-      <a class="navbar-brand" href="<?= e(url('admin/')) ?>">Konferenz-Admin</a>
+      <a class="navbar-brand" href="<?= e(url('admin/stats.php')) ?>">Admin</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#admin-nav"
               aria-controls="admin-nav" aria-expanded="false" aria-label="Navigation umschalten">
         <span class="navbar-toggler-icon"></span>

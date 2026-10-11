@@ -83,7 +83,9 @@ Validierung (serverseitig, Fehler verhindern das Speichern):
   Vorher Bestätigungsdialog: „Veranstaltung X mit N Anmeldungen endgültig
   löschen?“
 - Liste (`admin/events.php`): Titel, Datum, Anmeldefrist, Anzahl
-  Anmeldungen, Badge „aktiv“; Aktionen Bearbeiten, Aktivieren/Deaktivieren,
+  Anmeldungen, **Belegung** (bestätigte Personen aller Gruppen in ganzen
+  Prozent der max. Teilnehmer, über 100 % rot; Tooltip „x von y Plätzen
+  bestätigt“), Badge „aktiv“; Aktionen Bearbeiten, Aktivieren/Deaktivieren,
   Löschen.
 - Nach dem Speichern Redirect auf die Liste mit Erfolgsmeldung
   (Post/Redirect/Get); bei Fehlern Formular mit Eingaben und markierten
@@ -191,6 +193,9 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
 
 ### 7.7 Auswertung (aktive bzw. gewählte Veranstaltung)
 
+- Reihenfolge auf der Admin-Seite: Kacheln (Gesamtbelegung, Anmeldungen),
+  Anwesenheit und Kinderbetreuung je Programmpunkt, zuletzt „Anfragen nach
+  Status“ (Team-Seite: eigene Bereiche, §7.8).
 - Anfragen nach Status, gezählt in **Einzelpersonen** (alle Gruppen)
   sowie Anzahl Anmeldungen.
 - **Gesamtbelegung:** bestätigte Personen aller Gruppen / max. Teilnehmer.
@@ -259,8 +264,13 @@ geheimem Link `/konferenz/team/?k=<Schlüssel>`.
 
 ### 7.9 Menü und Hilfe
 
-- Reihenfolge im Admin-Menü: Veranstaltungen, Anfragen, Auswertungen,
+- Titel des Admin-Bereichs (Navigationsleiste, Browser-Tab, Basic-Auth):
+  „Admin“.
+- Reihenfolge im Admin-Menü: Auswertungen, Veranstaltungen, Anfragen,
   Einstellungen, Hilfe, Versionshinweise (§7.10).
+- Startseite nach der Anmeldung: **Auswertungen** – `admin/` leitet auf
+  `admin/stats.php` weiter; die Anfragen liegen unter
+  `admin/registrations.php`.
 - `admin/help.php`: erklärt Admins die Logik im Hintergrund und die
   Auswirkungen von Einstellungen, gruppiert nach Aspekt (Ablauf,
   Veranstaltungen, Kontingent/automatische Bestätigung, Personengruppen, bevorzugte Orte,

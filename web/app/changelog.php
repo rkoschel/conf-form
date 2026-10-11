@@ -24,6 +24,9 @@ const CHANGELOG = [
             'Anmeldeformular: Vorschläge für die Heimatversammlung erst ab zwei Zeichen, auf Handy und Computer gleich (auch Treffer mitten im Namen).',
             'Auswertung und Team-Seite: „Personen je Ort“ als senkrechtes Balkendiagramm (bestätigt/offen, größter Ort = 100 %, ohne Zahlen, kleine Orte unter „Andere“).',
             'Auswertung und Team-Seite: Überschrift „Bestätigte Anwesenheit je Programmpunkt“ statt „Voraussichtliche …“.',
+            'Admin: Startseite nach der Anmeldung ist „Auswertungen“, ganz links im Menü; der Bereich heißt jetzt „Admin“.',
+            'Auswertungen: „Anfragen nach Status“ steht ganz unten.',
+            'Veranstaltungen: neue Spalte „Belegung“ mit der bestätigten Belegung in Prozent.',
         ],
     ],
     [

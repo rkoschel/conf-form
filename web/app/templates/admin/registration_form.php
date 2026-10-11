@@ -33,6 +33,6 @@
 
   <div class="d-flex gap-2">
     <button type="submit" class="btn btn-primary">Speichern</button>
-    <a href="<?= e(url('admin/?event=' . (int) $event['id'])) ?>" class="btn btn-outline-secondary">Abbrechen</a>
+    <a href="<?= e(url('admin/registrations.php?event=' . (int) $event['id'])) ?>" class="btn btn-outline-secondary">Abbrechen</a>
   </div>
 </form>

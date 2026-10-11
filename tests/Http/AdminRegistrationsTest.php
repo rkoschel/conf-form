@@ -65,8 +65,8 @@ final class AdminRegistrationsTest extends HttpTestCase
     /** @return array{status: int, headers: array<string, string>, body: string} */
     private function action(int $id, string $action, string $sendMail = '0'): array
     {
-        return $this->post('/admin/?event=' . $this->event(), [
-            'csrf' => $this->csrfToken('/admin/'),
+        return $this->post('/admin/registrations.php?event=' . $this->event(), [
+            'csrf' => $this->csrfToken('/admin/registrations.php'),
             'id' => (string) $id,
             'action' => $action,
             'send_mail' => $sendMail,
@@ -78,7 +78,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->registration(['first_name' => 'Lena', 'last_name' => 'Liste', 'congregation' => 'Hamm',
             'group_1' => 2, 'group_5' => 1, 'status' => 'confirmed']);
 
-        $body = $this->get('/admin/')['body'];
+        $body = $this->get('/admin/registrations.php')['body'];
 
         $this->assertStringContainsString('Lena Liste', $body);
         $this->assertStringContainsString('01.03.2027, 10:30', $body, 'Eingang in Zeitzone der Veranstaltung');
@@ -96,7 +96,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->serverDb()->prepare('INSERT INTO registration_slots (registration_id, slot_id, group_1) VALUES (?, ?, 1)')
             ->execute([$id, self::$slots['Nachmittag']]);
 
-        $body = $this->get('/admin/?q=Details')['body'];
+        $body = $this->get('/admin/registrations.php?q=Details')['body'];
 
         $this->assertStringContainsString('data-details-toggle', $body);
         $this->assertStringContainsString('aria-controls="details-' . $id . '">Details</button>', $body);
@@ -118,7 +118,7 @@ final class AdminRegistrationsTest extends HttpTestCase
     {
         $this->registration(['first_name' => 'Nina', 'last_name' => 'Nachricht', 'message' => 'Bitte <Rampe> einplanen']);
 
-        $body = $this->get('/admin/?q=Nachricht')['body'];
+        $body = $this->get('/admin/registrations.php?q=Nachricht')['body'];
 
         $this->assertStringContainsString('title="Bitte &lt;Rampe&gt; einplanen"', $body);
         $this->assertStringContainsString('message-preview', $body);
@@ -150,7 +150,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->registration(['first_name' => 'Doris', 'last_name' => 'Doppelt']);
         $this->registration(['first_name' => ' doris ', 'last_name' => 'DOPPELT', 'status' => 'cancelled']);
 
-        $body = $this->get('/admin/?q=doppelt')['body'];
+        $body = $this->get('/admin/registrations.php?q=doppelt')['body'];
 
         $this->assertSame(2, substr_count($body, 'aria-label="Mögliche Dublette"'));
     }
@@ -160,7 +160,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->registration(['first_name' => 'Filter', 'last_name' => 'Offen']);
         $this->registration(['first_name' => 'Filter', 'last_name' => 'Abgelehnt', 'status' => 'rejected']);
 
-        $body = $this->get('/admin/?status=rejected&q=filter')['body'];
+        $body = $this->get('/admin/registrations.php?status=rejected&q=filter')['body'];
 
         $this->assertStringContainsString('Filter Abgelehnt', $body);
         $this->assertStringNotContainsString('Filter Offen', $body);
@@ -176,7 +176,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->assertSame(303, $response['status']);
         $this->assertSame('confirmed', $this->stored($id)['status']);
         $this->assertSame(1, $this->mailCount($id));
-        $body = $this->get('/admin/')['body'];
+        $body = $this->get('/admin/registrations.php')['body'];
         $this->assertStringContainsString('Anmeldung von Mia Mail: bestätigt.', $body);
         $this->assertStringContainsString('gesendet.', $body);
         $this->assertMatchesRegularExpression('#Mia Mail.*?✓\s*Bestätigung#s', $body, 'Mail-Status in der Liste');
@@ -208,13 +208,13 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->registration(['group_1' => 9, 'status' => 'confirmed']);
         $id = $this->registration(['first_name' => 'Quentin', 'last_name' => 'Quote', 'group_1' => 2]);
 
-        $list = $this->get('/admin/?q=Quote')['body'];
+        $list = $this->get('/admin/registrations.php?q=Quote')['body'];
         $this->assertMatchesRegularExpression('#data-action="confirm" data-id="' . $id . '".*?data-exceeds="1"#s', $list);
 
         $this->action($id, 'confirm');
 
         $this->assertSame('confirmed', $this->stored($id)['status']);
-        $this->assertStringContainsString('Kontingent überschritten', $this->get('/admin/')['body']);
+        $this->assertStringContainsString('Kontingent überschritten', $this->get('/admin/registrations.php')['body']);
     }
 
     public function testDeleteRemovesRegistration(): void
@@ -224,7 +224,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->action($id, 'delete');
 
         $this->assertSame([], $this->stored($id));
-        $this->assertStringContainsString('Anmeldung von Lars Löschen wurde gelöscht.', $this->get('/admin/')['body']);
+        $this->assertStringContainsString('Anmeldung von Lars Löschen wurde gelöscht.', $this->get('/admin/registrations.php')['body']);
     }
 
     public function testActionsRequireCsrfToken(): void
@@ -232,7 +232,7 @@ final class AdminRegistrationsTest extends HttpTestCase
         $id = $this->registration();
         $this->clearCookies();
 
-        $response = $this->post('/admin/?event=' . $this->event(), ['id' => (string) $id, 'action' => 'delete']);
+        $response = $this->post('/admin/registrations.php?event=' . $this->event(), ['id' => (string) $id, 'action' => 'delete']);
 
         $this->assertSame(400, $response['status']);
         $this->assertNotSame([], $this->stored($id));

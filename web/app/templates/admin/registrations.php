@@ -42,7 +42,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
     <div class="col-md-3 d-flex gap-2">
       <button type="submit" class="btn btn-outline-primary">Filtern</button>
       <?php if ($status !== '' || $search !== ''): ?>
-        <a href="<?= e(url('admin/?event=' . (int) $event['id'])) ?>" class="btn btn-link">Zurücksetzen</a>
+        <a href="<?= e(url('admin/registrations.php?event=' . (int) $event['id'])) ?>" class="btn btn-link">Zurücksetzen</a>
       <?php endif ?>
     </div>
   </form>

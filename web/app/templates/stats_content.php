@@ -7,8 +7,8 @@
  * Optional $section wählt einen Teil aus (Team-Seite zeigt die Bereiche einzeln):
  * 'confirmed' = zugesagte Anmeldungen (Anwesenheit und Kinderbetreuung je
  * Programmpunkt), 'occupancy' = Gesamtbelegung und Anmeldungen (Kacheln),
- * 'status' = Anfragen nach Status. Ohne oder bei ungültigem Wert: alles in der
- * bisherigen Reihenfolge (Admin).
+ * 'status' = Anfragen nach Status. Ohne oder bei ungültigem Wert: alles (Admin):
+ * Kacheln, Anwesenheit und Kinderbetreuung je Programmpunkt, zuletzt Anfragen nach Status.
  */
 ?>
 <?php if ($event === null): ?>
@@ -147,36 +147,6 @@
 
   <?php endif ?>
 
-  <?php if ($show('status')): ?>
-  <div class="row g-4 mb-4">
-    <div class="col-lg-6">
-      <?php if ($section === 'all'): ?>
-        <h2 class="h5">Anfragen nach Status</h2>
-      <?php endif ?>
-      <table class="table table-sm">
-        <thead>
-          <tr><th>Status</th><th class="text-end">Anmeldungen</th><th class="text-end">Personen</th></tr>
-        </thead>
-        <tbody class="tabular-nums">
-          <?php foreach (STATUS_LABELS as $status => $label): ?>
-            <tr>
-              <td><?= e($label) ?></td>
-              <td class="text-end"><?= $stats['by_status'][$status]['registrations'] ?></td>
-              <td class="text-end"><?= $stats['by_status'][$status]['people'] ?></td>
-            </tr>
-          <?php endforeach ?>
-        </tbody>
-        <tfoot class="tabular-nums fw-semibold">
-          <tr><td>Gesamt</td><td class="text-end"><?= $registrations ?></td><td class="text-end"><?= $people ?></td></tr>
-        </tfoot>
-      </table>
-      <p class="small text-body-secondary">Personen = Einzelpersonen aller Personengruppen.</p>
-    </div>
-
-  </div>
-
-  <?php endif ?>
-
   <?php if ($show('confirmed')): ?>
   <h2 class="h5">Bestätigte Anwesenheit je Programmpunkt</h2>
   <?php if (!$stats['slots']): ?>
@@ -303,5 +273,34 @@
       </p>
     <?php endif ?>
   <?php endif ?>
+  <?php endif ?>
+  <?php if ($show('status')): ?>
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <?php if ($section === 'all'): ?>
+        <h2 class="h5 mt-4">Anfragen nach Status</h2>
+      <?php endif ?>
+      <table class="table table-sm">
+        <thead>
+          <tr><th>Status</th><th class="text-end">Anmeldungen</th><th class="text-end">Personen</th></tr>
+        </thead>
+        <tbody class="tabular-nums">
+          <?php foreach (STATUS_LABELS as $status => $label): ?>
+            <tr>
+              <td><?= e($label) ?></td>
+              <td class="text-end"><?= $stats['by_status'][$status]['registrations'] ?></td>
+              <td class="text-end"><?= $stats['by_status'][$status]['people'] ?></td>
+            </tr>
+          <?php endforeach ?>
+        </tbody>
+        <tfoot class="tabular-nums fw-semibold">
+          <tr><td>Gesamt</td><td class="text-end"><?= $registrations ?></td><td class="text-end"><?= $people ?></td></tr>
+        </tfoot>
+      </table>
+      <p class="small text-body-secondary">Personen = Einzelpersonen aller Personengruppen.</p>
+    </div>
+
+  </div>
+
   <?php endif ?>
 <?php endif ?>

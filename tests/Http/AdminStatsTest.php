@@ -131,6 +131,34 @@ final class AdminStatsTest extends HttpTestCase
         $this->assertSame(404, $this->get('/admin/stats.php?event=99999')['status']);
     }
 
+    public function testStatusTableComesLast(): void
+    {
+        $db = $this->serverDb();
+        $id = $this->event($db, 'Reihenfolge', 0, 10);
+        $db->prepare("INSERT INTO event_slots (event_id, time, label) VALUES (?, '10:00', 'Vortrag')")->execute([$id]);
+
+        $body = $this->get("/admin/stats.php?event=$id")['body'];
+
+        $this->assertLessThan(strpos($body, 'Anfragen nach Status'), strpos($body, 'Bestätigte Anwesenheit je Programmpunkt'));
+        $this->assertLessThan(strpos($body, 'Bestätigte Anwesenheit je Programmpunkt'), strpos($body, 'Gesamtbelegung'));
+    }
+
+    public function testEventListShowsConfirmedOccupancy(): void
+    {
+        $db = $this->serverDb();
+        $id = $this->event($db, 'Belegungsliste', 0, 8);
+        $this->registration($db, $id, 'confirmed', 2, 1);
+        $this->registration($db, $id, 'pending', 4, 0);
+        $full = $this->event($db, 'Überbucht', 0, 2);
+        $this->registration($db, $full, 'confirmed', 3, 0);
+
+        $body = $this->get('/admin/events.php')['body'];
+
+        $this->assertStringContainsString('<th class="text-end">Belegung</th>', $body);
+        $this->assertMatchesRegularExpression('#Belegungsliste.*?<td class="text-end tabular-nums"\s+title="3 von 8 Plätzen bestätigt">38 %</td>#s', $body, 'nur bestätigte, alle Gruppen');
+        $this->assertMatchesRegularExpression('#Überbucht.*?<td class="text-end tabular-nums text-danger-emphasis"\s+title="3 von 2 Plätzen bestätigt">150 %</td>#s', $body);
+    }
+
     private function event(PDO $db, string $title, int $active, int $max): int
     {
         if ($active) {

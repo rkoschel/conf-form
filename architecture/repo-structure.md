@@ -13,7 +13,8 @@ conf-form/                         (Repo)
 │   ├── cancel/index.php
 │   ├── admin/
 │   │   ├── .htaccess              Basic Auth (AuthUserFile /home/conf-form/.htpasswd)
-│   │   ├── index.php              Anfragen-Tabelle
+│   │   ├── index.php              Startseite: Weiterleitung auf stats.php
+│   │   ├── registrations.php      Anfragen-Tabelle
 │   │   ├── registration.php       Bearbeiten / Statuswechsel / Löschen
 │   │   ├── events.php             Liste der Veranstaltungen
 │   │   ├── event.php              Anlegen / Bearbeiten / Löschen

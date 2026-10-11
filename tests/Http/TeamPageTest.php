@@ -58,7 +58,7 @@ final class TeamPageTest extends HttpTestCase
         $this->assertStringContainsString('Gesamtbelegung', $body);
         $this->assertMatchesRegularExpression('#7 <span[^>]*>/ 50</span>#', $body, 'absolute Zahlen für das Team');
         $this->assertStringNotContainsString('name="event"', $body, 'keine Veranstaltungsauswahl');
-        $this->assertStringNotContainsString('Konferenz-Admin', $body, 'keine Admin-Navigation');
+        $this->assertStringNotContainsString('navbar-brand', $body, 'keine Admin-Navigation');
         $this->assertSame('no-store', $response['headers']['cache-control'] ?? null);
         $this->assertSame('noindex, nofollow', $response['headers']['x-robots-tag'] ?? null);
     }

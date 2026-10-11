@@ -23,6 +23,7 @@ foreach ($events as $listed) {
           <th>Datum</th>
           <th>Anmeldefrist</th>
           <th class="text-end">Anmeldungen</th>
+          <th class="text-end">Belegung</th>
           <th class="text-end">Aktionen</th>
         </tr>
       </thead>
@@ -41,6 +42,14 @@ foreach ($events as $listed) {
               <?php endif ?>
             </td>
             <td class="text-end"><?= (int) $event['registration_count'] ?></td>
+            <?php
+            // Bestätigte Belegung in % der Kapazität (alle Personengruppen)
+            $occupancy = (int) $event['max_participants'] > 0
+                ? (int) round((int) $event['confirmed_people'] / (int) $event['max_participants'] * 100)
+                : 0;
+            ?>
+            <td class="text-end tabular-nums<?= $occupancy > 100 ? ' text-danger-emphasis' : '' ?>"
+                title="<?= (int) $event['confirmed_people'] ?> von <?= (int) $event['max_participants'] ?> Plätzen bestätigt"><?= $occupancy ?> %</td>
             <td class="text-end text-nowrap">
               <a href="<?= e(url('admin/event.php?id=' . $event['id'])) ?>" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
               <?php /* Aktivieren/Deaktivieren erst nach Bestätigung im Dialog (admin.js) */ ?>
