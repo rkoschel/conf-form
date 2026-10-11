@@ -7,6 +7,8 @@ Warteliste: <?= $event['title'] ?>
 
 <?php require __DIR__ . '/_people.php' ?>
 
+<?php require __DIR__ . '/_slots.php' ?>
+
 <?php $cancel_hint = 'mail_cancel_hint_waitlist' ?>
 <?php require __DIR__ . '/_cancel.php' ?>
 

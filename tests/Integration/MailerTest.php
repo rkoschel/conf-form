@@ -12,7 +12,7 @@ final class MailerTest extends DbTestCase
         @unlink($this->logFile);
     }
 
-    public function testConfirmationMailsListAttendedSlots(): void
+    public function testConfirmationAndWaitlistMailsListAttendedSlots(): void
     {
         [$registration, $event] = $this->fixture();
         $insert = db()->prepare("INSERT INTO event_slots (event_id, time, label, sort, childcare) VALUES (?, ?, ?, ?, ?)");
@@ -27,14 +27,15 @@ final class MailerTest extends DbTestCase
 
         mail_registration('received_confirmed', $registration, $event);
         mail_registration('confirmed', $registration, $event);
+        mail_registration('received_waitlist', $registration, $event);
         mail_registration('rejected', $registration, $event);
 
         $mails = explode('=== ', (string) file_get_contents($this->logFile));
-        foreach ([1, 2] as $n) {
+        foreach ([1, 2, 3] as $n) {
             $this->assertStringContainsString("Programmpunkte:\n  10:00 Uhr Vortrag: 2 Personen, dazu 1 Kind in der Kinderbetreuung\n  16:00 Uhr Abschluss: 1 Person\n", $mails[$n]);
             $this->assertStringNotContainsString('Workshop', $mails[$n], 'nicht besuchte Programmpunkte entfallen');
         }
-        $this->assertStringNotContainsString('Programmpunkte:', $mails[3], 'nicht in der Absage');
+        $this->assertStringNotContainsString('Programmpunkte:', $mails[4], 'nicht in der Absage');
     }
 
     public function testAdminNotifyIsOffByDefault(): void
