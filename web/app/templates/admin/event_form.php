@@ -4,7 +4,9 @@
   <div class="alert alert-danger" role="alert">Bitte die markierten Felder prüfen.</div>
 <?php endif ?>
 
-<form method="post" class="vstack gap-4" novalidate>
+<?php /* data-active-*: Rückfrage beim Speichern, wenn sich „Aktiv“ ändert (admin.js) */ ?>
+<form method="post" class="vstack gap-4" novalidate data-active-confirm
+      data-active-was="<?= $wasActive ? '1' : '0' ?>" data-active-other="<?= e($otherActive) ?>">
   <?= csrf_field() ?>
 
   <fieldset class="row g-3">
@@ -177,3 +179,19 @@
     <a href="<?= e(url('admin/events.php')) ?>" class="btn btn-outline-secondary">Abbrechen</a>
   </div>
 </form>
+
+<div class="modal fade" id="active-modal" tabindex="-1" aria-labelledby="active-modal-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="active-modal-title" data-active-heading></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+      <div class="modal-body" data-active-body></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="button" class="btn btn-primary" data-active-submit></button>
+      </div>
+    </div>
+  </div>
+</div>

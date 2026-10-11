@@ -53,7 +53,7 @@ $sections = [
     <h2 class="h4">Veranstaltungen</h2>
     <dl>
       <dt>Aktiv</dt>
-      <dd>Es ist immer höchstens <strong>eine</strong> Veranstaltung aktiv. Aktivierst du eine, werden alle anderen deaktiviert. Infoseite und Anmeldeformular zeigen nur die aktive Veranstaltung. Ist keine aktiv, erscheint der Text aus Einstellungen → Allgemein.</dd>
+      <dd>Es ist immer höchstens <strong>eine</strong> Veranstaltung aktiv. Aktivierst du eine, werden alle anderen deaktiviert. Infoseite und Anmeldeformular zeigen nur die aktive Veranstaltung. Ist keine aktiv, erscheint der Text aus Einstellungen → Allgemein. Aktivieren und Deaktivieren – in der Liste wie beim Speichern mit geändertem Schalter „Aktiv“ – passiert erst, nachdem du es im Dialog bestätigt hast.</dd>
 
       <dt>Anmeldefrist</dt>
       <dd>Gilt in der <strong>Zeitzone der Veranstaltung</strong>; die angegebene Minute zählt noch mit (Frist 23:59 → Anmeldung bis 23:59:59). Die Frist darf spätestens zum Beginn des ersten Programmpunkts enden, ohne Ablauf spätestens um 23:59 Uhr am Veranstaltungstag. Nach Ablauf zeigt die Infoseite „Der Anmeldezeitraum ist abgelaufen.“, der Button „Anmelden“ verschwindet und das Formular nimmt nichts mehr an. Im Admin kannst du weiterhin alles bearbeiten.</dd>

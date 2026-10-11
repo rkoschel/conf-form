@@ -183,3 +183,63 @@ document.addEventListener('click', (event) => {
   toggle.classList.toggle('active', open);
   row.previousElementSibling?.classList.toggle('details-open', open);
 });
+
+// Veranstaltung aktivieren/deaktivieren erst nach Bestätigung (SPEC §7.1):
+// in der Liste per Dialog, im Formular beim Speichern, wenn sich „Aktiv“ ändert
+const fillActiveModal = (modal, activate, title, other, onSave) => {
+  const paragraph = (text) => {
+    const p = document.createElement('p');
+    p.textContent = text;
+    return p;
+  };
+  const when = onSave ? 'beim Speichern ' : '';
+  const body = activate
+    ? [paragraph(`„${title}“ wird ${when}aktiv: Die Infoseite zeigt diese Veranstaltung, und bis zur Anmeldefrist kann man sich anmelden.`)]
+    : [paragraph(`„${title}“ wird ${when}inaktiv: Die Infoseite zeigt dann den Text für „keine Veranstaltung aktiv“, und Anmeldungen sind nicht mehr möglich. Bestehende Anmeldungen bleiben erhalten.`)];
+  if (activate && other) {
+    body.push(paragraph(`„${other}“ ist zurzeit aktiv und wird dabei deaktiviert.`));
+  }
+  body[body.length - 1].classList.add('mb-0');
+  modal.querySelector('[data-active-heading]').textContent = activate ? 'Veranstaltung aktivieren?' : 'Veranstaltung deaktivieren?';
+  modal.querySelector('[data-active-body]').replaceChildren(...body);
+  modal.querySelector('[data-active-submit]').textContent = onSave
+    ? (activate ? 'Speichern und aktivieren' : 'Speichern und deaktivieren')
+    : (activate ? 'Aktivieren' : 'Deaktivieren');
+  return body.map((p) => p.textContent).join(' ');
+};
+
+const activeModal = document.getElementById('active-modal');
+const activeForm = document.querySelector('form[data-active-confirm]');
+if (activeModal && !activeForm) {
+  // Liste: der Dialog ist selbst das Formular (action + id)
+  activeModal.addEventListener('show.bs.modal', (event) => {
+    const data = event.relatedTarget.dataset;
+    activeModal.querySelector('[name="action"]').value = data.action;
+    activeModal.querySelector('[name="id"]').value = data.id;
+    fillActiveModal(activeModal, data.action === 'activate', data.title, data.other, false);
+  });
+}
+if (activeForm) {
+  let activeConfirmed = false;
+  const switchInput = activeForm.querySelector('#f-active');
+  activeForm.addEventListener('submit', (event) => {
+    const activate = switchInput.checked;
+    if (activeConfirmed || activate === (activeForm.dataset.activeWas === '1')) {
+      return;
+    }
+    event.preventDefault();
+    const title = activeForm.querySelector('#f-title')?.value.trim() || 'Die Veranstaltung';
+    const text = fillActiveModal(activeModal, activate, title, activeForm.dataset.activeOther, true);
+    if (window.bootstrap && activeModal) {
+      window.bootstrap.Modal.getOrCreateInstance(activeModal).show();
+    } else if (window.confirm(text)) {
+      activeConfirmed = true;
+      activeForm.requestSubmit();
+    }
+  });
+  activeModal?.querySelector('[data-active-submit]').addEventListener('click', () => {
+    activeConfirmed = true;
+    window.bootstrap?.Modal.getOrCreateInstance(activeModal).hide();
+    activeForm.requestSubmit();
+  });
+}

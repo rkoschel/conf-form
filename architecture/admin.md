@@ -65,6 +65,18 @@ Validierung (serverseitig, Fehler verhindern das Speichern):
   Einstellungen gepflegt (siehe §7.5); das Formular verweist dorthin.
 - Es kann nur **eine** Veranstaltung aktiv sein. Aktivieren einer
   Veranstaltung deaktiviert alle anderen (zusätzlich per DB-Index abgesichert).
+- **Aktivieren/Deaktivieren nur nach Bestätigung:** In der Liste öffnen
+  „Aktivieren“/„Deaktivieren“ einen Dialog mit den Folgen (aktiv: „„X“ wird
+  aktiv: Die Infoseite zeigt diese Veranstaltung, und bis zur Anmeldefrist
+  kann man sich anmelden.“, ggf. „„Y“ ist zurzeit aktiv und wird dabei
+  deaktiviert.“; inaktiv: „„X“ wird inaktiv: Die Infoseite zeigt dann den Text
+  für „keine Veranstaltung aktiv“, und Anmeldungen sind nicht mehr möglich.
+  Bestehende Anmeldungen bleiben erhalten.“), Knöpfe „Abbrechen“ und
+  „Aktivieren“ bzw. „Deaktivieren“. Im Formular fragt „Speichern“ genauso
+  nach, wenn sich der Schalter „Aktiv“ gegenüber dem gespeicherten Stand
+  geändert hat (auch bei einer neuen, gleich aktiven Veranstaltung); Knöpfe
+  „Abbrechen“ und „Speichern und aktivieren“ bzw. „Speichern und
+  deaktivieren“. Abbrechen ändert nichts, der Schalter bleibt wie eingestellt.
 - **Löschen:** Eine Veranstaltung kann gelöscht werden, inkl. aller
   zugehörigen Daten (Programmpunkte, Anmeldungen,
   Programmpunkt-Aufteilung, Mail-Protokoll; per `ON DELETE CASCADE`).

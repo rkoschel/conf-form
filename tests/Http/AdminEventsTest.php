@@ -250,6 +250,27 @@ final class AdminEventsTest extends HttpTestCase
         $this->assertStringContainsString('Aktiv-Test', $this->get('/')['body']);
     }
 
+    public function testActivationNeedsConfirmationInListAndForm(): void
+    {
+        $active = $this->createEvent('Läuft gerade', ['active' => '1']);
+        $other = $this->createEvent('Nächstes <Jahr>');
+
+        $list = $this->get('/admin/events.php')['body'];
+        $this->assertStringNotContainsString('name="action" value="activate"', $list, 'kein direktes Absenden mehr');
+        $this->assertStringContainsString('id="active-modal"', $list);
+        $this->assertMatchesRegularExpression(
+            '#data-action="activate" data-id="' . $other . '"\s+data-title="Nächstes &lt;Jahr&gt;"\s+data-other="Läuft gerade">Aktivieren</button>#',
+            $list,
+            'Dialog nennt die Veranstaltung, die deaktiviert wird'
+        );
+        $this->assertMatchesRegularExpression('#data-action="deactivate" data-id="' . $active . '"[^>]*data-other="">Deaktivieren</button>#', $list);
+
+        $form = $this->get('/admin/event.php?id=' . $other)['body'];
+        $this->assertMatchesRegularExpression('#data-active-confirm\s+data-active-was="0" data-active-other="Läuft gerade"#', $form);
+        $this->assertStringContainsString('id="active-modal"', $form);
+        $this->assertMatchesRegularExpression('#data-active-was="1" data-active-other=""#', $this->get('/admin/event.php?id=' . $active)['body'], 'eigene Veranstaltung ist nicht „andere“');
+    }
+
     public function testDeleteRemovesEvent(): void
     {
         $id = $this->createEvent('Lösch-Test');

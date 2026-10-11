@@ -3,6 +3,15 @@
   <a href="<?= e(url('admin/event.php')) ?>" class="btn btn-primary">Neue Veranstaltung</a>
 </div>
 
+<?php
+// Titel der aktiven Veranstaltung: Hinweis im Dialog, dass sie beim Aktivieren einer anderen deaktiviert wird
+$activeTitle = '';
+foreach ($events as $listed) {
+    if ($listed['active']) {
+        $activeTitle = (string) $listed['title'];
+    }
+}
+?>
 <?php if (!$events): ?>
   <p class="text-body-secondary">Noch keine Veranstaltungen angelegt.</p>
 <?php else: ?>
@@ -34,15 +43,12 @@
             <td class="text-end"><?= (int) $event['registration_count'] ?></td>
             <td class="text-end text-nowrap">
               <a href="<?= e(url('admin/event.php?id=' . $event['id'])) ?>" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
-              <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="id" value="<?= (int) $event['id'] ?>">
-                <?php if ($event['active']): ?>
-                  <button type="submit" name="action" value="deactivate" class="btn btn-sm btn-outline-secondary">Deaktivieren</button>
-                <?php else: ?>
-                  <button type="submit" name="action" value="activate" class="btn btn-sm btn-outline-success">Aktivieren</button>
-                <?php endif ?>
-              </form>
+              <?php /* Aktivieren/Deaktivieren erst nach Bestätigung im Dialog (admin.js) */ ?>
+              <button type="button" class="btn btn-sm <?= $event['active'] ? 'btn-outline-secondary' : 'btn-outline-success' ?>"
+                      data-bs-toggle="modal" data-bs-target="#active-modal"
+                      data-action="<?= $event['active'] ? 'deactivate' : 'activate' ?>" data-id="<?= (int) $event['id'] ?>"
+                      data-title="<?= e($event['title']) ?>"
+                      data-other="<?= e($event['active'] ? '' : $activeTitle) ?>"><?= $event['active'] ? 'Deaktivieren' : 'Aktivieren' ?></button>
               <button type="button" class="btn btn-sm btn-outline-danger"
                       data-bs-toggle="modal" data-bs-target="#delete-modal"
                       data-id="<?= (int) $event['id'] ?>" data-title="<?= e($event['title']) ?>"
@@ -54,6 +60,25 @@
     </table>
   </div>
 <?php endif ?>
+
+<div class="modal fade" id="active-modal" tabindex="-1" aria-labelledby="active-modal-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="post" class="modal-content">
+      <?= csrf_field() ?>
+      <input type="hidden" name="action" value="">
+      <input type="hidden" name="id" value="">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="active-modal-title" data-active-heading></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+      <div class="modal-body" data-active-body></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary" data-active-submit></button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-title" aria-hidden="true">
   <div class="modal-dialog">

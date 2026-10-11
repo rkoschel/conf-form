@@ -74,10 +74,16 @@ if ($lockedSlots !== null) {
     $form['slots'] = [['time' => '', 'label' => '']];
 }
 
+// Für die Rückfrage beim Speichern: gespeicherter Aktiv-Stand und ggf. andere aktive Veranstaltung
+$activeEvent = event_active();
+$otherActive = $activeEvent !== null && (int) $activeEvent['id'] !== $id ? (string) $activeEvent['title'] : '';
+
 admin_render('event_form', [
     'title' => $id === null ? 'Neue Veranstaltung' : 'Veranstaltung bearbeiten',
     'active' => 'admin/events.php',
     'form' => $form,
     'errors' => $errors,
     'slotsLocked' => $slotsLocked,
+    'wasActive' => (bool) ($event['active'] ?? false),
+    'otherActive' => $otherActive,
 ]);
