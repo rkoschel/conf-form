@@ -81,7 +81,7 @@ final class TeamPageTest extends HttpTestCase
 
         // 1. zugesagte Anmeldungen: Anwesenheit und Kinderbetreuung je Programmpunkt
         $this->assertStringContainsString('Zugesagte Anmeldungen', $areas[0]);
-        $this->assertStringContainsString('Voraussichtliche Anwesenheit je Programmpunkt', $areas[0]);
+        $this->assertStringContainsString('Bestätigte Anwesenheit je Programmpunkt', $areas[0]);
         $this->assertStringContainsString('Kinderbetreuung je Programmpunkt', $areas[0]);
         $this->assertStringNotContainsString('Anfragen nach Status', $areas[0]);
         $this->assertDoesNotMatchRegularExpression('#/ 50#', $areas[0]);
@@ -90,7 +90,7 @@ final class TeamPageTest extends HttpTestCase
         $this->assertStringContainsString('Gesamtbelegung und Anmeldungen', $areas[1]);
         $this->assertMatchesRegularExpression('#7 <span[^>]*>/ 50</span>#', $areas[1]);
         $this->assertStringContainsString('Personen je Ort', $areas[1]);
-        $this->assertStringNotContainsString('Voraussichtliche Anwesenheit je Programmpunkt', $areas[1]);
+        $this->assertStringNotContainsString('Bestätigte Anwesenheit je Programmpunkt', $areas[1]);
         $this->assertStringNotContainsString('<th>Status</th>', $areas[1]);
 
         // 3. Anfragen nach Status

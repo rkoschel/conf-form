@@ -197,14 +197,15 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
 - **Je Personengruppe** der Veranstaltung ein Balken mit bestätigten und
   offenen Personen, im selben Maßstab wie die Gesamtbelegung (Kapazität),
   mit Namen und Zahlen. Eine Tabelle „nach Altersgruppe“ gibt es nicht mehr.
-- Pro Programmpunkt: Summe und Aufschlüsselung nach den Personengruppen der
-  Veranstaltung (nur Status `confirmed`); Summe = Personen beim Programmpunkt.
+- „Bestätigte Anwesenheit je Programmpunkt“: Summe und Aufschlüsselung nach
+  den Personengruppen der Veranstaltung (nur Status `confirmed`); Summe =
+  Personen beim Programmpunkt.
 - Eigene Tabelle „Kinderbetreuung je Programmpunkt“ (nur wenn vorhanden):
   Programmpunkte mit Betreuung, betreute Kindergruppen, Kinder in der
   Betreuung je Kindergruppe (– = keine Betreuung für diese Gruppe), Summe;
   nur bestätigte Anmeldungen.
-- Bei Programmpunkten mit Zielgruppe stehen in der Tabelle „Anwesenheit je
-  Programmpunkt“ (Admin und Team-Seite) die Gruppen außerhalb der
+- Bei Programmpunkten mit Zielgruppe stehen in der Tabelle „Bestätigte
+  Anwesenheit je Programmpunkt“ (Admin und Team-Seite) die Gruppen außerhalb der
   Zielgruppe als „–“, dazu der Hinweis „Zielgruppe: <Namen>“.
 - Auswahl der Veranstaltung per Dropdown (`?event=<id>`); ohne Auswahl die
   aktive, sonst die neueste. Programmpunkte mobil als Block je Punkt.
@@ -214,10 +215,19 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
   „⚠ Kontingent um n überschritten“ und „Wenn alle offenen bestätigt würden:
   z von max“. Übersteigen bestätigt + offen das Kontingent, wächst die Skala
   mit und ein Strich markiert die Grenze.
-- Kachel „Anmeldungen“: zusätzlich Personen je Heimatversammlung (alle
-  Gruppen), getrennt nach bestätigt und offen (storniert/abgelehnt zählen
-  nicht), meiste zuerst; Schreibweisen ohne Rücksicht auf Groß-/Klein-
-  schreibung zusammengefasst, bevorzugte Orte fett.
+- Kachel „Anmeldungen“: zusätzlich **„Personen je Ort“** als senkrechtes
+  Balkendiagramm (Admin und Team-Seite). Gezählt werden Personen (alle
+  Gruppen), nicht Anmeldungen; storniert/abgelehnt zählen nicht. Je Ort ein
+  gestapelter Balken: bestätigt unten (blau), offen darüber (gelb gestreift),
+  Farben wie in der Gesamtbelegung. Der Ort mit den meisten Personen
+  (bestätigt + offen) ist 100 %, die anderen relativ dazu; **keine
+  Personenzahlen**. Orte, die einzeln unter 5 % des größten Orts liegen,
+  werden am Ende zu „Andere“ (kursiv) zusammengefasst – ein einzelner
+  kleiner Ort behält seinen Namen; liegt „Andere“ höher als der größte Ort,
+  bestimmt es den Maßstab. Reihenfolge: meiste zuerst. Schreibweisen ohne
+  Rücksicht auf Groß-/Kleinschreibung zusammengefasst, bevorzugte Orte fett,
+  Ortsnamen senkrecht unter den Balken (voller Name als Tooltip). Legende
+  Bestätigt/Offen ohne Zahlen. Berechnung in `places_chart()`.
 
 ### 7.8 Team-Zugang zur Auswertung
 

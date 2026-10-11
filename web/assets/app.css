@@ -420,3 +420,47 @@ tr.details-open > td {
   font-size: 0.8em;
   word-break: break-all;
 }
+
+/* Auswertung: Personen je Ort als senkrechte, gestapelte Balken (bestätigt unten,
+   offen darüber); Ortsnamen senkrecht darunter, damit viele Orte in die Kachel passen */
+.place-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.place-chart-item {
+  flex: 1 0 1.6rem;
+  max-width: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.place-chart-bar {
+  width: 100%;
+  height: 9rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: var(--bs-secondary-bg);
+  border-radius: var(--bs-border-radius-sm);
+  overflow: hidden;
+}
+.place-chart-bar .progress-bar {
+  width: 100%;
+  flex: 0 0 auto;
+}
+/* Feste Höhe, damit alle Balken auf einer Grundlinie stehen; Text beginnt direkt unter dem Balken */
+.place-chart-label {
+  margin-top: 0.35rem;
+  height: 7rem;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: end;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

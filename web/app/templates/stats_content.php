@@ -106,29 +106,39 @@
           <div class="text-body-secondary small">Anmeldungen</div>
           <div class="fs-2 my-1"><?= $registrations ?></div>
           <div class="small text-body-secondary"><?= $people ?> Personen, alle Status</div>
-          <?php if ($stats['places']): ?>
-            <table class="table table-sm small mt-2 mb-0">
-              <caption class="caption-top pb-1 pt-0">Personen je Ort</caption>
-              <thead>
-                <tr><th>Ort</th><th class="text-end">bestätigt</th><th class="text-end">offen</th></tr>
-              </thead>
-              <tbody class="tabular-nums">
-                <?php foreach ($stats['places'] as $place): ?>
-                  <tr>
-                    <td>
-                      <?php if ($place['preferred']): ?>
-                        <strong><?= e($place['name']) ?></strong><span class="visually-hidden"> (bevorzugter Ort)</span>
-                      <?php else: ?>
-                        <?= e($place['name']) ?>
-                      <?php endif ?>
-                    </td>
-                    <td class="text-end"><?= $place['confirmed'] ?></td>
-                    <td class="text-end"><?= $place['pending'] ?></td>
-                  </tr>
-                <?php endforeach ?>
-              </tbody>
-            </table>
-            <div class="small text-body-secondary mt-1"><strong>fett</strong> = bevorzugter Ort</div>
+          <?php $placeBars = places_chart($stats['places']) ?>
+          <?php if ($placeBars): ?>
+            <?php /* Senkrechte Balken je Ort: größter Ort = 100 %, ohne Personenzahlen (SPEC §7.7) */ ?>
+            <h3 class="h6 mt-3 mb-2">Personen je Ort</h3>
+            <div class="place-chart" role="list">
+              <?php foreach ($placeBars as $bar): ?>
+                <div class="place-chart-item" role="listitem">
+                  <div class="place-chart-bar" aria-hidden="true">
+                    <?php if ($bar['pending'] > 0): ?>
+                      <div class="progress-bar progress-bar-striped bg-warning" style="height: <?= number_format($bar['pending'], 2, '.', '') ?>%"></div>
+                    <?php endif ?>
+                    <?php if ($bar['confirmed'] > 0): ?>
+                      <div class="progress-bar bg-primary" style="height: <?= number_format($bar['confirmed'], 2, '.', '') ?>%"></div>
+                    <?php endif ?>
+                  </div>
+                  <div class="place-chart-label<?= $bar['other'] ? ' fst-italic' : '' ?>" title="<?= e($bar['name']) ?>">
+                    <?php if ($bar['preferred']): ?>
+                      <strong><?= e($bar['name']) ?></strong><span class="visually-hidden"> (bevorzugter Ort)</span>
+                    <?php else: ?>
+                      <?= e($bar['name']) ?>
+                    <?php endif ?>
+                  </div>
+                </div>
+              <?php endforeach ?>
+            </div>
+            <div class="d-flex flex-wrap column-gap-3 row-gap-1 small mt-2">
+              <span><span class="quota-swatch bg-primary"></span> Bestätigt</span>
+              <span><span class="quota-swatch progress-bar-striped bg-warning"></span> Offen</span>
+            </div>
+            <div class="small text-body-secondary mt-1">
+              Personen (bestätigt und offen) relativ zum Ort mit den meisten; Orte unter 5 % davon unter „Andere“.
+              <strong>Fett</strong> = bevorzugter Ort.
+            </div>
           <?php endif ?>
         </div>
       </div>
@@ -168,7 +178,7 @@
   <?php endif ?>
 
   <?php if ($show('confirmed')): ?>
-  <h2 class="h5">Voraussichtliche Anwesenheit je Programmpunkt</h2>
+  <h2 class="h5">Bestätigte Anwesenheit je Programmpunkt</h2>
   <?php if (!$stats['slots']): ?>
     <p class="text-body-secondary">Für diese Veranstaltung ist kein Ablauf angelegt.</p>
   <?php else: ?>

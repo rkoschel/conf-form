@@ -22,6 +22,8 @@ const CHANGELOG = [
         'changed' => [
             'Anmeldeformular: Anzahl Teilnehmer als eine Zeile je Personengruppe mit Knöpfen − und +; die Zuordnung von Name und Feld bleibt auch bei langen Gruppennamen eindeutig.',
             'Anmeldeformular: Vorschläge für die Heimatversammlung erst ab zwei Zeichen, auf Handy und Computer gleich (auch Treffer mitten im Namen).',
+            'Auswertung und Team-Seite: „Personen je Ort“ als senkrechtes Balkendiagramm (bestätigt/offen, größter Ort = 100 %, ohne Zahlen, kleine Orte unter „Andere“).',
+            'Auswertung und Team-Seite: Überschrift „Bestätigte Anwesenheit je Programmpunkt“ statt „Voraussichtliche …“.',
         ],
     ],
     [

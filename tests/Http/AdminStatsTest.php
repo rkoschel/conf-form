@@ -30,7 +30,12 @@ final class AdminStatsTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#Kindergruppe 3</span>\s*<span[^>]*>1 bestätigt · 0 offen#s', $body);
         $this->assertStringNotContainsString('nach Altersgruppe', $body, 'alte Tabelle entfernt');
         $this->assertStringContainsString('quota-meter-limit', $body, 'Grenze markiert, wenn bestätigt + offen darüber liegt');
-        $this->assertMatchesRegularExpression('#Personen je Ort.*?Hamm\s*</td>\s*<td class="text-end">9</td>\s*<td class="text-end">3</td>#s', $body);
+        // Personen je Ort als Balken: Hamm 9 bestätigt + 3 offen = größter Ort (100 %), ohne Zahlen
+        $this->assertMatchesRegularExpression('#Personen je Ort</h3>\s*<div class="place-chart"#', $body);
+        $this->assertMatchesRegularExpression('#bg-warning" style="height: 25\.00%"></div>\s*<div class="progress-bar bg-primary" style="height: 75\.00%"></div>\s*</div>\s*<div class="place-chart-label" title="Hamm">\s*Hamm\s*</div>#', $body);
+        preg_match('#<div class="place-chart".*?</div>\s*<div class="d-flex#s', $body, $chart);
+        $this->assertDoesNotMatchRegularExpression('#>\s*\d+\s*<#', $chart[0], 'keine Personenzahlen im Diagramm');
+        $this->assertStringContainsString('Bestätigte Anwesenheit je Programmpunkt', $body);
 
         $body = $this->get("/admin/stats.php?event=$other")['body'];
         $this->assertMatchesRegularExpression('#<option value="' . $other . '"\s+selected>#', $body);
