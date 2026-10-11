@@ -105,12 +105,13 @@ hervorgehoben), Status, Mail-Status, Aktionen.
   Wechselt der Status, wird der andere Knopf wieder farbig. **Bearbeiten**
   (orange) und **Löschen** (rot) gibt es nur im aufgeklappten Details-Bereich.
 - **Details** klappt unter der Zeile auf (erneut klicken klappt zu):
-  links die Tabelle je
+  oben die Tabelle je
   Programmpunkt mit den Personen je Gruppe (nur Gruppen mit Personen in
   dieser Anmeldung), Summe beim Programmpunkt und – falls die Veranstaltung
   Kinderbetreuung hat – Kinder in der Betreuung; „–“ für Gruppen außerhalb
   der Zielgruppe bzw. Programmpunkte ohne Betreuung; Hinweis, ob
-  angekreuzt oder individuell aufgeteilt. Rechts der **Verlauf**: je Eintrag
+  angekreuzt oder individuell aufgeteilt. Darunter der **Verlauf** (ohne
+  seitliches Scrollen, höchstens ca. 42rem breit): je Eintrag
   Datum/Uhrzeit (Zeitzone der Veranstaltung), Aktion, Status danach und
   E-Mail (ja / nein / fehlgeschlagen), älteste zuerst. Aktionen:
   „Anmeldung“ (Status nach der automatischen Entscheidung, Eingangs-Mail),

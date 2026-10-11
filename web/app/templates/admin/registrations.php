@@ -143,7 +143,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
             <tr class="registration-details" id="details-<?= (int) $row['id'] ?>" hidden>
               <td colspan="7">
                 <div class="row g-3">
-                  <div class="col-xl-7">
+                  <div class="col-12">
                     <div class="small fw-semibold mb-1">
                       Programmpunkte
                       <span class="fw-normal text-body-secondary">
@@ -195,7 +195,7 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
                       </div>
                     <?php endif ?>
                   </div>
-                  <div class="col-xl-5">
+                  <div class="col-12 registration-history">
                     <div class="small fw-semibold mb-1">Verlauf</div>
                     <?php if (!$row['status_log']): ?>
                       <p class="small text-body-secondary mb-0">Noch keine Einträge.</p>

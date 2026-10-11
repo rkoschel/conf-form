@@ -482,3 +482,8 @@ tr.details-open > td {
 .btn-outline-warning {
   --bs-btn-color: var(--bs-warning-text-emphasis);
 }
+
+/* Verlauf in den Anfragen-Details: unter der Programmpunkt-Tabelle, nicht über die volle Breite gezogen */
+.registration-history {
+  max-width: 42rem;
+}
