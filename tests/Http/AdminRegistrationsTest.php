@@ -114,6 +114,36 @@ final class AdminRegistrationsTest extends HttpTestCase
         $this->assertStringContainsString("Zeile 1\nZeile 2", $raw, 'ganze Nachricht');
     }
 
+    public function testActionButtonsOrderStateAndDetailsActions(): void
+    {
+        $pending = $this->registration(['first_name' => 'Paula', 'last_name' => 'Knopf']);
+        $confirmed = $this->registration(['first_name' => 'Bruno', 'last_name' => 'Knopf', 'status' => 'confirmed']);
+        $rejected = $this->registration(['first_name' => 'Rita', 'last_name' => 'Knopf', 'status' => 'rejected']);
+
+        $body = $this->get('/admin/registrations.php?q=Knopf')['body'];
+        $actions = function (int $id) use ($body): string {
+            // Aktionsspalte der Zeile: vom Details-Knopf rückwärts bis zum Zellenbeginn und vorwärts bis Zeilenende
+            $toggle = strpos($body, 'aria-controls="details-' . $id . '"');
+            $start = strrpos(substr($body, 0, (int) $toggle), '<td class="text-end text-nowrap">');
+            return substr($body, (int) $start, (int) strpos($body, '</td>', (int) $toggle) - (int) $start);
+        };
+
+        // Reihenfolge Bestätigen, Details, Ablehnen; Bearbeiten/Löschen nicht in der Zeile
+        $this->assertMatchesRegularExpression('#btn-outline-success"[^>]*data-action="confirm"[^>]*>Bestätigen</button>.*btn-outline-primary" data-details-toggle.*btn-outline-warning"[^>]*data-action="reject"[^>]*>Ablehnen</button>#s', $actions($pending));
+        $this->assertStringNotContainsString('Bearbeiten', $actions($pending));
+        $this->assertStringNotContainsString('Löschen', $actions($pending));
+
+        // Bereits erreichter Status: grau, nicht klickbar; die Gegenaktion bleibt farbig
+        $this->assertStringContainsString('<button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Bereits bestätigt">Bestätigen</button>', $actions($confirmed));
+        $this->assertMatchesRegularExpression('#btn-outline-warning"[^>]*data-action="reject"#', $actions($confirmed));
+        $this->assertStringContainsString('disabled title="Bereits abgelehnt">Ablehnen</button>', $actions($rejected));
+        $this->assertMatchesRegularExpression('#btn-outline-success"[^>]*data-action="confirm"#', $actions($rejected));
+
+        // Bearbeiten (pink) und Löschen in den Details
+        $details = substr($body, (int) strpos($body, 'id="details-' . $pending . '"'), 6000);
+        $this->assertMatchesRegularExpression('#href="/admin/registration.php\?id=' . $pending . '" class="btn btn-sm btn-outline-pink">Bearbeiten</a>\s*<button type="button" class="btn btn-sm btn-outline-danger"\s+data-bs-toggle="modal" data-bs-target="\#delete-registration-modal"\s+data-id="' . $pending . '"#', $details);
+    }
+
     public function testListShowsMessage(): void
     {
         $this->registration(['first_name' => 'Nina', 'last_name' => 'Nachricht', 'message' => 'Bitte <Rampe> einplanen']);

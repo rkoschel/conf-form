@@ -110,24 +110,30 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
                 <?php endif ?>
               </td>
               <td class="text-end text-nowrap">
-                <?php foreach (['confirm' => ['Bestätigen', 'btn-outline-success', 'confirmed'], 'reject' => ['Ablehnen', 'btn-outline-secondary', 'rejected']] as $action => [$label, $class, $target]): ?>
-                  <?php if ($row['status'] !== $target): ?>
-                    <button type="button" class="btn btn-sm <?= $class ?>"
-                            data-bs-toggle="modal" data-bs-target="#status-modal"
-                            data-action="<?= $action ?>" data-id="<?= (int) $row['id'] ?>" data-name="<?= e($name) ?>"
-                            data-count="<?= (int) $row['person_count'] ?>"
-                            data-email="<?= e($row['no_email'] ? '' : (string) $row['email']) ?>"
-                            data-phone="<?= e((string) $row['phone']) ?>"
-                            data-exceeds="<?= $action === 'confirm' && $row['exceeds_quota'] ? '1' : '0' ?>"><?= $label ?></button>
-                  <?php endif ?>
-                <?php endforeach ?>
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-details-toggle
+                <?php
+                // Reihenfolge: Bestätigen, Details, Ablehnen. Bestätigen/Ablehnen bleiben stehen;
+                // ist der Status schon erreicht, grau und nicht klickbar (SPEC §7.2)
+                $statusButton = function (string $action) use ($row, $name): string {
+                    [$label, $class, $target] = $action === 'confirm'
+                        ? ['Bestätigen', 'btn-outline-success', 'confirmed']
+                        : ['Ablehnen', 'btn-outline-warning', 'rejected'];
+                    if ($row['status'] === $target) {
+                        return '<button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Bereits '
+                            . e(STATUS_LABELS[$target]) . '">' . $label . '</button>';
+                    }
+                    return '<button type="button" class="btn btn-sm ' . $class . '"'
+                        . ' data-bs-toggle="modal" data-bs-target="#status-modal"'
+                        . ' data-action="' . $action . '" data-id="' . (int) $row['id'] . '" data-name="' . e($name) . '"'
+                        . ' data-count="' . (int) $row['person_count'] . '"'
+                        . ' data-email="' . e($row['no_email'] ? '' : (string) $row['email']) . '"'
+                        . ' data-phone="' . e((string) $row['phone']) . '"'
+                        . ' data-exceeds="' . ($action === 'confirm' && $row['exceeds_quota'] ? '1' : '0') . '">' . $label . '</button>';
+                };
+                ?>
+                <?= $statusButton('confirm') ?>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-details-toggle
                         aria-expanded="false" aria-controls="details-<?= (int) $row['id'] ?>">Details</button>
-                <a href="<?= e(url('admin/registration.php?id=' . (int) $row['id'])) ?>" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
-                <button type="button" class="btn btn-sm btn-outline-danger"
-                        data-bs-toggle="modal" data-bs-target="#delete-registration-modal"
-                        data-id="<?= (int) $row['id'] ?>" data-name="<?= e($name) ?>"
-                        data-count="<?= (int) $row['person_count'] ?>">Löschen</button>
+                <?= $statusButton('reject') ?>
               </td>
             </tr>
             <?php
@@ -206,6 +212,13 @@ $eventHasChildcare = $event !== null && (bool) array_filter($event['slots'], fn 
                       <div class="small text-pre-line"><?= e($row['message']) ?></div>
                     </div>
                   <?php endif ?>
+                  <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
+                    <a href="<?= e(url('admin/registration.php?id=' . (int) $row['id'])) ?>" class="btn btn-sm btn-outline-pink">Bearbeiten</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal" data-bs-target="#delete-registration-modal"
+                            data-id="<?= (int) $row['id'] ?>" data-name="<?= e($name) ?>"
+                            data-count="<?= (int) $row['person_count'] ?>">Löschen</button>
+                  </div>
                 </div>
               </td>
             </tr>

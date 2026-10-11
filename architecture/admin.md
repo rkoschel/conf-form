@@ -98,7 +98,12 @@ hervorgehoben), Status, Mail-Status, Aktionen.
 
 - Status (UI): offen · bestätigt · storniert · abgelehnt
   (DB: `pending` · `confirmed` · `cancelled` · `rejected`)
-- Aktionen: Bestätigen, Ablehnen, **Details**, Bearbeiten, Löschen.
+- Aktionen in der Zeile (links nach rechts): **Bestätigen** (grün),
+  **Details** (blau), **Ablehnen** (gelb). Bestätigen und Ablehnen stehen
+  immer da; ist der Status schon erreicht (bestätigt bzw. abgelehnt), ist der
+  Knopf grau und nicht klickbar („Bereits bestätigt“/„Bereits abgelehnt“).
+  Wechselt der Status, wird der andere Knopf wieder farbig. **Bearbeiten**
+  (pink) und **Löschen** (rot) gibt es nur im aufgeklappten Details-Bereich.
 - **Details** klappt unter der Zeile auf (erneut klicken klappt zu):
   Personen je Personengruppe der Veranstaltung mit Gesamtzahl; Tabelle je
   Programmpunkt mit den Personen je Gruppe (nur Gruppen mit Personen in

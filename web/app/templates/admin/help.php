@@ -217,6 +217,8 @@ $sections = [
       <dt>Löschen</dt>
       <dd>Endgültig, inklusive Programmpunkt-Angaben und Mail-Protokoll, ohne E-Mail. Für eine nachvollziehbare Absage besser „Ablehnen“ verwenden.</dd>
 
+      <dt>Knöpfe in der Liste</dt>
+      <dd>In jeder Zeile: Bestätigen, Details, Ablehnen. Ist eine Anmeldung schon bestätigt bzw. abgelehnt, ist der passende Knopf grau; der andere bleibt nutzbar (z. B. eine bestätigte Anmeldung doch ablehnen). Bearbeiten und Löschen findest du unter „Details“.</dd>
       <dt>Details</dt>
       <dd>Klappt unter der Anmeldung auf: Personen je Gruppe und je Programmpunkt (wer beim Programmpunkt ist, wie viele Kinder in der Kinderbetreuung sind), ob angekreuzt oder individuell aufgeteilt, und die ganze Nachricht. Nochmal klicken klappt wieder zu.</dd>
       <dt>Mögliche Dubletten (⚠)</dt>

@@ -464,3 +464,21 @@ tr.details-open > td {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Pinker Umriss-Knopf (Bootstrap hat keinen): „Bearbeiten“ in den Anfragen-Details */
+.btn-outline-pink {
+  --bs-btn-color: var(--bs-pink);
+  --bs-btn-border-color: var(--bs-pink);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--bs-pink);
+  --bs-btn-hover-border-color: var(--bs-pink);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--bs-pink);
+  --bs-btn-active-border-color: var(--bs-pink);
+  --bs-btn-focus-shadow-rgb: 214, 51, 132;
+}
+
+/* Gelber Umriss-Knopf („Ablehnen“): Schrift dunkler für ausreichenden Kontrast, Rahmen bleibt gelb */
+.btn-outline-warning {
+  --bs-btn-color: var(--bs-warning-text-emphasis);
+}
