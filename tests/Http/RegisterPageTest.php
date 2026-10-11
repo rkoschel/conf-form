@@ -28,6 +28,21 @@ final class RegisterPageTest extends HttpTestCase
         return event_find($id);
     }
 
+    public function testPlaceSuggestionsAreProvidedForScriptAndAsDatalistFallback(): void
+    {
+        preferred_places_set(['Hamm', 'Bad "Sassendorf" <Test>']);
+
+        $body = $this->get('/register/')['body'];
+
+        // form.js liest data-places (eigene Liste ab zwei Zeichen); ohne JS bleibt die datalist
+        $this->assertMatchesRegularExpression('#data-places="([^"]*)"#', $body);
+        preg_match('#data-places="([^"]*)"#', $body, $m);
+        $this->assertSame(['Hamm', 'Bad "Sassendorf" <Test>'], json_decode(html_entity_decode($m[1], ENT_QUOTES), true));
+        $this->assertStringContainsString('list="places"', $body);
+        $this->assertStringContainsString('<option value="Hamm">', $body);
+        $this->assertStringNotContainsString('<Test>', $body, 'escaped');
+    }
+
     /** Gültiger Absendeversuch; $fields überschreibt bzw. ergänzt */
     private function submit(array $fields = []): array
     {

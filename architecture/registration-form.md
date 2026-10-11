@@ -12,9 +12,17 @@ abgelaufen ist (serverseitig geprüft).
 **Kontakt**
 - Vorname (Pflicht)
 - Nachname (Pflicht)
-- Heimatversammlung (Pflicht): Textfeld mit `<datalist>`-Vorschlägen.
+- Heimatversammlung (Pflicht): Textfeld mit Vorschlagsliste.
   Vorschläge = **nur** die bevorzugten Orte (global, siehe [§7.5](admin.md)).
-  Freitext erlaubt; wird beim Speichern normalisiert (trim, Mehrfach-
+  Die Liste erscheint erst ab **zwei eingegebenen Zeichen**, direkt unter dem
+  Feld, auf Mobil und Desktop gleich (eigene Liste per JS, nicht die
+  Browser-`<datalist>`, deren Verhalten je Browser und Gerät abweicht).
+  Treffer ohne Rücksicht auf Groß-/Kleinschreibung: zuerst Orte, die mit der
+  Eingabe beginnen, dann Treffer am Wortanfang (z. B. „ue“ → „Hamm-Uentrop“),
+  dann Treffer irgendwo im Namen; höchstens 8, der getippte Teil fett. Auswahl
+  per Tippen/Klick oder Pfeiltasten + Enter, Escape schließt. Steht genau ein
+  passender Ort schon vollständig im Feld, erscheint keine Liste. Ohne JS
+  bleibt die `<datalist>` als Rückfall. Freitext erlaubt; wird beim Speichern normalisiert (trim, Mehrfach-
   Leerzeichen entfernen).
 - E-Mail (Pflicht)
 - Checkbox „Ich habe keine E-Mail-Adresse“ → E-Mail entfällt,

@@ -296,3 +296,147 @@ if (form) {
   updateSplit();
   updateTargets();
 }
+
+// Vorschläge für die Heimatversammlung (bevorzugte Orte, SPEC §5.1): eigene
+// Liste statt <datalist>, damit sie auf Mobil und Desktop gleich aussieht und
+// sich gleich verhält – erst ab zwei Zeichen, Treffer am Wortanfang zuerst.
+// Ohne JS bleibt die datalist des Browsers.
+const PLACES_MIN_CHARS = 2;
+const PLACES_MAX = 8;
+document.querySelectorAll('[data-places]').forEach((wrapper) => {
+  let places = [];
+  try {
+    places = JSON.parse(wrapper.dataset.places || '[]');
+  } catch (e) {
+    places = [];
+  }
+  const input = wrapper.querySelector('input');
+  if (!input || !Array.isArray(places) || places.length === 0) {
+    return;
+  }
+  input.removeAttribute('list');
+
+  const listId = `${input.id}-suggestions`;
+  const list = document.createElement('div');
+  list.id = listId;
+  list.className = 'list-group shadow-sm place-suggestions';
+  list.setAttribute('role', 'listbox');
+  list.hidden = true;
+  input.after(list);
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-controls', listId);
+  input.setAttribute('aria-expanded', 'false');
+
+  let active = -1;
+  let choosing = false;
+  const items = () => [...list.querySelectorAll('[role="option"]')];
+
+  const close = () => {
+    list.hidden = true;
+    list.replaceChildren();
+    active = -1;
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+  };
+
+  const highlight = (index) => {
+    active = index;
+    items().forEach((item, i) => {
+      item.classList.toggle('active', i === index);
+      item.setAttribute('aria-selected', i === index ? 'true' : 'false');
+    });
+    if (index >= 0) {
+      input.setAttribute('aria-activedescendant', items()[index].id);
+      items()[index].scrollIntoView({ block: 'nearest' });
+    } else {
+      input.removeAttribute('aria-activedescendant');
+    }
+  };
+
+  const choose = (place) => {
+    input.value = place;
+    close();
+    // andere Listener (z. B. Fehlermarkierung) informieren, Liste aber nicht wieder öffnen
+    choosing = true;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+    choosing = false;
+  };
+
+  // Ort als Option, der getippte Teil fett (DOM statt innerHTML)
+  const option = (place, query, index) => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.id = `${listId}-${index}`;
+    item.className = 'list-group-item list-group-item-action';
+    item.setAttribute('role', 'option');
+    item.setAttribute('aria-selected', 'false');
+    item.tabIndex = -1;
+    const start = place.toLocaleLowerCase('de').indexOf(query);
+    if (start >= 0) {
+      const strong = document.createElement('strong');
+      strong.textContent = place.slice(start, start + query.length);
+      item.append(place.slice(0, start), strong, place.slice(start + query.length));
+    } else {
+      item.textContent = place;
+    }
+    // pointerdown statt click: kommt vor dem blur des Eingabefelds
+    item.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      choose(place);
+    });
+    item.addEventListener('click', () => choose(place));
+    return item;
+  };
+
+  const update = () => {
+    if (choosing) {
+      return;
+    }
+    const query = input.value.trim().toLocaleLowerCase('de');
+    if (query.length < PLACES_MIN_CHARS) {
+      close();
+      return;
+    }
+    const lower = (place) => place.toLocaleLowerCase('de');
+    const wordStart = (place) => lower(place).split(/[\s\-–/]+/).some((word) => word.startsWith(query));
+    const matches = [...new Set([
+      ...places.filter((place) => lower(place).startsWith(query)),
+      ...places.filter(wordStart),
+      ...places.filter((place) => lower(place).includes(query)),
+    ])].slice(0, PLACES_MAX);
+    // Steht genau ein passender Ort schon im Feld, nichts mehr anbieten
+    if (matches.length === 0 || (matches.length === 1 && lower(matches[0]) === query)) {
+      close();
+      return;
+    }
+    list.replaceChildren(...matches.map((place, index) => option(place, query, index)));
+    list.hidden = false;
+    active = -1;
+    input.setAttribute('aria-expanded', 'true');
+  };
+
+  input.addEventListener('input', update);
+  input.addEventListener('focus', update);
+  input.addEventListener('blur', close);
+  input.addEventListener('keydown', (event) => {
+    if (list.hidden) {
+      return;
+    }
+    const count = items().length;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      highlight((active + 1) % count);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      highlight(active <= 0 ? count - 1 : active - 1);
+    } else if (event.key === 'Enter' && active >= 0) {
+      event.preventDefault();
+      choose(items()[active].textContent);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+    }
+  });
+});

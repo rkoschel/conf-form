@@ -37,7 +37,9 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
     <legend class="h5">Kontakt</legend>
     <div class="col-sm-6"><?= input_field($form, $errors, 'first_name', 'Vorname', 'text', 'required autocomplete="given-name"') ?></div>
     <div class="col-sm-6"><?= input_field($form, $errors, 'last_name', 'Nachname', 'text', 'required autocomplete="family-name"') ?></div>
-    <div class="col-12">
+    <?php /* Vorschläge = bevorzugte Orte (SPEC §5.1): form.js zeigt sie ab zwei Zeichen als eigene Liste
+             (gleich auf Mobil und Desktop); ohne JS bleibt die datalist des Browsers */ ?>
+    <div class="col-12 position-relative" data-places="<?= e((string) json_encode(preferred_places(), JSON_UNESCAPED_UNICODE)) ?>">
       <?= input_field($form, $errors, 'congregation', setting_text('congregation_label'), 'text', 'required list="places" autocomplete="off"') ?>
       <datalist id="places">
         <?php foreach (preferred_places() as $place): ?>

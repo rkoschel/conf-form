@@ -130,7 +130,7 @@ $sections = [
     <h2 class="h4">Bevorzugte Orte</h2>
     <ul>
       <li>Gelten für <strong>alle Veranstaltungen</strong> (Einstellungen → Allgemein), ein Ort pro Zeile.</li>
-      <li>Erscheinen im Anmeldeformular als <strong>Vorschläge</strong> für die Heimatversammlung; Freitext ist trotzdem möglich.</li>
+      <li>Erscheinen im Anmeldeformular als <strong>Vorschläge</strong> für die Heimatversammlung, sobald jemand mindestens zwei Buchstaben eingegeben hat (auf Handy und Computer gleich; auch Treffer mitten im Namen, z. B. „ue“ für „Hamm-Uentrop“). Freitext ist trotzdem möglich.</li>
       <li>Verglichen wird ohne Rücksicht auf Groß-/Kleinschreibung und überflüssige Leerzeichen („hamm“ = „Hamm“).</li>
       <li>Nur Anmeldungen aus diesen Orten können <strong>automatisch bestätigt</strong> werden, alle anderen kommen auf die Warteliste.</li>
       <li>Änderungen wirken nur auf <strong>neue</strong> Anmeldungen; der Status bestehender Anmeldungen bleibt unverändert. Die Hervorhebung (fett) in Anfragen und Auswertung richtet sich nach der aktuellen Liste.</li>
