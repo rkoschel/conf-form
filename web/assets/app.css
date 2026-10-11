@@ -343,3 +343,46 @@
   padding-top: 0.6rem;
   padding-bottom: 0.6rem;
 }
+
+/* Anzahl Teilnehmer: eine Zeile je Personengruppe, Name links, Feld rechts.
+   Lange Namen brechen links um, das Feld bleibt in derselben Zeile. */
+.count-list {
+  max-width: 32rem;
+  border-top: 1px solid var(--bs-border-color-translucent);
+}
+.count-field {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+.count-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.count-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.count-input {
+  flex: 0 0 auto;
+  width: 6.5rem;
+}
+.count-field.has-stepper .count-input {
+  width: 9rem;
+}
+.count-input .btn {
+  min-width: 2.75rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  touch-action: manipulation; /* kein Doppeltipp-Zoom auf dem Handy */
+}
+/* Mit − / + sind die Pfeile des Zahlenfelds überflüssig */
+.count-field.has-stepper input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.count-field.has-stepper input[type="number"]::-webkit-inner-spin-button,
+.count-field.has-stepper input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

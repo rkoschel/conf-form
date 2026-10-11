@@ -14,17 +14,26 @@ if (form) {
   };
 
   // Fehlermeldung direkt am Feld (Bootstrap is-invalid + invalid-feedback);
-  // eine Meldung vom Server am selben Feld wird dabei ersetzt
+  // eine Meldung vom Server am selben Feld wird dabei ersetzt. Bei den
+  // Anzahlen steht sie unter der ganzen Zeile (nicht zwischen Feld und +).
   const showError = (input, message) => {
     input.classList.toggle('is-invalid', message !== '');
-    let feedback = input.parentElement.querySelector('.invalid-feedback');
+    const countField = input.closest('[data-count-field]');
+    let feedback = (countField || input.parentElement).querySelector('.invalid-feedback');
     if (!feedback && message !== '') {
       feedback = document.createElement('div');
       feedback.className = 'invalid-feedback';
-      input.after(feedback);
+      if (countField) {
+        countField.append(feedback);
+      } else {
+        input.after(feedback);
+      }
     }
     if (feedback) {
       feedback.textContent = message;
+      if (countField) {
+        feedback.classList.toggle('d-block', message !== '');
+      }
     }
     return message === '';
   };
@@ -439,4 +448,35 @@ document.querySelectorAll('[data-places]').forEach((wrapper) => {
       close();
     }
   });
+});
+
+// Anzahlen: − / + neben dem Zahlenfeld (bequemer als die Zahlentastatur auf
+// dem Handy). Ohne JS bleiben die Knöpfe verborgen, das Feld funktioniert
+// normal. Ein Klick löst ein input-Ereignis aus, damit Prüfung, Aufteilung
+// und Hinweise wie beim Tippen reagieren.
+document.querySelectorAll('[data-count-field]').forEach((field) => {
+  const input = field.querySelector('input');
+  const buttons = [...field.querySelectorAll('[data-step]')];
+  if (!input || buttons.length === 0) {
+    return;
+  }
+  const current = () => {
+    const value = parseInt(input.value, 10);
+    return Number.isNaN(value) || value < 0 ? 0 : value;
+  };
+  const sync = () => {
+    buttons.filter((button) => Number(button.dataset.step) < 0).forEach((button) => {
+      button.disabled = current() <= 0;
+    });
+  };
+  field.classList.add('has-stepper');
+  buttons.forEach((button) => {
+    button.hidden = false;
+    button.addEventListener('click', () => {
+      input.value = String(Math.max(0, current() + Number(button.dataset.step)));
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
+  input.addEventListener('input', sync);
+  sync();
 });

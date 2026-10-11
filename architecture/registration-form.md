@@ -38,6 +38,13 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
   Kindergruppe 1, Kindergruppe 2, Kindergruppe 3). Vorbelegt ist eine Person
   in der ersten Gruppe. Nicht gewählte Gruppen erscheinen nicht und werden
   als 0 gespeichert.
+- Darstellung (Mobil und Desktop gleich): **eine Zeile je Personengruppe**,
+  Name links, Zahlenfeld rechts, feine Trennlinien; lange Namen brechen links
+  um, das Feld bleibt in derselben Zeile (eindeutige Zuordnung). Links und
+  rechts vom Feld Knöpfe **−** und **+** (ab 0 nach oben, − bei 0 gesperrt);
+  sie wirken wie Tippen (Prüfung, Aufteilung, Hinweise). Ohne JS nur das
+  Zahlenfeld. Fehlermeldungen stehen unter der jeweiligen Zeile. Auf dem
+  Desktop ist die Liste höchstens ca. 32rem breit.
 
 **Voraussichtliche Anwesenheit**
 - Standard: je Programmpunkt eine Checkbox; gilt für die ganze Gruppe.

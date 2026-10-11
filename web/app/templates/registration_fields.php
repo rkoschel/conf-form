@@ -64,12 +64,32 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
 
   <fieldset class="row g-3">
     <legend class="h5 mb-0">Anzahl Teilnehmer</legend>
-    <?php foreach ($groups as $group => $label): ?>
-      <div class="col-6 col-md">
-        <?= input_field($form + [$group => '0'], $errors, $group, $label, 'number',
-            'min="0" step="1" inputmode="numeric" data-count="' . $group . '"') ?>
+    <?php /* Eine Zeile je Personengruppe: Name links, Feld rechts – so bleibt die Zuordnung
+             auch bei langen, umbrechenden Namen eindeutig. − / + blendet form.js ein. */ ?>
+    <div class="col-12">
+      <div class="count-list">
+        <?php foreach ($groups as $group => $label): ?>
+          <?php $id = 'f-' . $group ?>
+          <div class="count-field" data-count-field>
+            <div class="count-row">
+              <label for="<?= e($id) ?>" class="count-label"><?= e($label) ?></label>
+              <div class="input-group count-input">
+                <button type="button" class="btn btn-outline-secondary" data-step="-1"
+                        aria-label="<?= e($label) ?>: eine Person weniger" hidden>−</button>
+                <input type="number" id="<?= e($id) ?>" name="<?= e($group) ?>" value="<?= e($form[$group] ?? '0') ?>"
+                       class="form-control text-center<?= invalid_class($errors, $group) ?>"
+                       min="0" step="1" inputmode="numeric" data-count="<?= e($group) ?>">
+                <button type="button" class="btn btn-outline-secondary" data-step="1"
+                        aria-label="<?= e($label) ?>: eine Person mehr" hidden>+</button>
+              </div>
+            </div>
+            <?php if (($errors[$group] ?? '') !== ''): ?>
+              <div class="invalid-feedback d-block"><?= e($errors[$group]) ?></div>
+            <?php endif ?>
+          </div>
+        <?php endforeach ?>
       </div>
-    <?php endforeach ?>
+    </div>
     <?php if (isset($errors['persons'])): ?>
       <div class="col-12 text-danger small"><?= e($errors['persons']) ?></div>
     <?php endif ?>

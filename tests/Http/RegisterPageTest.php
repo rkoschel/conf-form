@@ -43,6 +43,20 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertStringNotContainsString('<Test>', $body, 'escaped');
     }
 
+    public function testCountFieldsAreRowsWithStepperButtonsHiddenWithoutScript(): void
+    {
+        $body = $this->get('/register/')['body'];
+
+        $this->assertMatchesRegularExpression(
+            '#data-count-field>\s*<div class="count-row">\s*<label for="f-group_1" class="count-label">Erwachsene</label>#',
+            $body,
+            'Name und Feld in einer Zeile'
+        );
+        $this->assertMatchesRegularExpression('#data-step="-1"\s+aria-label="Erwachsene: eine Person weniger" hidden>#', $body);
+        $this->assertMatchesRegularExpression('#data-step="1"\s+aria-label="Erwachsene: eine Person mehr" hidden>#', $body);
+        $this->assertMatchesRegularExpression('#name="group_1" value="1"#', $body);
+    }
+
     /** Gültiger Absendeversuch; $fields überschreibt bzw. ergänzt */
     private function submit(array $fields = []): array
     {
