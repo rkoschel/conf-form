@@ -108,7 +108,7 @@
           <div class="small text-body-secondary"><?= $people ?> Personen, alle Status</div>
           <?php $placeBars = places_chart($stats['places']) ?>
           <?php if ($placeBars): ?>
-            <?php /* Senkrechte Balken je Ort: größter Ort = 100 %, ohne Personenzahlen (SPEC §7.7) */ ?>
+            <?php /* Senkrechte Balken je Ort: größter Ort = 100 %, Beschriftung „Name (bestätigt/offen)“ (SPEC §7.7) */ ?>
             <h3 class="h6 mt-3 mb-2">Personen je Ort</h3>
             <div class="place-chart" role="list">
               <?php foreach ($placeBars as $bar): ?>
@@ -123,10 +123,11 @@
                   </div>
                   <div class="place-chart-label<?= $bar['other'] ? ' fst-italic' : '' ?>" title="<?= e($bar['name']) ?>">
                     <?php if ($bar['preferred']): ?>
-                      <strong><?= e($bar['name']) ?></strong><span class="visually-hidden"> (bevorzugter Ort)</span>
+                      <strong><?= e($bar['short']) ?></strong><span class="visually-hidden"> (bevorzugter Ort)</span>
                     <?php else: ?>
-                      <?= e($bar['name']) ?>
+                      <?= e($bar['short']) ?>
                     <?php endif ?>
+                    <span class="tabular-nums">(<strong><?= $bar['people_confirmed'] ?></strong>/<?= $bar['people_pending'] ?>)</span>
                   </div>
                 </div>
               <?php endforeach ?>
@@ -137,6 +138,7 @@
             </div>
             <div class="small text-body-secondary mt-1">
               Personen (bestätigt und offen) relativ zum Ort mit den meisten; Orte unter 5 % davon unter „Andere“.
+              In Klammern: <strong>bestätigt</strong>/offen. Name gekürzt, voller Name beim Darüberfahren.
               <strong>Fett</strong> = bevorzugter Ort.
             </div>
           <?php endif ?>

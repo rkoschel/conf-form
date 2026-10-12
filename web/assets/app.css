@@ -454,7 +454,7 @@ tr.details-open > td {
 /* Feste Höhe, damit alle Balken auf einer Grundlinie stehen; Text beginnt direkt unter dem Balken */
 .place-chart-label {
   margin-top: 0.35rem;
-  height: 7rem;
+  height: 6rem;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   text-align: end;

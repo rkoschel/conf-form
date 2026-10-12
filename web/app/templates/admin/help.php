@@ -291,7 +291,7 @@ $sections = [
           <li><strong>Gesamtbelegung:</strong> bestätigte Personen aller Gruppen; zusätzlich offene Anfragen (gelb), um zu sehen, wie voll es würde, wenn alle bestätigt würden.</li>
           <li><strong>Je Personengruppe:</strong> ein Balken pro gewählter Gruppe mit bestätigten und offenen Personen, im selben Maßstab wie die Gesamtbelegung (Kapazität).</li>
           <li><strong>Anfragen nach Status:</strong> alle Personen und Anmeldungen.</li>
-          <li><strong>Personen je Ort:</strong> senkrechte Balken mit bestätigten (blau) und offenen Personen (gelb) je Ort, ohne Zahlen. Der Ort mit den meisten Personen ist der volle Balken, die anderen relativ dazu. Orte mit weniger als 5 % davon stehen zusammen unter „Andere“.</li>
+          <li><strong>Personen je Ort:</strong> senkrechte Balken mit bestätigten (blau) und offenen Personen (gelb) je Ort. Darunter der auf 5 Buchstaben gekürzte Ortsname und in Klammern die Personen: bestätigt fett, offen normal, z. B. „Hamm (<strong>30</strong>/5)“; der volle Name erscheint beim Darüberfahren. Der Ort mit den meisten Personen ist der volle Balken, die anderen relativ dazu. Orte mit weniger als 5 % davon stehen zusammen unter „Andere“.</li>
           <li><strong>Programmpunkte und Kinderbetreuung:</strong> nur bestätigte Anmeldungen. Bei einem Programmpunkt mit Zielgruppe stehen die Gruppen außerhalb der Zielgruppe als „–“.</li>
         </ul>
       </dd>

@@ -239,14 +239,17 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
   Gruppen), nicht Anmeldungen; storniert/abgelehnt zählen nicht. Je Ort ein
   gestapelter Balken: bestätigt unten (blau), offen darüber (gelb gestreift),
   Farben wie in der Gesamtbelegung. Der Ort mit den meisten Personen
-  (bestätigt + offen) ist 100 %, die anderen relativ dazu; **keine
-  Personenzahlen**. Orte, die einzeln unter 5 % des größten Orts liegen,
+  (bestätigt + offen) ist 100 %, die anderen relativ dazu. Beschriftung
+  unter dem Balken: Ortsname auf **5 Zeichen gekürzt** (voller Name als
+  Tooltip; „Andere“ ausgeschrieben), dahinter in Klammern die **Personen**
+  (nicht Anmeldungen): bestätigte **fett**, offene normal, z. B. „Hamm
+  (**30**/5)“. Orte, die einzeln unter 5 % des größten Orts liegen,
   werden am Ende zu „Andere“ (kursiv) zusammengefasst – ein einzelner
   kleiner Ort behält seinen Namen; liegt „Andere“ höher als der größte Ort,
   bestimmt es den Maßstab. Reihenfolge: meiste zuerst. Schreibweisen ohne
   Rücksicht auf Groß-/Kleinschreibung zusammengefasst, bevorzugte Orte fett,
-  Ortsnamen senkrecht unter den Balken (voller Name als Tooltip). Legende
-  Bestätigt/Offen ohne Zahlen. Berechnung in `places_chart()`.
+  Beschriftung senkrecht unter den Balken. Legende Bestätigt/Offen.
+  Berechnung in `places_chart()`.
 
 ### 7.8 Team-Zugang zur Auswertung
 

@@ -163,16 +163,21 @@ function quota_shares(int $confirmed, int $pending, int $max): array
     ];
 }
 
+/** Ortsnamen unter den Balken „Personen je Ort“ auf so viele Zeichen kürzen */
+const PLACES_CHART_NAME_LENGTH = 5;
+
 /**
  * Balken „Personen je Ort“ (SPEC §7.7): Der Ort mit den meisten Personen
  * (bestätigt + offen) ist 100 %, die anderen relativ dazu. Orte, die einzeln
  * unter $minShare dieses Maximums liegen, werden zu „Andere“ zusammengefasst
  * (am Ende). Liegt „Andere“ höher als der größte Ort, bestimmt es den
- * Maßstab. Höhen in Prozent (bestätigt unten, offen darüber); Personenzahlen
- * werden nicht angezeigt.
+ * Maßstab. Höhen in Prozent (bestätigt unten, offen darüber), dazu die
+ * Personenzahlen für die Beschriftung und der auf 5 Zeichen gekürzte Name
+ * („Andere“ bleibt ausgeschrieben).
  *
  * @param list<array{name: string, confirmed: int, pending: int, preferred: bool}> $places nach Personen absteigend
- * @return list<array{name: string, preferred: bool, other: bool, confirmed: float, pending: float}>
+ * @return list<array{name: string, short: string, preferred: bool, other: bool, confirmed: float, pending: float,
+ *     people_confirmed: int, people_pending: int}>
  */
 function places_chart(array $places, float $minShare = 0.05): array
 {
@@ -202,9 +207,12 @@ function places_chart(array $places, float $minShare = 0.05): array
     $scale = max(array_map($total, $bars));
     return array_map(fn (array $bar) => [
         'name' => $bar['name'],
+        'short' => $bar['other'] ? $bar['name'] : mb_substr($bar['name'], 0, PLACES_CHART_NAME_LENGTH),
         'preferred' => $bar['preferred'],
         'other' => $bar['other'],
         'confirmed' => round($bar['confirmed'] / $scale * 100, 2),
         'pending' => round($bar['pending'] / $scale * 100, 2),
+        'people_confirmed' => $bar['confirmed'],
+        'people_pending' => $bar['pending'],
     ], $bars);
 }
