@@ -23,7 +23,7 @@ const CHANGELOG = [
         'changed' => [
             'Anmeldeformular: Anzahl Teilnehmer als eine Zeile je Personengruppe mit Knöpfen − und +; die Zuordnung von Name und Feld bleibt auch bei langen Gruppennamen eindeutig.',
             'Anmeldeformular: Vorschläge für die Heimatversammlung erst ab zwei Zeichen, auf Handy und Computer gleich (auch Treffer mitten im Namen).',
-            'Auswertung und Team-Seite: „Personen je Ort“ als senkrechtes Balkendiagramm (bestätigt/offen, größter Ort = 100 %, kleine Orte unter „Andere“), beschriftet mit gekürztem Ortsnamen und Personen „(bestätigt/offen)“.',
+            'Auswertung und Team-Seite: „Personen je Ort“ als senkrechtes Balkendiagramm (bestätigt/offen, größter Ort = 100 %, kleine Orte unter „Andere“), Ortsname im Balken, darunter die Personen bestätigt/offen.',
             'Auswertung und Team-Seite: Überschrift „Bestätigte Anwesenheit je Programmpunkt“ statt „Voraussichtliche …“.',
             'Admin: Startseite nach der Anmeldung ist „Auswertungen“, ganz links im Menü; der Bereich heißt jetzt „Admin“.',
             'Auswertungen: „Anfragen nach Status“ steht ganz unten.',

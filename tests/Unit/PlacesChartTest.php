@@ -15,9 +15,9 @@ final class PlacesChartTest extends TestCase
     {
         $bars = places_chart([$this->place('Hamm', 30, 10, true), $this->place('Unna', 10, 10)]);
 
-        $this->assertSame(['name' => 'Hamm', 'short' => 'Hamm', 'preferred' => true, 'other' => false, 'confirmed' => 75.0, 'pending' => 25.0,
+        $this->assertSame(['name' => 'Hamm', 'preferred' => true, 'other' => false, 'confirmed' => 75.0, 'pending' => 25.0,
             'people_confirmed' => 30, 'people_pending' => 10], $bars[0]);
-        $this->assertSame(['name' => 'Unna', 'short' => 'Unna', 'preferred' => false, 'other' => false, 'confirmed' => 25.0, 'pending' => 25.0,
+        $this->assertSame(['name' => 'Unna', 'preferred' => false, 'other' => false, 'confirmed' => 25.0, 'pending' => 25.0,
             'people_confirmed' => 10, 'people_pending' => 10], $bars[1]);
     }
 
@@ -31,7 +31,7 @@ final class PlacesChartTest extends TestCase
         ]);
 
         $this->assertSame(['Hamm', 'Unna', 'Andere'], array_column($bars, 'name'));
-        $this->assertSame(['name' => 'Andere', 'short' => 'Andere', 'preferred' => false, 'other' => true, 'confirmed' => 6.0, 'pending' => 1.0,
+        $this->assertSame(['name' => 'Andere', 'preferred' => false, 'other' => true, 'confirmed' => 6.0, 'pending' => 1.0,
             'people_confirmed' => 6, 'people_pending' => 1], $bars[2], '„Andere“ bleibt ausgeschrieben');
     }
 
@@ -58,13 +58,5 @@ final class PlacesChartTest extends TestCase
     {
         $this->assertSame([], places_chart([]));
         $this->assertSame([], places_chart([$this->place('Hamm', 0)]));
-    }
-
-    public function testNamesAreShortenedToFiveCharacters(): void
-    {
-        $bars = places_chart([$this->place('Lippstadt-Bad Waldliesborn', 10), $this->place('Ahlen', 9), $this->place('Bönen', 5)]);
-
-        $this->assertSame(['Lipps', 'Ahlen', 'Bönen'], array_column($bars, 'short'), 'Umlaute zählen als ein Zeichen');
-        $this->assertSame('Lippstadt-Bad Waldliesborn', $bars[0]['name'], 'voller Name für den Tooltip');
     }
 }

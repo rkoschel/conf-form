@@ -431,15 +431,16 @@ tr.details-open > td {
   padding-bottom: 0.25rem;
 }
 .place-chart-item {
-  flex: 1 0 1.6rem;
-  max-width: 3rem;
+  flex: 1 0 2.2rem;
+  max-width: 3.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .place-chart-bar {
+  position: relative;
   width: 100%;
-  height: 9rem;
+  height: 10rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -451,17 +452,30 @@ tr.details-open > td {
   width: 100%;
   flex: 0 0 auto;
 }
-/* Feste Höhe, damit alle Balken auf einer Grundlinie stehen; Text beginnt direkt unter dem Balken */
-.place-chart-label {
-  margin-top: 0.35rem;
-  height: 6rem;
+/* Ortsname senkrecht im Balken, von unten nach oben; Schild in Seitenfarbe (halbtransparent),
+   Text in Textfarbe – lesbar auf allen Segmentfarben im hellen und dunklen Modus. Zu lange
+   Namen enden mit „…“, der volle Name steht im Tooltip. */
+.place-chart-name {
+  position: absolute;
+  bottom: 0.3rem;
+  left: 50%;
+  max-height: calc(100% - 0.6rem);
+  transform: translateX(-50%) rotate(180deg);
   writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  text-align: end;
-  font-size: 0.8rem;
+  padding: 0.3rem 0.1rem;
+  border-radius: var(--bs-border-radius-sm);
+  background: rgba(var(--bs-body-bg-rgb), 0.85);
+  color: var(--bs-body-color);
+  font-size: 0.75rem;
   line-height: 1.2;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* Personen bestätigt/offen unter dem Balken */
+.place-chart-count {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
