@@ -49,6 +49,16 @@ Im Admin-Bearbeiten gilt diese Obergrenze nicht.)
 **Voraussichtliche Anwesenheit**
 - Standard: je Programmpunkt eine Checkbox; gilt für die ganze Gruppe.
   Anfangs ist **kein** Programmpunkt ausgewählt (bewusste Entscheidung).
+- Ab zwei Programmpunkten steht darüber, leicht abgesetzt (getönter Kasten),
+  die Checkbox **„An allen Programmpunkten teilnehmen“**, darunter der Text
+  „oder nur an ausgewählten Programmpunkten teilnehmen:“ vor den einzelnen
+  Programmpunkten. Ankreuzen setzt alle nicht gesperrten Programmpunkte
+  (gesperrt = Zielgruppe, aus der niemand eingetragen ist); Abwählen nimmt
+  alle Häkchen weg. Diese Auswahl gilt als eigene Auswahl, nicht als
+  automatisches Ankreuzen (keine Rückfrage beim Absenden). Wird danach ein
+  einzelner Programmpunkt abgewählt, geht „alle“ aus; sind alle nicht
+  gesperrten Programmpunkte angekreuzt, ist „alle“ an. Nur im Browser (JS),
+  nicht bei individueller Aufteilung; wird nicht mitgeschickt.
 - **Mindestens ein Programmpunkt** muss besucht werden (angekreuzt bzw. in
   der Aufteilung > 0), sonst „Bitte mindestens einen Programmpunkt
   auswählen.“ – im Browser vor dem Absenden und auf dem Server geprüft

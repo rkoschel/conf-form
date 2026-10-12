@@ -18,6 +18,7 @@ const CHANGELOG = [
             'Anmeldeformular: Sind nur automatisch angekreuzte Zielgruppen-Programmpunkte gewählt, fragt das Formular vor dem Absenden nach („Zurück und weitere auswählen“ / „Weiter und absenden“).',
             'Bestätigungs- und Wartelisten-Mails nennen die gewählten Programmpunkte mit Personenzahl und Kindern in der Kinderbetreuung.',
             'Versionshinweise im Admin-Menü mit Software-Stückliste (SBOM), auch als CycloneDX-Datei zum Herunterladen.',
+            'Anmeldeformular: „An allen Programmpunkten teilnehmen“ kreuzt alle möglichen Programmpunkte auf einmal an.',
         ],
         'changed' => [
             'Anmeldeformular: Anzahl Teilnehmer als eine Zeile je Personengruppe mit Knöpfen − und +; die Zuordnung von Name und Feld bleibt auch bei langen Gruppennamen eindeutig.',

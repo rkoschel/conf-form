@@ -57,6 +57,16 @@ final class RegisterPageTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#name="group_1" value="1"#', $body);
     }
 
+    public function testAttendAllCheckboxAboveSlotsOnlyForScript(): void
+    {
+        $body = $this->get('/register/')['body'];
+
+        $this->assertMatchesRegularExpression('#<div class="mb-3" data-attend-all-block hidden>.*?id="attend-all" data-attend-all>\s*<label[^>]*>An allen Programmpunkten teilnehmen</label>#s', $body, 'ohne JS verborgen');
+        $this->assertStringContainsString('oder nur an ausgewählten Programmpunkten teilnehmen:', $body);
+        $this->assertLessThan(strpos($body, 'name="attend['), strpos($body, 'data-attend-all'), 'über den Programmpunkten');
+        $this->assertDoesNotMatchRegularExpression('#data-attend-all[^>]*name=#', $body, 'wird nicht mitgeschickt');
+    }
+
     /** Gültiger Absendeversuch; $fields überschreibt bzw. ergänzt */
     private function submit(array $fields = []): array
     {

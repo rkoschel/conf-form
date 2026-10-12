@@ -135,7 +135,34 @@ if (form) {
       }
       slot.querySelector('[data-target-none]').hidden = !nobody;
     });
+    syncAttendAll();
   };
+
+  // „An allen Programmpunkten teilnehmen“: kreuzt alle nicht gesperrten
+  // Programmpunkte an (gesperrt = niemand aus der Zielgruppe eingetragen).
+  // Das gilt als eigene Auswahl, nicht als automatisches Ankreuzen (keine
+  // Rückfrage beim Absenden). Wird ein Programmpunkt abgewählt, geht das
+  // Häkchen bei „alle“ aus; sind alle angekreuzt, geht es an.
+  const attendAll = form.querySelector('[data-attend-all]');
+  const attendAllBlock = form.querySelector('[data-attend-all-block]');
+  const selectableAttend = () => [...form.querySelectorAll('[data-attend] input')].filter((input) => !input.disabled);
+  function syncAttendAll() {
+    if (!attendAll) {
+      return;
+    }
+    attendAllBlock.hidden = Boolean(customSplit && customSplit.checked);
+    const inputs = selectableAttend();
+    attendAll.checked = inputs.length > 0 && inputs.every((input) => input.checked);
+  }
+  attendAll?.addEventListener('change', () => {
+    selectableAttend().forEach((input) => {
+      input.checked = attendAll.checked;
+      delete input.dataset.autoChecked;
+    });
+  });
+  form.querySelectorAll('[data-attend] input').forEach((input) => {
+    input.addEventListener('change', syncAttendAll);
+  });
 
   const checkSplitInput = (el) => checkNumber(el.querySelector('input'), count(el.dataset.splitGroup));
 
@@ -155,6 +182,7 @@ if (form) {
     }
     form.querySelectorAll('[data-attend]').forEach((el) => { el.hidden = customSplit.checked; });
     form.querySelectorAll('[data-split]').forEach((el) => { el.hidden = !customSplit.checked; });
+    syncAttendAll();
     splitGroups().forEach((el) => {
       const max = count(el.dataset.splitGroup);
       const input = el.querySelector('input');

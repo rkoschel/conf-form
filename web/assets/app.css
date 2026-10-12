@@ -487,3 +487,8 @@ tr.details-open > td {
 .registration-history {
   max-width: 42rem;
 }
+
+/* Anmeldeformular: „An allen Programmpunkten teilnehmen“ leicht abgesetzt von den einzelnen Programmpunkten */
+.attend-all {
+  background: var(--bs-tertiary-bg);
+}

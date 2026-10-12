@@ -149,6 +149,20 @@ $childcareHintVisible = (bool) array_filter($childcareSlots, $childcareVisible);
         Bitte mindestens einen Programmpunkt auswählen.
       </div>
 
+      <?php if (count($event['slots']) > 1): ?>
+        <?php /* „An allen Programmpunkten teilnehmen“: kreuzt alle (nicht gesperrten) Programmpunkte an.
+                 Nur mit JS (form.js blendet ein), nicht bei individueller Aufteilung; wird nicht mitgeschickt. */ ?>
+        <div class="mb-3" data-attend-all-block hidden>
+          <div class="attend-all border rounded p-3">
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox" id="attend-all" data-attend-all>
+              <label class="form-check-label fw-semibold" for="attend-all">An allen Programmpunkten teilnehmen</label>
+            </div>
+          </div>
+          <div class="small text-body-secondary mt-3">oder nur an ausgewählten Programmpunkten teilnehmen:</div>
+        </div>
+      <?php endif ?>
+
       <div class="vstack gap-2">
         <?php foreach ($event['slots'] as $slot): ?>
           <?php $slotId = (int) $slot['id'] ?>
