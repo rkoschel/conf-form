@@ -10,6 +10,16 @@ declare(strict_types=1);
  */
 const CHANGELOG = [
     [
+        'version' => '1.5',
+        'date' => '2026-10-12',
+        'new' => [
+            'Anmeldeformular: „An allen Programmpunkten teilnehmen“ kreuzt alle möglichen Programmpunkte auf einmal an.',
+        ],
+        'changed' => [
+            'Auswertung und Team-Seite: „Personen je Ort“ mit dem Ortsnamen im Balken und darunter den Personen bestätigt/offen.',
+        ],
+    ],
+    [
         'version' => '1.4',
         'date' => '2026-10-11',
         'new' => [
@@ -18,12 +28,11 @@ const CHANGELOG = [
             'Anmeldeformular: Sind nur automatisch angekreuzte Zielgruppen-Programmpunkte gewählt, fragt das Formular vor dem Absenden nach („Zurück und weitere auswählen“ / „Weiter und absenden“).',
             'Bestätigungs- und Wartelisten-Mails nennen die gewählten Programmpunkte mit Personenzahl und Kindern in der Kinderbetreuung.',
             'Versionshinweise im Admin-Menü mit Software-Stückliste (SBOM), auch als CycloneDX-Datei zum Herunterladen.',
-            'Anmeldeformular: „An allen Programmpunkten teilnehmen“ kreuzt alle möglichen Programmpunkte auf einmal an.',
         ],
         'changed' => [
             'Anmeldeformular: Anzahl Teilnehmer als eine Zeile je Personengruppe mit Knöpfen − und +; die Zuordnung von Name und Feld bleibt auch bei langen Gruppennamen eindeutig.',
             'Anmeldeformular: Vorschläge für die Heimatversammlung erst ab zwei Zeichen, auf Handy und Computer gleich (auch Treffer mitten im Namen).',
-            'Auswertung und Team-Seite: „Personen je Ort“ als senkrechtes Balkendiagramm (bestätigt/offen, größter Ort = 100 %, kleine Orte unter „Andere“), Ortsname im Balken, darunter die Personen bestätigt/offen.',
+            'Auswertung und Team-Seite: „Personen je Ort“ als senkrechtes Balkendiagramm (bestätigt/offen, größter Ort = 100 %, kleine Orte unter „Andere“).',
             'Auswertung und Team-Seite: Überschrift „Bestätigte Anwesenheit je Programmpunkt“ statt „Voraussichtliche …“.',
             'Admin: Startseite nach der Anmeldung ist „Auswertungen“, ganz links im Menü; der Bereich heißt jetzt „Admin“.',
             'Auswertungen: „Anfragen nach Status“ steht ganz unten.',
