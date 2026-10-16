@@ -431,7 +431,7 @@ tr.details-open > td {
   padding-bottom: 0.25rem;
 }
 .place-chart-item {
-  flex: 1 0 2.2rem;
+  flex: 1 0 1.9rem;
   max-width: 3.5rem;
   display: flex;
   flex-direction: column;

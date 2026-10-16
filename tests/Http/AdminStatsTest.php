@@ -31,7 +31,10 @@ final class AdminStatsTest extends HttpTestCase
         $this->assertStringNotContainsString('nach Altersgruppe', $body, 'alte Tabelle entfernt');
         $this->assertStringContainsString('quota-meter-limit', $body, 'Grenze markiert, wenn bestätigt + offen darüber liegt');
         // Personen je Ort als Balken: Hamm 9 bestätigt + 3 offen = größter Ort (100 %); Name im Balken, darunter „9/3“
-        $this->assertMatchesRegularExpression('#Personen je Ort</h3>\s*<div class="place-chart"#', $body);
+        $this->assertMatchesRegularExpression('#<div class="text-body-secondary small mb-2">Personen je Ort</div>.*?<div class="place-chart"#s', $body, 'Kacheltitel');
+        $this->assertStringNotContainsString('Personen, alle Status', $body, 'keine Gesamtzahl mehr in der Kachel');
+        $this->assertMatchesRegularExpression('#quota-swatch bg-primary"></span> Bestätigt 9</span>\s*<span><span class="quota-swatch progress-bar-striped bg-warning"></span> Offen 3</span>#', $body, 'Summen in der Legende');
+        $this->assertStringNotContainsString('relativ zum Ort mit den meisten', $body, 'kein Erklärungstext');
         $this->assertMatchesRegularExpression('#title="Hamm: 9 bestätigt, 3 offen">\s*<div class="place-chart-bar">\s*<div class="progress-bar progress-bar-striped bg-warning" style="height: 25\.00%"></div>\s*<div class="progress-bar bg-primary" style="height: 75\.00%"></div>#', $body);
         $this->assertMatchesRegularExpression('#<span class="place-chart-name">Hamm</span>\s*</div>\s*<div class="place-chart-count tabular-nums"><strong>9</strong>/3</div>#', $body);
         $this->assertStringContainsString('Bestätigte Anwesenheit je Programmpunkt', $body);

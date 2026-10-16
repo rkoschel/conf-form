@@ -164,50 +164,28 @@ function quota_shares(int $confirmed, int $pending, int $max): array
 }
 
 /**
- * Balken „Personen je Ort“ (SPEC §7.7): Der Ort mit den meisten Personen
- * (bestätigt + offen) ist 100 %, die anderen relativ dazu. Orte, die einzeln
- * unter $minShare dieses Maximums liegen, werden zu „Andere“ zusammengefasst
- * (am Ende). Liegt „Andere“ höher als der größte Ort, bestimmt es den
- * Maßstab. Höhen in Prozent (bestätigt unten, offen darüber), dazu die
- * Personenzahlen für die Beschriftung.
+ * Balken „Personen je Ort“ (SPEC §7.7): alle Orte, der Ort mit den meisten
+ * Personen (bestätigt + offen) ist 100 %, die anderen relativ dazu. Höhen in
+ * Prozent (bestätigt unten, offen darüber), dazu die Personenzahlen.
  *
  * @param list<array{name: string, confirmed: int, pending: int, preferred: bool}> $places nach Personen absteigend
- * @return list<array{name: string, preferred: bool, other: bool, confirmed: float, pending: float,
+ * @return list<array{name: string, preferred: bool, confirmed: float, pending: float,
  *     people_confirmed: int, people_pending: int}>
  */
-function places_chart(array $places, float $minShare = 0.05): array
+function places_chart(array $places): array
 {
     $total = fn (array $place): int => $place['confirmed'] + $place['pending'];
     $places = array_values(array_filter($places, fn ($place) => $total($place) > 0));
     if (!$places) {
         return [];
     }
-    $top = max(array_map($total, $places));
-    $bars = [];
-    $other = ['name' => 'Andere', 'preferred' => false, 'other' => true, 'confirmed' => 0, 'pending' => 0, 'count' => 0];
-    foreach ($places as $place) {
-        if ($total($place) < $top * $minShare) {
-            $other['confirmed'] += $place['confirmed'];
-            $other['pending'] += $place['pending'];
-            $other['count']++;
-        } else {
-            $bars[] = $place + ['other' => false];
-        }
-    }
-    // Ein einzelner kleiner Ort bleibt mit seinem Namen stehen
-    if ($other['count'] === 1) {
-        $bars[] = array_values(array_filter($places, fn ($p) => $total($p) < $top * $minShare))[0] + ['other' => false];
-    } elseif ($other['count'] > 1) {
-        $bars[] = $other;
-    }
-    $scale = max(array_map($total, $bars));
-    return array_map(fn (array $bar) => [
-        'name' => $bar['name'],
-        'preferred' => $bar['preferred'],
-        'other' => $bar['other'],
-        'confirmed' => round($bar['confirmed'] / $scale * 100, 2),
-        'pending' => round($bar['pending'] / $scale * 100, 2),
-        'people_confirmed' => $bar['confirmed'],
-        'people_pending' => $bar['pending'],
-    ], $bars);
+    $scale = max(array_map($total, $places));
+    return array_map(fn (array $place) => [
+        'name' => $place['name'],
+        'preferred' => $place['preferred'],
+        'confirmed' => round($place['confirmed'] / $scale * 100, 2),
+        'pending' => round($place['pending'] / $scale * 100, 2),
+        'people_confirmed' => $place['confirmed'],
+        'people_pending' => $place['pending'],
+    ], $places);
 }

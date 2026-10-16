@@ -10,6 +10,13 @@ declare(strict_types=1);
  */
 const CHANGELOG = [
     [
+        'version' => '1.6',
+        'date' => '2026-10-16',
+        'changed' => [
+            'Auswertung und Team-Seite: Kachel heißt „Personen je Ort“ und zeigt alle Orte (keine Zusammenfassung unter „Andere“), die Summen bestätigt/offen in der Legende, ohne Anzahl der Anmeldungen und ohne Erklärungstext.',
+        ],
+    ],
+    [
         'version' => '1.5',
         'date' => '2026-10-12',
         'new' => [

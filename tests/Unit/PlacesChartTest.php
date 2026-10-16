@@ -15,43 +15,18 @@ final class PlacesChartTest extends TestCase
     {
         $bars = places_chart([$this->place('Hamm', 30, 10, true), $this->place('Unna', 10, 10)]);
 
-        $this->assertSame(['name' => 'Hamm', 'preferred' => true, 'other' => false, 'confirmed' => 75.0, 'pending' => 25.0,
+        $this->assertSame(['name' => 'Hamm', 'preferred' => true, 'confirmed' => 75.0, 'pending' => 25.0,
             'people_confirmed' => 30, 'people_pending' => 10], $bars[0]);
-        $this->assertSame(['name' => 'Unna', 'preferred' => false, 'other' => false, 'confirmed' => 25.0, 'pending' => 25.0,
+        $this->assertSame(['name' => 'Unna', 'preferred' => false, 'confirmed' => 25.0, 'pending' => 25.0,
             'people_confirmed' => 10, 'people_pending' => 10], $bars[1]);
     }
 
-    public function testPlacesBelowFivePercentOfLargestAreGroupedAsOthers(): void
+    public function testAllPlacesAreShownEvenVerySmallOnes(): void
     {
-        $bars = places_chart([
-            $this->place('Hamm', 100),
-            $this->place('Unna', 5),      // genau 5 % → bleibt
-            $this->place('Werne', 4),     // < 5 %
-            $this->place('Ahlen', 2, 1),  // < 5 %
-        ]);
+        $bars = places_chart([$this->place('Hamm', 100), $this->place('Werne', 4), $this->place('Ahlen', 1, 1)]);
 
-        $this->assertSame(['Hamm', 'Unna', 'Andere'], array_column($bars, 'name'));
-        $this->assertSame(['name' => 'Andere', 'preferred' => false, 'other' => true, 'confirmed' => 6.0, 'pending' => 1.0,
-            'people_confirmed' => 6, 'people_pending' => 1], $bars[2], '„Andere“ bleibt ausgeschrieben');
-    }
-
-    public function testSingleSmallPlaceKeepsItsName(): void
-    {
-        $this->assertSame(['Hamm', 'Werne'], array_column(places_chart([$this->place('Hamm', 100), $this->place('Werne', 2)]), 'name'));
-    }
-
-    public function testOthersHigherThanLargestPlaceSetsTheScale(): void
-    {
-        $places = [$this->place('Hamm', 100)];
-        for ($i = 1; $i <= 30; $i++) {
-            $places[] = $this->place("Ort $i", 4);
-        }
-
-        $bars = places_chart($places);
-
-        $this->assertSame('Andere', $bars[1]['name']);
-        $this->assertSame(100.0, $bars[1]['confirmed'], 'Andere (120) ist jetzt der Maßstab');
-        $this->assertSame(83.33, $bars[0]['confirmed']);
+        $this->assertSame(['Hamm', 'Werne', 'Ahlen'], array_column($bars, 'name'), 'keine Zusammenfassung unter „Andere“');
+        $this->assertSame([1.0, 1.0], [$bars[2]['confirmed'], $bars[2]['pending']]);
     }
 
     public function testEmptyAndZeroPlaces(): void

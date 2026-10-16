@@ -103,13 +103,13 @@
     <div class="col-lg-4">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-body-secondary small">Anmeldungen</div>
-          <div class="fs-2 my-1"><?= $registrations ?></div>
-          <div class="small text-body-secondary"><?= $people ?> Personen, alle Status</div>
+          <?php /* Personen je Ort (SPEC §7.7): alle Orte als senkrechte Balken, größter Ort = 100 %,
+                   Name im Balken, darunter Personen bestätigt/offen; Legende mit den Summen */ ?>
+          <div class="text-body-secondary small mb-2">Personen je Ort</div>
           <?php $placeBars = places_chart($stats['places']) ?>
-          <?php if ($placeBars): ?>
-            <?php /* Senkrechte Balken je Ort: größter Ort = 100 %, Name im Balken, darunter Personen bestätigt/offen (SPEC §7.7) */ ?>
-            <h3 class="h6 mt-3 mb-2">Personen je Ort</h3>
+          <?php if (!$placeBars): ?>
+            <p class="small text-body-secondary mb-0">Noch keine Anmeldungen.</p>
+          <?php else: ?>
             <div class="place-chart" role="list">
               <?php foreach ($placeBars as $bar): ?>
                 <div class="place-chart-item" role="listitem" title="<?= e($bar['name']) ?>: <?= $bar['people_confirmed'] ?> bestätigt, <?= $bar['people_pending'] ?> offen">
@@ -121,20 +121,15 @@
                       <div class="progress-bar bg-primary" style="height: <?= number_format($bar['confirmed'], 2, '.', '') ?>%"></div>
                     <?php endif ?>
                     <?php /* Ortsname im Balken auf einem Schild in Seitenfarbe: lesbar auf Blau, Gelb und Grau, hell wie dunkel */ ?>
-                    <span class="place-chart-name<?= $bar['other'] ? ' fst-italic' : '' ?><?= $bar['preferred'] ? ' fw-bold' : '' ?>"><?= e($bar['name']) ?><?php if ($bar['preferred']): ?><span class="visually-hidden"> (bevorzugter Ort)</span><?php endif ?></span>
+                    <span class="place-chart-name<?= $bar['preferred'] ? ' fw-bold' : '' ?>"><?= e($bar['name']) ?><?php if ($bar['preferred']): ?><span class="visually-hidden"> (bevorzugter Ort)</span><?php endif ?></span>
                   </div>
                   <div class="place-chart-count tabular-nums"><strong><?= $bar['people_confirmed'] ?></strong>/<?= $bar['people_pending'] ?></div>
                 </div>
               <?php endforeach ?>
             </div>
-            <div class="d-flex flex-wrap column-gap-3 row-gap-1 small mt-2">
-              <span><span class="quota-swatch bg-primary"></span> Bestätigt</span>
-              <span><span class="quota-swatch progress-bar-striped bg-warning"></span> Offen</span>
-            </div>
-            <div class="small text-body-secondary mt-1">
-              Personen (bestätigt und offen) relativ zum Ort mit den meisten; Orte unter 5 % davon unter „Andere“.
-              Zahlen unter den Balken: Personen <strong>bestätigt</strong>/offen.
-              <strong>Fett</strong> = bevorzugter Ort.
+            <div class="d-flex flex-wrap column-gap-3 row-gap-1 small mt-2 tabular-nums">
+              <span><span class="quota-swatch bg-primary"></span> Bestätigt <?= array_sum(array_column($placeBars, 'people_confirmed')) ?></span>
+              <span><span class="quota-swatch progress-bar-striped bg-warning"></span> Offen <?= array_sum(array_column($placeBars, 'people_pending')) ?></span>
             </div>
           <?php endif ?>
         </div>

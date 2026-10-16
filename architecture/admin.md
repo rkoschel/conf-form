@@ -234,24 +234,23 @@ ohne aktive bzw. nach Löschen aller Veranstaltungen verfügbar ist.
   „⚠ Kontingent um n überschritten“ und „Wenn alle offenen bestätigt würden:
   z von max“. Übersteigen bestätigt + offen das Kontingent, wächst die Skala
   mit und ein Strich markiert die Grenze.
-- Kachel „Anmeldungen“: zusätzlich **„Personen je Ort“** als senkrechtes
-  Balkendiagramm (Admin und Team-Seite). Gezählt werden Personen (alle
-  Gruppen), nicht Anmeldungen; storniert/abgelehnt zählen nicht. Je Ort ein
-  gestapelter Balken: bestätigt unten (blau), offen darüber (gelb gestreift),
-  Farben wie in der Gesamtbelegung. Der Ort mit den meisten Personen
-  (bestätigt + offen) ist 100 %, die anderen relativ dazu. Der
-  **Ortsname steht senkrecht im Balken** (von unten nach oben) auf einem
+- Kachel **„Personen je Ort“** (Admin und Team-Seite; ohne Anzahl der
+  Anmeldungen und ohne Gesamtzahl aller Personen): senkrechtes
+  Balkendiagramm mit **allen** Orten (keine Zusammenfassung). Gezählt werden
+  Personen (alle Gruppen), nicht Anmeldungen; storniert/abgelehnt zählen
+  nicht. Je Ort ein gestapelter Balken: bestätigt unten (blau), offen
+  darüber (gelb gestreift), Farben wie in der Gesamtbelegung. Der Ort mit den
+  meisten Personen (bestätigt + offen) ist 100 %, die anderen relativ dazu.
+  Der **Ortsname steht senkrecht im Balken** (von unten nach oben) auf einem
   halbtransparenten Schild in Seitenfarbe mit normaler Textfarbe – lesbar auf
   Blau, Gelb und Grau im hellen wie im dunklen Modus; zu lange Namen enden
-  mit „…“. **Unter dem Balken** nur die **Personen** (nicht Anmeldungen):
-  bestätigte **fett**, offene normal, z. B. „**30**/5“. Tooltip je Balken:
-  „Hamm: 30 bestätigt, 5 offen“. Orte, die einzeln unter 5 % des größten Orts liegen,
-  werden am Ende zu „Andere“ (kursiv) zusammengefasst – ein einzelner
-  kleiner Ort behält seinen Namen; liegt „Andere“ höher als der größte Ort,
-  bestimmt es den Maßstab. Reihenfolge: meiste zuerst. Schreibweisen ohne
-  Rücksicht auf Groß-/Kleinschreibung zusammengefasst, bevorzugte Orte fett,
-  Legende Bestätigt/Offen.
-  Berechnung in `places_chart()`.
+  mit „…“. **Unter dem Balken** die Personen: bestätigte **fett**, offene
+  normal, z. B. „**30**/5“. Tooltip je Balken: „Hamm: 30 bestätigt, 5 offen“.
+  Reihenfolge: meiste zuerst; bei vielen Orten scrollt das Diagramm seitlich.
+  Schreibweisen ohne Rücksicht auf Groß-/Kleinschreibung zusammengefasst,
+  bevorzugte Orte fett. Legende mit Summen „Bestätigt n“ und „Offen m“, kein
+  Erklärungstext; ohne Anmeldungen „Noch keine Anmeldungen.“. Berechnung in
+  `places_chart()`.
 
 ### 7.8 Team-Zugang zur Auswertung
 
